@@ -924,7 +924,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (scheduleItemId) {
       setPaymentSchedules(prev => prev.map(sch => {
         if (sch.id === scheduleItemId) {
-          const nextPaid = sch.paidAmount + amount;
+          const nextPaid = (sch.paidAmount || 0) + amount;
           const nextRem = Math.max(0, sch.amount - nextPaid);
           return {
             ...sch,

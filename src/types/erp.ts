@@ -29,7 +29,7 @@ export interface PermissionActions {
   export: boolean;
 }
 
-export type ModulePermissions = Record<ModuleId, PermissionActions>;
+export type ModulePermissions = Partial<Record<ModuleId, PermissionActions>>;
 
 export interface Role {
   id: string;
@@ -679,7 +679,7 @@ export interface PaymentReceipt {
   customerName: string;
   amount: number;
   paymentDate: string;
-  paymentMethod: 'cash' | 'bank_transfer' | 'card' | 'other';
+  paymentMethod: 'cash' | 'bank_transfer' | 'card' | 'check' | 'other' | string;
   paymentType: 'deposit' | 'installment' | 'full_payment';
   receivedByUserName: string;
   notes?: string;
@@ -992,8 +992,10 @@ export interface Supplier {
 export type OrderStatus =
   | 'draft'
   | 'confirmed'
+  | 'preparing'
   | 'preparing_production'
   | 'in_production'
+  | 'ready_for_delivery'
   | 'ready_installation'
   | 'installation_scheduled'
   | 'installed'
@@ -1029,22 +1031,24 @@ export interface OrderItem {
   totalPurchaseCost: number;
   itemGrossProfit: number;
   stockAvailability?: 'available' | 'partially_available' | 'out_of_stock';
+  notes?: string;
 }
 
 export interface CustomerPayment {
   id: string;
   orderId: string;
-  orderNumber: string;
-  customerId: string;
-  customerName: string;
+  orderNumber?: string;
+  customerId?: string;
+  customerName?: string;
   amount: number;
   paymentDate: string;
-  paymentMethod: 'cash' | 'bank_transfer' | 'card' | 'other';
+  paymentMethod: 'cash' | 'bank_transfer' | 'card' | 'check' | 'other' | string;
+  receiptReference?: string;
   receiptRef?: string;
-  receivedByUserId: string;
-  receivedByUserName: string;
+  receivedByUserName?: string;
+  receivedByUserId?: string;
   notes?: string;
-  paymentType: 'deposit' | 'installment' | 'full_payment';
+  paymentType?: 'deposit' | 'installment' | 'full_payment';
 }
 
 export interface PaymentSchedule {
@@ -1056,12 +1060,13 @@ export interface PaymentSchedule {
   customerPhone: string;
   installmentNumber: number;
   amount: number;
-  paidAmount: number;
-  remainingAmount: number;
+  paidAmount?: number;
+  remainingAmount?: number;
   dueDate: string;
   status: 'paid' | 'partially_paid' | 'upcoming' | 'due' | 'overdue' | 'cancelled';
   paidDate?: string;
   paymentRef?: string;
+  notes?: string;
 }
 
 export interface OrderDeliveryInfo {

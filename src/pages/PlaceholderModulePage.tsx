@@ -33,7 +33,7 @@ interface ModuleConfig {
   sampleRows: any[];
 }
 
-const moduleConfigs: Record<ModuleId, ModuleConfig> = {
+const moduleConfigs: Partial<Record<ModuleId, ModuleConfig>> = {
   dashboard: {
     id: 'dashboard',
     title: 'لوحة التحكم والرؤية الشاملة',
@@ -231,7 +231,7 @@ const moduleConfigs: Record<ModuleId, ModuleConfig> = {
 
 export const PlaceholderModulePage: React.FC<{ moduleId: ModuleId }> = ({ moduleId }) => {
   const { currentBranch, currentRole, checkPermission } = useERP();
-  const config = moduleConfigs[moduleId] || moduleConfigs.sales;
+  const config = (moduleConfigs[moduleId] || moduleConfigs.sales)!;
   const Icon = config.icon;
 
   const hasCreatePerm = checkPermission(moduleId, 'create');

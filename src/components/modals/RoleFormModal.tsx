@@ -62,7 +62,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
 
   const toggleAction = (module: ModuleId, action: keyof PermissionActions) => {
     setPermissions(prev => {
-      const current = prev[module];
+      const current = prev[module] || { view: false, create: false, edit: false, delete: false, approve: false, export: false };
       const nextValue = !current[action];
 
       // If user enables create/edit/delete/approve/export, auto-enable view
