@@ -169,7 +169,7 @@ export const PurchasingListPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">أوامر الشراء والتوريد (Purchasing & Material Receiving)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {filteredPOs.length} أمر توريد
             </span>
           </div>
@@ -181,9 +181,9 @@ export const PurchasingListPage: React.FC = () => {
         {canCreate && (
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
+            className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
           >
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>إنشاء أمر شراء وتوريد جديد</span>
           </button>
         )}
@@ -200,7 +200,7 @@ export const PurchasingListPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث برقم أمر الشراء أو اسم المورد..."
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             />
           </div>
 
@@ -224,7 +224,7 @@ export const PurchasingListPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+            <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
                 <th className="p-4 min-w-[180px] text-right whitespace-nowrap">رقم الأمر والمورد</th>
                 <th className="p-4 min-w-[150px] text-right whitespace-nowrap">المخزن المستهدف</th>
@@ -415,7 +415,7 @@ export const PurchasingListPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddItemToCart}
-                    className="px-4 py-1.5 bg-[#1C352D] text-white font-black rounded-xl"
+                    className="px-4 py-1.5 bg-[#361D13] text-white font-black rounded-xl"
                   >
                     + إضافة الصنف للأمر
                   </button>
@@ -464,7 +464,7 @@ export const PurchasingListPage: React.FC = () => {
                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 border rounded-xl font-bold text-slate-700">
                   إلغاء
                 </button>
-                <button type="submit" className="px-5 py-2 bg-[#1C352D] text-white font-black rounded-xl shadow-md">
+                <button type="submit" className="px-5 py-2 bg-[#361D13] text-white font-black rounded-xl shadow-md">
                   تأكيد وتأطير أمر الشراء
                 </button>
               </div>

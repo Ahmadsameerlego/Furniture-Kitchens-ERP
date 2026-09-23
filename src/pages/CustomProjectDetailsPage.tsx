@@ -22,10 +22,13 @@ import {
   Sparkles,
   ZoomIn,
   Eye,
-  Video
+  Video,
+  Printer
 } from 'lucide-react';
 import { LocalImageUploader } from '../components/common/LocalImageUploader';
 import { ImageZoomModal } from '../components/common/ImageZoomModal';
+import { OfficialQuotationModal } from '../components/modals/OfficialQuotationModal';
+import { ProjectQuotation } from '../types/erp';
 
 interface CustomProjectDetailsPageProps {
   projectId: string;
@@ -35,6 +38,7 @@ interface CustomProjectDetailsPageProps {
 export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> = ({ projectId, onBack }) => {
   const {
     customProjects,
+    customers,
     siteVisits,
     projectMeasurements,
     projectDesigns,
@@ -56,6 +60,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
 
   const project = customProjects.find(p => p.id === projectId);
   const [activeTab, setActiveTab] = useState<'overview' | 'measurements' | 'designs' | 'quotations' | 'timeline'>('overview');
+  const [selectedQuoteForOfficialModal, setSelectedQuoteForOfficialModal] = useState<ProjectQuotation | null>(null);
 
   // Modals & Forms State
   const [isScheduleVisitOpen, setIsScheduleVisitOpen] = useState(false);
@@ -183,7 +188,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
     return (
       <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
         <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على مشروع التفصيل المطلوب</p>
-        <button onClick={onBack} className="px-4 py-2 bg-[#1C352D] text-white text-xs font-bold rounded-xl">
+        <button onClick={onBack} className="px-4 py-2 bg-[#361D13] text-white text-xs font-bold rounded-xl">
           العودة لقائمة المشاريع
         </button>
       </div>
@@ -282,7 +287,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-all"
         >
-          <ArrowRight className="w-4 h-4 text-[#1C352D]" />
+          <ArrowRight className="w-4 h-4 text-[#361D13]" />
           <span>العودة لقائمة المشاريع</span>
         </button>
       </div>
@@ -368,7 +373,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'overview' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'overview' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           نظرة عامة والمعاينة الميدانية
@@ -377,7 +382,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
         <button
           onClick={() => setActiveTab('measurements')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'measurements' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'measurements' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>رفع وتاريخ المقاسات</span>
@@ -387,7 +392,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
         <button
           onClick={() => setActiveTab('designs')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'designs' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'designs' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>التصميمات 3D ورأي العميل</span>
@@ -397,7 +402,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
         <button
           onClick={() => setActiveTab('quotations')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'quotations' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'quotations' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>عروض الأسعار والتكلفة</span>
@@ -407,7 +412,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
         <button
           onClick={() => setActiveTab('timeline')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'timeline' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'timeline' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>سجل المراحل (Timeline)</span>
@@ -422,14 +427,14 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-[#E06F28]" />
+                <Calendar className="w-5 h-5 text-[#C87A38]" />
                 <h3 className="text-base font-black text-slate-900">المعاينة الميدانية ورفع المقاسات بالموقع (Site Visit)</h3>
               </div>
 
               {!latestVisit ? (
                 <button
                   onClick={() => setIsScheduleVisitOpen(true)}
-                  className="px-4 py-2 bg-[#1C352D] text-white font-bold text-xs rounded-xl shadow-xs"
+                  className="px-4 py-2 bg-[#361D13] text-white font-bold text-xs rounded-xl shadow-xs"
                 >
                   + جدولة موعد معاينة بالموقع
                 </button>
@@ -465,7 +470,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                 {latestVisit.siteConditions && (
                   <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-3">
                     <p className="font-black text-amber-950 flex items-center gap-1.5">
-                      <Camera className="w-4 h-4 text-[#E06F28]" />
+                      <Camera className="w-4 h-4 text-[#C87A38]" />
                       <span>تقرير الفحص الفني والاشتراطات الميدانية بالموقع (Site Technical Inspection):</span>
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-[11px] font-bold text-slate-800">
@@ -505,7 +510,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                         <img src={ph} alt="site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-xs">
                           <span className="p-1.5 rounded-lg bg-white text-slate-900 text-[10px] font-bold flex items-center gap-1">
-                            <ZoomIn className="w-3.5 h-3.5 text-[#E06F28]" /> تكبير
+                            <ZoomIn className="w-3.5 h-3.5 text-[#C87A38]" /> تكبير
                           </span>
                         </div>
                       </div>
@@ -548,9 +553,9 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
 
             <button
               onClick={() => setIsAddMeasurementOpen(true)}
-              className="px-4 py-2 bg-[#1C352D] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#361D13] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4 text-[#E06F28]" />
+              <Plus className="w-4 h-4 text-[#C87A38]" />
               <span>إضافة نسخة مقاسات جديدة (New Version)</span>
             </button>
           </div>
@@ -561,7 +566,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
               <div key={meas.id} className="p-5 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-xl bg-[#1C352D] text-white flex items-center justify-center font-black text-xs font-mono">
+                    <span className="w-8 h-8 rounded-xl bg-[#361D13] text-white flex items-center justify-center font-black text-xs font-mono">
                       V{meas.version}
                     </span>
                     <div>
@@ -624,9 +629,9 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
 
             <button
               onClick={() => setIsAddDesignOpen(true)}
-              className="px-4 py-2 bg-[#1C352D] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#361D13] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4 text-[#E06F28]" />
+              <Plus className="w-4 h-4 text-[#C87A38]" />
               <span>إرسال تصميم 3D جديد للعميل</span>
             </button>
           </div>
@@ -639,7 +644,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                 <div key={dsg.id} className="p-5 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-xl bg-[#E06F28] text-white flex items-center justify-center font-black text-xs font-mono">
+                      <span className="w-8 h-8 rounded-xl bg-[#C87A38] text-white flex items-center justify-center font-black text-xs font-mono">
                         V{dsg.version}
                       </span>
                       <div>
@@ -685,7 +690,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                         <img src={img} alt="design-3d" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-xs">
                           <span className="px-4 py-2 rounded-xl bg-white/90 font-black text-xs text-slate-900 flex items-center gap-1.5 shadow-lg">
-                            <ZoomIn className="w-4 h-4 text-[#E06F28]" />
+                            <ZoomIn className="w-4 h-4 text-[#C87A38]" />
                             <span>معاينة وتكبير (Zoom In)</span>
                           </span>
                         </div>
@@ -702,7 +707,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                   {/* Customer Comments Thread */}
                   <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
                     <p className="font-bold text-slate-900 flex items-center gap-1">
-                      <MessageSquare className="w-4 h-4 text-[#E06F28]" />
+                      <MessageSquare className="w-4 h-4 text-[#C87A38]" />
                       <span>سجل ملاحظات واستفسارات العميل على النسخة V{dsg.version}:</span>
                     </p>
 
@@ -732,7 +737,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                           addDesignComment(dsg.id, commentText, true);
                           setCommentText('');
                         }}
-                        className="px-4 py-1.5 bg-[#1C352D] text-white font-bold rounded-xl"
+                        className="px-4 py-1.5 bg-[#361D13] text-white font-bold rounded-xl"
                       >
                         إرسال
                       </button>
@@ -756,9 +761,9 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
 
             <button
               onClick={() => setIsAddQuotationOpen(true)}
-              className="px-4 py-2 bg-[#1C352D] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#361D13] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4 text-[#E06F28]" />
+              <Plus className="w-4 h-4 text-[#C87A38]" />
               <span>إصدار عرض سعر جديد (New Quotation)</span>
             </button>
           </div>
@@ -780,10 +785,20 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className={`px-3 py-1 rounded-xl text-xs font-bold border ${quoteMeta.bgClass}`}>
                         {quoteMeta.label}
                       </span>
+
+                      {/* Official Quotation Sheet PDF Preview Button */}
+                      <button
+                        onClick={() => setSelectedQuoteForOfficialModal(qte)}
+                        className="px-3 py-1.5 bg-[#361D13] hover:bg-[#23120A] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs border border-white/10"
+                        title="معاينة وطباعة عرض السعر الرسمي المعتمد للعميل بصيغة PDF"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-[#C87A38]" />
+                        <span>عرض السعر المعتمد PDF</span>
+                      </button>
 
                       {/* WhatsApp Share Button */}
                       <button
@@ -797,7 +812,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                       {qte.status !== 'accepted' ? (
                         <button
                           onClick={() => acceptQuotation(qte.id)}
-                          className="px-3 py-1.5 bg-[#E06F28] hover:bg-[#c85e1b] text-white font-bold text-xs rounded-xl flex items-center gap-1 shadow-xs"
+                          className="px-3 py-1.5 bg-[#C87A38] hover:bg-[#c85e1b] text-white font-bold text-xs rounded-xl flex items-center gap-1 shadow-xs"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>تأكيد قبول العميل</span>
@@ -887,7 +902,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
           <div className="space-y-3 text-xs">
             {projectTimeline.map(tle => (
               <div key={tle.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#1C352D] text-white flex items-center justify-center font-bold shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-[#361D13] text-white flex items-center justify-center font-bold shrink-0">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div className="space-y-1 flex-1">
@@ -925,7 +940,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
               <button type="button" onClick={() => {
                 scheduleSiteVisit(project.id, { date: visitDate, time: visitTime, address: visitAddress, notes: visitNotes });
                 setIsScheduleVisitOpen(false);
-              }} className="px-5 py-2 bg-[#1C352D] text-white font-black rounded-xl">تأكيد الموعد</button>
+              }} className="px-5 py-2 bg-[#361D13] text-white font-black rounded-xl">تأكيد الموعد</button>
             </div>
           </div>
         </div>
@@ -939,7 +954,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#1C352D] text-[#E06F28] flex items-center justify-center font-black">
+                <div className="w-12 h-12 rounded-2xl bg-[#361D13] text-[#C87A38] flex items-center justify-center font-black">
                   <Ruler className="w-6 h-6" />
                 </div>
                 <div>
@@ -966,7 +981,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
               {/* SECTION 1: BASIC MEASUREMENT INFO */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                 <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5 text-emerald-800">
-                  <FileText className="w-4 h-4 text-[#E06F28]" />
+                  <FileText className="w-4 h-4 text-[#C87A38]" />
                   <span>1. تفاصيل وبيانات المقايسة والتحديث:</span>
                 </h4>
 
@@ -979,7 +994,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                       value={updateReason}
                       onChange={e => setUpdateReason(e.target.value)}
                       placeholder="مثال: رفع المقاسات الأولي بالموقع / إضافة غسالة أطباق بلت إن"
-                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#1C352D]/20 outline-none"
+                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#361D13]/20 outline-none"
                     />
                   </div>
 
@@ -990,7 +1005,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                       value={measTechnicalNotes}
                       onChange={e => setMeasTechnicalNotes(e.target.value)}
                       placeholder="مثال: تم قياس الموقع بالليزر والتأكد من استواء الأرضيات والجدران"
-                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-[#1C352D]/20 outline-none"
+                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-[#361D13]/20 outline-none"
                     />
                   </div>
                 </div>
@@ -1000,7 +1015,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
               <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/80 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-black text-amber-950 text-xs flex items-center gap-1.5">
-                    <Camera className="w-4 h-4 text-[#E06F28]" />
+                    <Camera className="w-4 h-4 text-[#C87A38]" />
                     <span>2. رفع وتوثيق صور وفيديوهات المعاينة الميدانية من الموقع (Site Media):</span>
                   </h4>
                   <span className="text-[10px] text-amber-800 font-bold bg-amber-200/60 px-2 py-0.5 rounded-lg">
@@ -1062,7 +1077,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
               {/* SECTION 3: TECHNICAL SITE INSPECTION CHECKLIST */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
                 <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5 text-emerald-800">
-                  <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />
+                  <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />
                   <span>3. تقرير الفحص والظروف الفنية الشاملة بالموقع (Site Technical Conditions):</span>
                 </h4>
 
@@ -1171,7 +1186,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
               {/* SECTION 4: LINE ITEM DIMENSIONS TABLE BUILDER */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                 <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5 text-emerald-800">
-                  <Ruler className="w-4 h-4 text-[#E06F28]" />
+                  <Ruler className="w-4 h-4 text-[#C87A38]" />
                   <span>4. جدول أبعاد الجدران والبُنود التفصيلية (Line Item Dimensions):</span>
                 </h4>
 
@@ -1219,9 +1234,9 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                     <button
                       type="button"
                       onClick={handleAddMeasItem}
-                      className="px-4 py-2 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-xs shrink-0 flex items-center gap-1"
+                      className="px-4 py-2 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-xs shrink-0 flex items-center gap-1"
                     >
-                      <Plus className="w-4 h-4 text-[#E06F28]" />
+                      <Plus className="w-4 h-4 text-[#C87A38]" />
                       <span>إضافة البُعد</span>
                     </button>
                   </div>
@@ -1269,9 +1284,9 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                 <button
                   type="submit"
                   disabled={measItems.length === 0}
-                  className="px-6 py-2.5 bg-[#1C352D] hover:bg-[#142921] disabled:opacity-40 text-white font-black rounded-xl text-xs shadow-lg transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#361D13] hover:bg-[#23120A] disabled:opacity-40 text-white font-black rounded-xl text-xs shadow-lg transition-all flex items-center gap-2"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />
+                  <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />
                   <span>حفظ المقايسة ونسخة المقاسات V{projectMeasList.length + 1}</span>
                 </button>
               </div>
@@ -1311,7 +1326,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                 type="button"
                 onClick={handleSaveDesign}
                 disabled={designImages.length === 0}
-                className="px-5 py-2 bg-[#1C352D] disabled:opacity-40 text-white font-black rounded-xl"
+                className="px-5 py-2 bg-[#361D13] disabled:opacity-40 text-white font-black rounded-xl"
               >
                 إرسال التصميم V{projectDesignsList.length + 1}
               </button>
@@ -1411,7 +1426,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                   <button
                     type="button"
                     onClick={handleAddQuoteItem}
-                    className="px-4 py-2 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                    className="px-4 py-2 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all"
                   >
                     <Plus className="w-4 h-4 text-amber-300" />
                     <span>+ إضافة الخامة لعرض السعر</span>
@@ -1520,7 +1535,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                   type="button"
                   onClick={handleSaveQuotation}
                   disabled={quoteItems.length === 0}
-                  className="px-6 py-2.5 bg-[#1C352D] hover:bg-[#142921] disabled:opacity-40 text-white font-black rounded-xl text-xs shadow-lg transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#361D13] hover:bg-[#23120A] disabled:opacity-40 text-white font-black rounded-xl text-xs shadow-lg transition-all flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4 text-amber-300" />
                   <span>إصدار وإرسال عرض السعر V{projectQuotesList.length + 1}</span>
@@ -1565,6 +1580,21 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
           images={activeLightbox.images}
           initialIndex={activeLightbox.index}
           title={activeLightbox.title}
+        />
+      )}
+
+      {/* Official Customer Quotation PDF Modal */}
+      {selectedQuoteForOfficialModal && (
+        <OfficialQuotationModal
+          isOpen={true}
+          onClose={() => setSelectedQuoteForOfficialModal(null)}
+          quotation={selectedQuoteForOfficialModal}
+          project={project}
+          customer={customers.find(c => c.id === project?.customerId)}
+          onApprove={(quoteId) => {
+            acceptQuotation(quoteId);
+            setSelectedQuoteForOfficialModal(null);
+          }}
         />
       )}
 

@@ -8,15 +8,15 @@ export default {
     extend: {
       colors: {
         brand: {
-          dark: '#1C352D',       // Primary Deep Emerald Green from Logo
-          emerald: '#142921',    // Darker Green for backgrounds
-          primary: '#1E382B',    // Standard Emerald Green
-          accent: '#E06F28',     // Warm Orange / Amber from Logo Accent
-          'accent-light': '#F07D32',
+          dark: '#361D13',       // Primary Deep Emerald Green from Logo
+          emerald: '#23120A',    // Darker Green for backgrounds
+          primary: '#2E1810',    // Standard Emerald Green
+          accent: '#C87A38',     // Warm Orange / Amber from Logo Accent
+          'accent-light': '#DB8D48',
           gold: '#D97706',
-          light: '#F8FAF8',      // Soft Off-White
-          surface: '#F1F5F3',    // Light Greenish Off-white Card Background
-          border: '#D1E0D9'      // Soft Border
+          light: '#FAF7F2',      // Soft Off-White
+          surface: '#F4ECE1',    // Light Greenish Off-white Card Background
+          border: '#E5D7C7'      // Soft Border
         }
       },
       fontFamily: {

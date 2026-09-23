@@ -179,7 +179,7 @@ export const StockTransferModal: React.FC<StockTransferModalProps> = ({ isOpen, 
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  className="px-3 py-1.5 bg-[#1C352D] text-white font-bold rounded-xl shrink-0"
+                  className="px-3 py-1.5 bg-[#361D13] text-white font-bold rounded-xl shrink-0"
                 >
                   + إضافة
                 </button>
@@ -212,7 +212,7 @@ export const StockTransferModal: React.FC<StockTransferModalProps> = ({ isOpen, 
             <button type="button" onClick={onClose} className="px-4 py-2 border rounded-xl font-bold text-slate-700">
               إلغاء
             </button>
-            <button type="submit" className="px-5 py-2 bg-[#1C352D] text-white font-black rounded-xl">
+            <button type="submit" className="px-5 py-2 bg-[#361D13] text-white font-black rounded-xl">
               تأكيد وإرسال طلب التحويل
             </button>
           </div>

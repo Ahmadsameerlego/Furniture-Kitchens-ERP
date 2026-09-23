@@ -91,7 +91,7 @@ export const CustomersListPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">سجل العملاء وإدارة العلاقات (Customer CRM)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {filteredCustomers.length} عميل مصرح
             </span>
           </div>
@@ -103,9 +103,9 @@ export const CustomersListPage: React.FC = () => {
         {canCreate && (
           <button
             onClick={() => setIsFormModalOpen(true)}
-            className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
           >
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>تسجيل عميل جديد</span>
           </button>
         )}
@@ -117,7 +117,7 @@ export const CustomersListPage: React.FC = () => {
           onClick={() => setQuickFilter('all')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             quickFilter === 'all'
-              ? 'bg-[#1C352D] text-white shadow-md'
+              ? 'bg-[#361D13] text-white shadow-md'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
@@ -128,7 +128,7 @@ export const CustomersListPage: React.FC = () => {
           onClick={() => setQuickFilter('purchased')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             quickFilter === 'purchased'
-              ? 'bg-[#E06F28] text-white shadow-md'
+              ? 'bg-[#C87A38] text-white shadow-md'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
@@ -139,7 +139,7 @@ export const CustomersListPage: React.FC = () => {
           onClick={() => setQuickFilter('after_sales')}
           className={`px-4 py-2 rounded-2xl transition-all flex items-center gap-1.5 ${
             quickFilter === 'after_sales'
-              ? 'bg-[#1C352D] text-white shadow-md'
+              ? 'bg-[#361D13] text-white shadow-md'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
@@ -171,7 +171,7 @@ export const CustomersListPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث باسم العميل أو رقم الهاتف..."
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             />
           </div>
 
@@ -249,7 +249,7 @@ export const CustomersListPage: React.FC = () => {
       <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+            <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
                 <th className="p-4">اسم العميل ورقم الهاتف</th>
                 <th className="p-4">حالة العميل (Status)</th>
@@ -275,7 +275,7 @@ export const CustomersListPage: React.FC = () => {
                         <img
                           src={c.avatar}
                           alt=""
-                          className="w-10 h-10 rounded-2xl object-cover ring-2 ring-[#1C352D]/20 shadow-xs shrink-0"
+                          className="w-10 h-10 rounded-2xl object-cover ring-2 ring-[#361D13]/20 shadow-xs shrink-0"
                         />
                         <div>
                           <p className="font-black text-slate-900 text-sm">{c.fullName}</p>
@@ -335,9 +335,9 @@ export const CustomersListPage: React.FC = () => {
                         {/* Open 360 Profile */}
                         <button
                           onClick={() => setSelectedCustomerId(c.id)}
-                          className="px-3.5 py-1.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1"
+                          className="px-3.5 py-1.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1"
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                          <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                           <span>الملف 360</span>
                         </button>
                       </div>
@@ -380,7 +380,7 @@ export const CustomersListPage: React.FC = () => {
               <div className="flex items-center justify-end gap-2 pt-1">
                 <button
                   onClick={() => setSelectedCustomerId(c.id)}
-                  className="w-full py-2 rounded-xl bg-[#1C352D] text-white font-black text-xs text-center"
+                  className="w-full py-2 rounded-xl bg-[#361D13] text-white font-black text-xs text-center"
                 >
                   فتح ملف العميل 360
                 </button>

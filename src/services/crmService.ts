@@ -67,9 +67,9 @@ export class CrmService {
         return {
           label: 'تم التواصل',
           labelEn: 'Contacted',
-          bgClass: 'bg-[#1C352D]/10',
-          textClass: 'text-[#1C352D]',
-          borderClass: 'border-[#1C352D]/20'
+          bgClass: 'bg-[#361D13]/10',
+          textClass: 'text-[#361D13]',
+          borderClass: 'border-[#361D13]/20'
         };
       case 'interested':
         return {
@@ -107,9 +107,9 @@ export class CrmService {
         return {
           label: 'تم الاتفاق والتعاقد',
           labelEn: 'Won Contract',
-          bgClass: 'bg-[#E06F28]/15',
-          textClass: 'text-[#E06F28]',
-          borderClass: 'border-[#E06F28]/30'
+          bgClass: 'bg-[#C87A38]/15',
+          textClass: 'text-[#C87A38]',
+          borderClass: 'border-[#C87A38]/30'
         };
       case 'customer':
         return {
@@ -162,7 +162,7 @@ export class CrmService {
       case 'whatsapp':
         return { label: 'واتساب (WhatsApp)', iconColor: 'text-emerald-500' };
       case 'walk_in':
-        return { label: 'زيارة للمعرض (Walk-in)', iconColor: 'text-[#E06F28]' };
+        return { label: 'زيارة للمعرض (Walk-in)', iconColor: 'text-[#C87A38]' };
       case 'phone':
         return { label: 'اتصال هاتفي مباشر', iconColor: 'text-indigo-600' };
       case 'referral':

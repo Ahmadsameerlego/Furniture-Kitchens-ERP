@@ -64,7 +64,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
                 onClick={() => { setType('note'); setTitle('ملاحظة تتبع'); }}
                 className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
                   type === 'note'
-                    ? 'bg-[#1C352D] text-white border-[#1C352D] font-bold shadow-md'
+                    ? 'bg-[#361D13] text-white border-[#361D13] font-bold shadow-md'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -77,7 +77,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
                 onClick={() => { setType('phone_call'); setTitle('مكالمة هاتفية'); }}
                 className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
                   type === 'phone_call'
-                    ? 'bg-[#1C352D] text-white border-[#1C352D] font-bold shadow-md'
+                    ? 'bg-[#361D13] text-white border-[#361D13] font-bold shadow-md'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -90,7 +90,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
                 onClick={() => { setType('whatsapp'); setTitle('تواصل واتساب'); }}
                 className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
                   type === 'whatsapp'
-                    ? 'bg-[#1C352D] text-white border-[#1C352D] font-bold shadow-md'
+                    ? 'bg-[#361D13] text-white border-[#361D13] font-bold shadow-md'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -103,7 +103,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
                 onClick={() => { setType('meeting'); setTitle('مقابلة بالمعرض'); }}
                 className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
                   type === 'meeting'
-                    ? 'bg-[#1C352D] text-white border-[#1C352D] font-bold shadow-md'
+                    ? 'bg-[#361D13] text-white border-[#361D13] font-bold shadow-md'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -121,7 +121,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="مثال: تواصل واتساب لإرسال عينات المطابخ"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             />
           </div>
 
@@ -132,7 +132,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="اكتب رد فعل العميل والتفاصيل الناجمة عن المكالمة أو التواصل..."
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             ></textarea>
           </div>
 
@@ -147,9 +147,9 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
             
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black shadow-lg transition-all flex items-center gap-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />
+              <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />
               <span>إضافة السجل للتتبع</span>
             </button>
           </div>

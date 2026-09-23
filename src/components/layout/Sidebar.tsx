@@ -133,12 +133,12 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`h-full flex-shrink-0 z-30 flex flex-col bg-[#1C352D] text-white transition-all duration-300 shadow-2xl border-l border-white/10 ${
+      className={`h-full flex-shrink-0 z-30 flex flex-col bg-[#361D13] text-white transition-all duration-300 shadow-2xl border-l border-white/10 ${
         isSidebarCollapsed ? 'w-20' : 'w-72'
       }`}
     >
       {/* Brand Header */}
-      <div className="h-20 flex items-center justify-between px-4 border-b border-emerald-900/50 bg-[#142921] shrink-0">
+      <div className="h-20 flex items-center justify-between px-4 border-b border-white/10 bg-[#23120A] shrink-0">
         {!isSidebarCollapsed ? (
           <BrandLogo size="md" variant="dark" showSubtext={true} />
         ) : (
@@ -149,7 +149,7 @@ export const Sidebar: React.FC = () => {
 
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className="hidden md:flex items-center justify-center w-8 h-8 rounded-xl bg-white/10 text-emerald-200 hover:bg-[#E06F28] hover:text-white transition-all shadow-sm shrink-0"
+          className="hidden md:flex items-center justify-center w-8 h-8 rounded-xl bg-white/10 text-amber-200 hover:bg-[#C87A38] hover:text-white transition-all shadow-sm shrink-0"
           title={isSidebarCollapsed ? 'توسيع القائمة' : 'طَي القائمة'}
         >
           {isSidebarCollapsed ? (
@@ -164,14 +164,14 @@ export const Sidebar: React.FC = () => {
       {!isSidebarCollapsed && (
         <div className="mx-4 my-3 px-3.5 py-2.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-[#E06F28]" />
-            <span className="text-xs font-bold text-emerald-100">
+            <Building2 className="w-4 h-4 text-[#C87A38]" />
+            <span className="text-xs font-bold text-amber-100">
               {company.businessType === 'furniture_kitchens' && 'أثاث ومطابخ'}
               {company.businessType === 'furniture' && 'أثاث فقط'}
               {company.businessType === 'kitchens' && 'مطابخ فقط'}
             </span>
           </div>
-          <span className="text-[10px] font-black text-[#E06F28] bg-[#E06F28]/15 px-2 py-0.5 rounded-lg border border-[#E06F28]/30">
+          <span className="text-[10px] font-black text-[#C87A38] bg-[#C87A38]/15 px-2 py-0.5 rounded-lg border border-[#C87A38]/30">
             {company.businessModel === 'ready_custom' && 'جاهز + تفصيل'}
             {company.businessModel === 'ready_made' && 'جاهز فقط'}
             {company.businessModel === 'custom_made' && 'تفصيل فقط'}
@@ -184,7 +184,7 @@ export const Sidebar: React.FC = () => {
         {accessibleSections.map((section, idx) => (
           <div key={idx} className="space-y-1">
             {!isSidebarCollapsed && (
-              <div className="px-3 pt-2 pb-1 text-[10px] font-black tracking-wider text-emerald-300/60 uppercase">
+              <div className="px-3 pt-2 pb-1 text-[10px] font-black tracking-wider text-amber-200/50 uppercase">
                 {language === 'ar' ? section.title : section.titleEn}
               </div>
             )}
@@ -199,13 +199,13 @@ export const Sidebar: React.FC = () => {
                   onClick={() => setActiveModule(module.id)}
                   className={`w-full group relative flex items-center transition-all duration-200 rounded-2xl px-3.5 py-2.5 text-xs font-bold ${
                     isActive
-                      ? 'bg-[#E06F28] text-white shadow-lg shadow-[#E06F28]/30 font-black'
-                      : 'text-emerald-100/80 hover:bg-white/10 hover:text-white'
+                      ? 'bg-[#C87A38] text-white shadow-lg shadow-[#C87A38]/30 font-black'
+                      : 'text-amber-100/80 hover:bg-white/10 hover:text-white'
                   } ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3'}`}
                 >
                   <Icon
                     className={`transition-transform duration-200 shrink-0 ${
-                      isActive ? 'scale-110 text-white' : 'group-hover:scale-105 text-emerald-200/80'
+                      isActive ? 'scale-110 text-white' : 'group-hover:scale-105 text-amber-200/80'
                     } ${isSidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`}
                   />
 
@@ -235,18 +235,18 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Role Footer */}
-      <div className="p-3.5 border-t border-emerald-900/50 bg-[#142921] shrink-0">
+      <div className="p-3.5 border-t border-white/10 bg-[#23120A] shrink-0">
         {!isSidebarCollapsed ? (
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-            <ShieldCheck className="w-4 h-4 text-[#E06F28] shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-[#C87A38] shrink-0" />
             <div className="overflow-hidden">
-              <p className="text-xs font-bold text-emerald-100 truncate">{currentRole.name}</p>
-              <p className="text-[10px] text-emerald-300/60 truncate">نظام النفاذ المعياري</p>
+              <p className="text-xs font-bold text-amber-100 truncate">{currentRole.name}</p>
+              <p className="text-[10px] text-amber-200/50 truncate">نظام النفاذ المعياري</p>
             </div>
           </div>
         ) : (
           <div className="flex justify-center" title={currentRole.name}>
-            <ShieldCheck className="w-5 h-5 text-[#E06F28]" />
+            <ShieldCheck className="w-5 h-5 text-[#C87A38]" />
           </div>
         )}
       </div>

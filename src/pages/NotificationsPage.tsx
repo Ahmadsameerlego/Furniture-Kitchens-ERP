@@ -80,7 +80,7 @@ export const NotificationsPage: React.FC = () => {
       case 'payment_overdue':
         return <DollarSign className="w-5 h-5 text-amber-600" />;
       case 'design_review':
-        return <Layers className="w-5 h-5 text-[#E06F28]" />;
+        return <Layers className="w-5 h-5 text-[#C87A38]" />;
       case 'quotation_review':
       case 'contract_signed':
         return <FileText className="w-5 h-5 text-emerald-600" />;
@@ -146,14 +146,14 @@ export const NotificationsPage: React.FC = () => {
       <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#1C352D] text-[#E06F28] flex items-center justify-center shadow-md">
+            <div className="w-12 h-12 rounded-2xl bg-[#361D13] text-[#C87A38] flex items-center justify-center shadow-md">
               <Bell className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-slate-900">مركز الإشعارات والتنبيهات الحية (System Notifications)</h1>
                 {unreadCount > 0 && (
-                  <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-black px-3 py-1 rounded-full border border-[#E06F28]/30">
+                  <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-black px-3 py-1 rounded-full border border-[#C87A38]/30">
                     {unreadCount} تنبيه جديد
                   </span>
                 )}
@@ -182,7 +182,7 @@ export const NotificationsPage: React.FC = () => {
           onClick={() => setActiveFilter('all')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             activeFilter === 'all'
-              ? 'bg-[#1C352D] text-white font-black shadow-md'
+              ? 'bg-[#361D13] text-white font-black shadow-md'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -193,7 +193,7 @@ export const NotificationsPage: React.FC = () => {
           onClick={() => setActiveFilter('unread')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             activeFilter === 'unread'
-              ? 'bg-[#E06F28] text-white font-black shadow-md'
+              ? 'bg-[#C87A38] text-white font-black shadow-md'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -204,7 +204,7 @@ export const NotificationsPage: React.FC = () => {
           onClick={() => setActiveFilter('projects')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             activeFilter === 'projects'
-              ? 'bg-[#1C352D] text-white font-black shadow-md'
+              ? 'bg-[#361D13] text-white font-black shadow-md'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -215,7 +215,7 @@ export const NotificationsPage: React.FC = () => {
           onClick={() => setActiveFilter('payments')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             activeFilter === 'payments'
-              ? 'bg-[#1C352D] text-white font-black shadow-md'
+              ? 'bg-[#361D13] text-white font-black shadow-md'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -226,7 +226,7 @@ export const NotificationsPage: React.FC = () => {
           onClick={() => setActiveFilter('inventory')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             activeFilter === 'inventory'
-              ? 'bg-[#1C352D] text-white font-black shadow-md'
+              ? 'bg-[#361D13] text-white font-black shadow-md'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -237,7 +237,7 @@ export const NotificationsPage: React.FC = () => {
           onClick={() => setActiveFilter('production')}
           className={`px-4 py-2 rounded-2xl transition-all ${
             activeFilter === 'production'
-              ? 'bg-[#1C352D] text-white font-black shadow-md'
+              ? 'bg-[#361D13] text-white font-black shadow-md'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -275,12 +275,12 @@ export const NotificationsPage: React.FC = () => {
 
                     <div className="space-y-1.5 text-xs">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-black text-sm text-slate-900 group-hover:text-[#E06F28] transition-colors">
+                        <p className="font-black text-sm text-slate-900 group-hover:text-[#C87A38] transition-colors">
                           {notif.title}
                         </p>
 
                         {!notif.isRead && (
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#E06F28] animate-pulse"></span>
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#C87A38] animate-pulse"></span>
                         )}
 
                         {notif.branchName && (
@@ -302,9 +302,9 @@ export const NotificationsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 group-hover:bg-[#1C352D] group-hover:text-white text-xs font-bold text-slate-700 transition-all shrink-0">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 group-hover:bg-[#361D13] group-hover:text-white text-xs font-bold text-slate-700 transition-all shrink-0">
                     <span>متابعة Record</span>
-                    <ChevronLeft className="w-4 h-4 text-[#E06F28]" />
+                    <ChevronLeft className="w-4 h-4 text-[#C87A38]" />
                   </div>
                 </div>
               );

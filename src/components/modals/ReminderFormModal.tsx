@@ -64,7 +64,7 @@ export const ReminderFormModal: React.FC<ReminderFormModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="مثال: الاتصال بالعميل لمتابعة عرض سعر المطبخ"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             />
           </div>
 
@@ -76,7 +76,7 @@ export const ReminderFormModal: React.FC<ReminderFormModalProps> = ({
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 font-bold text-slate-800"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 font-bold text-slate-800"
               />
             </div>
 
@@ -86,7 +86,7 @@ export const ReminderFormModal: React.FC<ReminderFormModalProps> = ({
                 type="time"
                 value={dueTime}
                 onChange={(e) => setDueTime(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 font-bold text-slate-800"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 font-bold text-slate-800"
               />
             </div>
           </div>
@@ -104,14 +104,14 @@ export const ReminderFormModal: React.FC<ReminderFormModalProps> = ({
                   name="reminderPriority"
                   checked={priority === 'normal'}
                   onChange={() => setPriority('normal')}
-                  className="accent-[#1C352D]"
+                  className="accent-[#361D13]"
                 />
                 <span>عادية (Normal)</span>
               </label>
 
               <label className={`flex-1 p-3 rounded-2xl border flex items-center justify-center gap-2 cursor-pointer transition-all ${
                 priority === 'high'
-                  ? 'bg-[#E06F28] text-white border-[#E06F28] font-bold shadow-md'
+                  ? 'bg-[#C87A38] text-white border-[#C87A38] font-bold shadow-md'
                   : 'bg-slate-50 text-slate-700 border-slate-200'
               }`}>
                 <input
@@ -119,7 +119,7 @@ export const ReminderFormModal: React.FC<ReminderFormModalProps> = ({
                   name="reminderPriority"
                   checked={priority === 'high'}
                   onChange={() => setPriority('high')}
-                  className="accent-[#E06F28]"
+                  className="accent-[#C87A38]"
                 />
                 <span className="flex items-center gap-1">
                   <AlertTriangle className="w-3.5 h-3.5" />
@@ -140,9 +140,9 @@ export const ReminderFormModal: React.FC<ReminderFormModalProps> = ({
             
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black shadow-lg transition-all flex items-center gap-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />
+              <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />
               <span>حفظ جدول التذكير</span>
             </button>
           </div>

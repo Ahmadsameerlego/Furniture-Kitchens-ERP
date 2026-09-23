@@ -524,6 +524,76 @@ export interface QuotationLineItem {
   totalSellingPrice: number;
 }
 
+export interface QuotationSpecification {
+  doors: string;           // توصيف الضلف (e.g. بولي لاك تركي لامع كود 812)
+  carcass: string;         // توصيف الشاسيه (e.g. جود وود 18مم معالج HPL ضد المياه)
+  hinges: string;          // المفصلات ومجرى الأدراج (e.g. بلوم نمساوي أصلي Soft-Close)
+  notes?: string;          // ملاحظات فنية
+}
+
+export interface QuotationMeterage {
+  baseUnitsMeters: number;      // علب سفلية (م.ط)
+  upperUnitsMeters: number;     // علب علوية (م.ط)
+  tallUnitsMeters: number;      // دواليب طولية (م.ط)
+  totalMeters: number;          // إجمالي عدد الأمتار
+  pricePerMeter: number;        // سعر المتر
+  totalPrice: number;           // الإجمالي
+}
+
+export interface QuotationAdditions {
+  handles: { description: string; price: number };      // مقابض
+  ledProfile: { description: string; price: number };   // ليد بروفايل
+  glassFrames: { description: string; price: number };  // زجاج
+  cladding: { description: string; price: number };     // تجاليد
+  totalPrice: number;
+}
+
+export interface QuotationTableRow {
+  id?: string;
+  name: string;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: number;
+  totalPrice: number;
+  notes?: string;
+}
+
+export interface QuotationMarble {
+  typeName: string;
+  meters: number;
+  pricePerMeter: number;
+  totalPrice: number;
+}
+
+export interface QuotationLogistics {
+  location: string;
+  floor: string;
+  notes?: string;
+  totalPrice: number;
+}
+
+export interface QuotationPaymentTerms {
+  downPaymentPercent: number;        // 40%
+  productionPaymentPercent: number;  // 40%
+  deliveryPaymentPercent: number;    // 20%
+  deliveryDurationDays: string;      // 25 - 35 يوم عمل
+  warrantyYears: number;             // 5 سنوات
+}
+
+export interface QuotationBreakdown {
+  quoteType?: 'kitchen' | 'dressing' | 'furniture' | 'decor';
+  specifications: QuotationSpecification;
+  meterage: QuotationMeterage;
+  additions: QuotationAdditions;
+  mechanisms: QuotationTableRow[];
+  accessories: QuotationTableRow[];
+  marble: QuotationMarble;
+  otherWorks: QuotationTableRow[];
+  logistics: QuotationLogistics;
+  grandTotal: number;
+  paymentTerms: QuotationPaymentTerms;
+}
+
 export interface ProjectQuotation {
   id: string;
   projectId: string;
@@ -542,6 +612,7 @@ export interface ProjectQuotation {
   notes?: string;
   acceptedAt?: string;
   acceptedByCustomerName?: string;
+  breakdown?: QuotationBreakdown;
 }
 
 export interface ProjectTimelineEvent {

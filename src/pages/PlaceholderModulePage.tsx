@@ -38,7 +38,7 @@ const moduleConfigs: Partial<Record<ModuleId, ModuleConfig>> = {
     id: 'dashboard',
     title: 'لوحة التحكم والرؤية الشاملة',
     titleEn: 'Dashboard',
-    subtitle: 'نظرة عامة على أداء معارض ومصانع فيرني ميكر',
+    subtitle: 'نظرة عامة على أداء معارض ومصانع فيرنتشر لاند',
     icon: Users,
     stat1: { label: 'إجمالي المقرات', value: '4 مقرات' },
     stat2: { label: 'فريق العمل', value: '5 موظفين' },
@@ -121,7 +121,7 @@ const moduleConfigs: Partial<Record<ModuleId, ModuleConfig>> = {
     sampleTableHeaders: ['كود الخامة', 'اسم الخامة / المواصفة', 'الوحدة', 'الرصيد بمخزن العبور', 'الرصيد بالورشة', 'حد إعادة الطلب'],
     sampleRows: [
       { col1: 'MAT-WD-001', col2: 'خشب زان أحمر روماني فرز أول', col3: 'متر مكعب', col4: '42 م3', col5: '12 م3', col6: '15 م3 (كافي)' },
-      { col1: 'MAT-[#E06F28]-004', col2: 'ألواح MDF ملامين أبيض 18مم (Egger)', col3: 'لوح (2.8m x 2.07m)', col4: '340 لوح', col5: '85 لوح', col6: '100 لوح' },
+      { col1: 'MAT-[#C87A38]-004', col2: 'ألواح MDF ملامين أبيض 18مم (Egger)', col3: 'لوح (2.8m x 2.07m)', col4: '340 لوح', col5: '85 لوح', col6: '100 لوح' },
       { col1: 'MAT-ACC-099', col2: 'مفصلات هيدروليك بافوم سوفت كلوز', col3: 'طقم مفصلة', col4: '1,200 طقم', col5: '400 طقم', col6: '300 طقم' }
     ]
   },
@@ -221,7 +221,7 @@ const moduleConfigs: Partial<Record<ModuleId, ModuleConfig>> = {
     titleEn: 'Settings',
     subtitle: 'تكوين الشركة والفروع والأدوار',
     icon: Users,
-    stat1: { label: 'الشركة', value: 'فيرني ميكر' },
+    stat1: { label: 'الشركة', value: 'فيرنتشر لاند' },
     stat2: { label: 'الفروع', value: '4 فروع' },
     stat3: { label: 'الأدوار', value: '5 أدوار' },
     sampleTableHeaders: [],
@@ -242,8 +242,8 @@ export const PlaceholderModulePage: React.FC<{ moduleId: ModuleId }> = ({ module
       {/* Module Title Banner */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#1C352D] text-white flex items-center justify-center shadow-md font-bold shrink-0">
-            <Icon className="w-6 h-6 text-[#E06F28]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#361D13] text-white flex items-center justify-center shadow-md font-bold shrink-0">
+            <Icon className="w-6 h-6 text-[#C87A38]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -257,8 +257,8 @@ export const PlaceholderModulePage: React.FC<{ moduleId: ModuleId }> = ({ module
         </div>
 
         {hasCreatePerm && (
-          <button className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 self-start md:self-auto">
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+          <button className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 self-start md:self-auto">
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>إضافة جديدة</span>
           </button>
         )}
@@ -273,7 +273,7 @@ export const PlaceholderModulePage: React.FC<{ moduleId: ModuleId }> = ({ module
 
         <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
           <span className="text-xs font-bold text-slate-500">{config.stat2.label}</span>
-          <p className="text-xl font-black text-[#E06F28] mt-1">{config.stat2.value}</p>
+          <p className="text-xl font-black text-[#C87A38] mt-1">{config.stat2.value}</p>
         </div>
 
         <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
@@ -283,15 +283,15 @@ export const PlaceholderModulePage: React.FC<{ moduleId: ModuleId }> = ({ module
       </div>
 
       {/* Architecture Compatibility & Scope Banner */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 to-[#1C352D] text-white flex items-center justify-between text-xs border border-emerald-800/50">
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 to-[#361D13] text-white flex items-center justify-between text-xs border border-emerald-800/50">
         <div className="flex items-center gap-2.5">
-          <Sparkles className="w-4 h-4 text-[#E06F28]" />
+          <Sparkles className="w-4 h-4 text-[#C87A38]" />
           <span>
             هذه الوحدة مربوطة تلقائياً بهيكل الشركة الرئيسي، نطاق فرع <strong>"{currentBranch.name}"</strong>، ودور <strong>"{currentRole.name}"</strong>.
           </span>
         </div>
         <span className="bg-white/10 text-emerald-200 px-3 py-1 rounded-xl text-[10px] font-bold border border-white/15 hidden sm:inline">
-          Ready for Furni Maker Modules Expansion
+          Ready for Furniture Land Modules Expansion
         </span>
       </div>
 
@@ -305,7 +305,7 @@ export const PlaceholderModulePage: React.FC<{ moduleId: ModuleId }> = ({ module
 
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs">
-              <thead className="bg-[#1C352D] text-white font-bold">
+              <thead className="bg-[#361D13] text-white font-bold">
                 <tr>
                   {config.sampleTableHeaders.map((h, i) => (
                     <th key={i} className="p-3.5">{h}</th>
@@ -318,7 +318,7 @@ export const PlaceholderModulePage: React.FC<{ moduleId: ModuleId }> = ({ module
                     <td className="p-3.5 font-bold text-slate-900">{row.col1}</td>
                     <td className="p-3.5">{row.col2}</td>
                     <td className="p-3.5">{row.col3}</td>
-                    <td className="p-3.5 font-bold text-[#E06F28]">{row.col4}</td>
+                    <td className="p-3.5 font-bold text-[#C87A38]">{row.col4}</td>
                     <td className="p-3.5 font-mono">{row.col5}</td>
                     <td className="p-3.5">
                       <span className="bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded text-[10px]">

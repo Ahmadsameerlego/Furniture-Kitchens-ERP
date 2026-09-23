@@ -26,7 +26,7 @@ export const AuditLogPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">سجل التتبع والأمان (Audit Log Foundation)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {auditLogs.length} سجلات موثقة
             </span>
           </div>
@@ -45,7 +45,7 @@ export const AuditLogPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="بحث بالإجراء أو المستخدم أو الهدف..."
-            className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+            className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
           />
         </div>
 
@@ -85,7 +85,7 @@ export const AuditLogPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+            <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
                 <th className="p-4">التاريخ والوقت</th>
                 <th className="p-4">المستخدم والدور</th>
@@ -109,7 +109,7 @@ export const AuditLogPage: React.FC = () => {
                   <td className="p-4">
                     <div>
                       <p className="font-bold text-slate-900">{log.userName}</p>
-                      <span className="text-[10px] text-[#E06F28] font-bold">{log.userRole}</span>
+                      <span className="text-[10px] text-[#C87A38] font-bold">{log.userRole}</span>
                     </div>
                   </td>
 

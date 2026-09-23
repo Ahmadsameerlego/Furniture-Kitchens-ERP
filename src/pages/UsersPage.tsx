@@ -38,7 +38,7 @@ export const UsersPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">إدارة المستخدمين وحسابات الموظفين (User Management)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {users.length} مستخدمين
             </span>
           </div>
@@ -53,9 +53,9 @@ export const UsersPage: React.FC = () => {
               setUserToEdit(null);
               setIsModalOpen(true);
             }}
-            className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
           >
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>إضافة موظف / مستخدم جديد</span>
           </button>
         )}
@@ -70,7 +70,7 @@ export const UsersPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="بحث بالاسم أو البريد الإلكتروني..."
-            className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+            className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
           />
         </div>
 
@@ -79,7 +79,7 @@ export const UsersPage: React.FC = () => {
           <select
             value={selectedRoleFilter}
             onChange={(e) => setSelectedRoleFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 font-bold text-slate-700"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 font-bold text-slate-700"
           >
             <option value="all">كل الأدوار الوظيفية</option>
             {roles.map(r => (
@@ -93,7 +93,7 @@ export const UsersPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+            <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
                 <th className="p-4">الموظف والمسمى الوظيفي</th>
                 <th className="p-4">الدور الوظيفي (WHAT)</th>
@@ -118,12 +118,12 @@ export const UsersPage: React.FC = () => {
                         <img
                           src={user.avatar}
                           alt=""
-                          className="w-10 h-10 rounded-2xl object-cover ring-2 ring-[#1C352D]/20 shadow-xs"
+                          className="w-10 h-10 rounded-2xl object-cover ring-2 ring-[#361D13]/20 shadow-xs"
                         />
                         <div>
                           <p className="font-black text-slate-900 text-sm">{user.fullName}</p>
                           <p className="text-[11px] text-slate-500 font-mono" dir="ltr">{user.email}</p>
-                          {user.title && <span className="text-[10px] text-[#E06F28] font-bold">{user.title}</span>}
+                          {user.title && <span className="text-[10px] text-[#C87A38] font-bold">{user.title}</span>}
                         </div>
                       </div>
                     </td>
@@ -131,7 +131,7 @@ export const UsersPage: React.FC = () => {
                     {/* Role */}
                     <td className="p-4">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-emerald-900 font-bold border border-emerald-200">
-                        <Shield className="w-3.5 h-3.5 text-[#E06F28]" />
+                        <Shield className="w-3.5 h-3.5 text-[#C87A38]" />
                         <span>{userRole?.name || 'غير محدد'}</span>
                       </span>
                     </td>
@@ -144,7 +144,7 @@ export const UsersPage: React.FC = () => {
                             key={b.id}
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${
                               b.isMain
-                                ? 'bg-[#E06F28] text-white border-[#E06F28]'
+                                ? 'bg-[#C87A38] text-white border-[#C87A38]'
                                 : 'bg-slate-100 text-slate-700 border-slate-200'
                             }`}
                           >
@@ -186,7 +186,7 @@ export const UsersPage: React.FC = () => {
                             setUserToEdit(user);
                             setIsModalOpen(true);
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#1C352D] hover:text-white text-slate-700 font-bold transition-all"
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#361D13] hover:text-white text-slate-700 font-bold transition-all"
                         >
                           تعديل الصلاحيات
                         </button>

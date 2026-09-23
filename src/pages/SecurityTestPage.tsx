@@ -15,7 +15,7 @@ export const SecurityTestPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">منصة اختبار الجدار الأمني والخوادم (Security Architecture Verification)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               Server-Side Verified
             </span>
           </div>
@@ -27,9 +27,9 @@ export const SecurityTestPage: React.FC = () => {
 
       {/* Core Architectural Rule Box */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-5 rounded-3xl bg-[#1C352D] text-white space-y-2 border border-emerald-800/50 shadow-md">
+        <div className="p-5 rounded-3xl bg-[#361D13] text-white space-y-2 border border-emerald-800/50 shadow-md">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-[#E06F28]" />
+            <ShieldCheck className="w-5 h-5 text-[#C87A38]" />
             <h3 className="font-black text-sm">1. الدور الوظيفي (ROLE)</h3>
           </div>
           <p className="text-amber-300 font-bold text-xs">يجيب عن سؤال: WHAT CAN USER DO?</p>
@@ -66,18 +66,18 @@ export const SecurityTestPage: React.FC = () => {
                 onClick={() => switchPersona(persona.id as any)}
                 className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between space-y-3 ${
                   isActive
-                    ? 'bg-emerald-950 text-white border-[#1C352D] ring-2 ring-emerald-500/30 shadow-lg'
+                    ? 'bg-emerald-950 text-white border-[#361D13] ring-2 ring-emerald-500/30 shadow-lg'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-black text-sm">{persona.name}</span>
-                  {isActive && <CheckCircle2 className="w-5 h-5 text-[#E06F28]" />}
+                  {isActive && <CheckCircle2 className="w-5 h-5 text-[#C87A38]" />}
                 </div>
 
                 <div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                    isActive ? 'bg-[#E06F28] text-white' : 'bg-slate-200 text-slate-700'
+                    isActive ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
                   }`}>
                     {persona.roleTitle}
                   </span>

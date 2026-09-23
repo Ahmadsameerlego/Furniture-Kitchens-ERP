@@ -50,7 +50,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
     return (
       <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
         <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على المورد المطلوب</p>
-        <button onClick={onBack} className="px-4 py-2 bg-[#1C352D] text-white text-xs font-bold rounded-xl">
+        <button onClick={onBack} className="px-4 py-2 bg-[#361D13] text-white text-xs font-bold rounded-xl">
           العودة لقائمة الموردين
         </button>
       </div>
@@ -79,7 +79,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-all"
         >
-          <ArrowRight className="w-4 h-4 text-[#1C352D]" />
+          <ArrowRight className="w-4 h-4 text-[#361D13]" />
           <span>العودة لقائمة الموردين</span>
         </button>
 
@@ -98,7 +98,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
           
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#1C352D] text-[#E06F28] flex items-center justify-center font-bold shadow-md">
+              <div className="w-12 h-12 rounded-2xl bg-[#361D13] text-[#C87A38] flex items-center justify-center font-bold shadow-md">
                 <Truck className="w-6 h-6" />
               </div>
               <div>
@@ -162,7 +162,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'overview' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'overview' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           نظرة عامة وشروط السداد
@@ -171,7 +171,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
         <button
           onClick={() => setActiveTab('products')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'products' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'products' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>المنتجات الموردة من هذا المورد</span>
@@ -181,17 +181,17 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
         <button
           onClick={() => setActiveTab('invoices')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'invoices' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'invoices' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>فواتير الشراء والتوريد</span>
-          <span className="bg-[#E06F28] text-white text-[10px] px-2 py-0.2 rounded-full">{invoices.length}</span>
+          <span className="bg-[#C87A38] text-white text-[10px] px-2 py-0.2 rounded-full">{invoices.length}</span>
         </button>
 
         <button
           onClick={() => setActiveTab('payments')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'payments' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'payments' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>سجل سداد المدفوعات ({payments.length})</span>
@@ -213,7 +213,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
 
             <div>
               <span className="text-slate-400 font-bold block">التخصص الرئيسي:</span>
-              <span className="font-bold text-[#E06F28]">{supplier.specialty}</span>
+              <span className="font-bold text-[#C87A38]">{supplier.specialty}</span>
             </div>
 
             <div>
@@ -251,7 +251,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
                       setSelectedProductId(p.id);
                       setActiveModule('products');
                     }}
-                    className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-[#1C352D] cursor-pointer transition-all space-y-2"
+                    className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-[#361D13] cursor-pointer transition-all space-y-2"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -262,7 +262,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
                         </div>
                       </div>
 
-                      <span className="bg-[#1C352D] text-white text-[11px] font-bold px-2.5 py-1 rounded-xl">
+                      <span className="bg-[#361D13] text-white text-[11px] font-bold px-2.5 py-1 rounded-xl">
                         عرض المنتج 360
                       </span>
                     </div>
@@ -294,7 +294,7 @@ export const SupplierDetailsPage: React.FC<SupplierDetailsPageProps> = ({ suppli
                 <div key={inv.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 font-black text-slate-900">
-                      <FileText className="w-4 h-4 text-[#E06F28]" />
+                      <FileText className="w-4 h-4 text-[#C87A38]" />
                       <span>فاتورة رقم: {inv.invoiceNumber}</span>
                     </div>
                     <span className="text-[11px] text-slate-500 font-mono">{inv.date}</span>

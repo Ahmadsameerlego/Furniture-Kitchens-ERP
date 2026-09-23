@@ -60,7 +60,7 @@ export const BranchesPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">هيكل المقرات والفروع (Branch Structure)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {branches.length} مقرات نشطة
             </span>
           </div>
@@ -75,9 +75,9 @@ export const BranchesPage: React.FC = () => {
               setBranchToEdit(null);
               setIsFormModalOpen(true);
             }}
-            className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
           >
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>إضافة مقر / فرع جديد</span>
           </button>
         )}
@@ -85,9 +85,9 @@ export const BranchesPage: React.FC = () => {
 
       {/* Main Branch Highlight Banner */}
       {currentMainBranch && (
-        <div className="p-5 rounded-3xl bg-gradient-to-r from-[#1C352D] via-[#142921] to-[#1C352D] text-white shadow-xl border border-emerald-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="p-5 rounded-3xl bg-gradient-to-r from-[#361D13] via-[#23120A] to-[#361D13] text-white shadow-xl border border-emerald-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#E06F28] text-white flex items-center justify-center shadow-lg font-black shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#C87A38] text-white flex items-center justify-center shadow-lg font-black shrink-0">
               <Star className="w-6 h-6 fill-white text-white" />
             </div>
             <div>
@@ -143,7 +143,7 @@ export const BranchesPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-black text-slate-900">{branch.name}</h3>
                       {branch.isMain && (
-                        <span className="bg-[#E06F28] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
+                        <span className="bg-[#C87A38] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
                           الفرع الرئيسي
                         </span>
                       )}
@@ -207,7 +207,7 @@ export const BranchesPage: React.FC = () => {
                 {!branch.isMain && canEdit && (
                   <button
                     onClick={() => handleOpenMainConfirm(branch)}
-                    className="text-xs font-bold text-[#E06F28] hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[#C87A38] hover:underline flex items-center gap-1"
                   >
                     <Star className="w-3.5 h-3.5" />
                     <span>تعيين كفرع رئيسي</span>

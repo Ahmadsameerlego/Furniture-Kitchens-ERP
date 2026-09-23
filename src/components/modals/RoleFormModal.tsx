@@ -124,7 +124,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#E06F28]/10 text-[#E06F28] flex items-center justify-center border border-[#E06F28]/20">
+            <div className="w-10 h-10 rounded-2xl bg-[#C87A38]/10 text-[#C87A38] flex items-center justify-center border border-[#C87A38]/20">
               <Shield className="w-5 h-5" />
             </div>
             <div>
@@ -157,7 +157,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="مثال: مشرف الورشة والتصنيع"
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 transition-all"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 transition-all"
                 />
               </div>
 
@@ -168,7 +168,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="وصف مختصر لمسؤوليات صاحب هذا الدور"
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 transition-all"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 transition-all"
                 />
               </div>
             </div>
@@ -191,7 +191,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                     key={module.id}
                     className={`p-3.5 rounded-2xl border transition-all ${
                       isAnyActive
-                        ? 'bg-white border-[#1C352D]/30 shadow-sm'
+                        ? 'bg-white border-[#361D13]/30 shadow-sm'
                         : 'bg-slate-50/70 border-slate-200 opacity-80'
                     }`}
                   >
@@ -203,7 +203,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                           type="button"
                           onClick={() => toggleFullModule(module.id, !isAnyActive)}
                           className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors text-xs font-bold ${
-                            isAnyActive ? 'bg-[#1C352D] text-white' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                            isAnyActive ? 'bg-[#361D13] text-white' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
                           }`}
                           title={isAnyActive ? 'إلغاء كل الصلاحيات للوحدة' : 'منح كل الصلاحيات للوحدة'}
                         >
@@ -322,7 +322,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
 
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#E06F28] hover:bg-[#E06F28]/90 text-white text-xs font-black shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#C87A38] hover:bg-[#C87A38]/90 text-white text-xs font-black shadow-lg transition-all flex items-center gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>حفظ مصفوفة الصلاحيات</span>

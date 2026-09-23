@@ -41,7 +41,7 @@ export const MainBranchConfirmModal: React.FC<MainBranchConfirmModalProps> = ({
             تأكيد تغيير الفرع الرئيسي للشركة
           </h3>
           <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-            هل أنت أمنياً متأكد من رغبتك في نقل صفة <strong className="text-[#E06F28]">"الفرع الرئيسي"</strong> للشركة؟
+            هل أنت أمنياً متأكد من رغبتك في نقل صفة <strong className="text-[#C87A38]">"الفرع الرئيسي"</strong> للشركة؟
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export const MainBranchConfirmModal: React.FC<MainBranchConfirmModalProps> = ({
 
           <div className="flex items-center justify-between text-xs pt-1">
             <span className="text-amber-700 font-bold">الفرع الرئيسي الجديد:</span>
-            <span className="font-black text-[#1C352D] text-sm flex items-center gap-1.5 bg-emerald-100 px-3 py-1 rounded-xl text-emerald-900 border border-emerald-300">
+            <span className="font-black text-[#361D13] text-sm flex items-center gap-1.5 bg-emerald-100 px-3 py-1 rounded-xl text-emerald-900 border border-emerald-300">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               {targetBranch.name}
             </span>
@@ -84,7 +84,7 @@ export const MainBranchConfirmModal: React.FC<MainBranchConfirmModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className="px-6 py-2.5 rounded-xl bg-[#E06F28] hover:bg-[#E06F28]/90 text-white text-xs font-black shadow-lg shadow-[#E06F28]/20 transition-all flex items-center gap-2"
+            className="px-6 py-2.5 rounded-xl bg-[#C87A38] hover:bg-[#C87A38]/90 text-white text-xs font-black shadow-lg shadow-[#C87A38]/20 transition-all flex items-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             تأكيد التغيير الآن

@@ -221,7 +221,63 @@ export const initialProjectQuotations: ProjectQuotation[] = [
     totalSelling: 118500,
     totalCost: 64960,
     estimatedProfit: 53540,
-    notes: 'عرض سعر مبدئي معتمد للمطبخ شامل الخامات والتركيب بالفيلا والضمان 5 سنوات'
+    notes: 'عرض سعر معتمد للمطبخ شامل الخامات والتركيب بالفيلا والضمان 5 سنوات',
+    breakdown: {
+      quoteType: 'kitchen',
+      specifications: {
+        doors: 'HPL هندي خشابي فاخر مقاوم للحرارة والخدش كود 9402',
+        carcass: 'خشب جود وود 18مم معالج ومكبوس فورميكا أبيض ضد الرطوبة والمياه',
+        hinges: 'مفصلات بلوم نمساوي Blum Soft-Close ومجرى أدراج Tandembox هيدروليك',
+        notes: 'يشمل التصميم ثلاثي الأبعاد 3D والمعاينة الفنية بالموقع وضمان 5 سنوات معتمد'
+      },
+      meterage: {
+        baseUnitsMeters: 4.5,
+        upperUnitsMeters: 4.5,
+        tallUnitsMeters: 2.5,
+        totalMeters: 11.5,
+        pricePerMeter: 5500,
+        totalPrice: 63250
+      },
+      additions: {
+        handles: { description: 'مقابض بروفايل Gola ألومنيوم مدمجة أسود مط', price: 3200 },
+        ledProfile: { description: 'شريط ليد بروفايل غاطس دافئ Warm 3000K مع المحول وحساس لمس', price: 4800 },
+        glassFrames: { description: 'دلفة زجاج فاميه بني مع فريم ألومنيوم سليم أسود', price: 3950 },
+        cladding: { description: 'تجاليد جدارية HPL خلف الجزيرة والمطبخ', price: 4500 },
+        totalPrice: 16450
+      },
+      mechanisms: [
+        { id: 'm-1', name: 'ميكانيزم قلاب بلوم أفينتوس Blum Aventos HF مزدوج', quantity: 2, unit: 'طقم', unitPrice: 3800, totalPrice: 7600, notes: 'للوحدات العلوية المزدوجة' },
+        { id: 'm-2', name: 'وحدة ركنة ماجيك كورنر هيدروليك Magic Corner ستانلس', quantity: 1, unit: 'وحدة', unitPrice: 5200, totalPrice: 5200, notes: 'للاستغلال الأمثل لركنة المطبخ' }
+      ],
+      accessories: [
+        { id: 'a-1', name: 'مجفف أطباق مدمج استانلس ستيل 304 أصلي (80 سم)', quantity: 1, unit: 'قطعة', unitPrice: 1850, totalPrice: 1850 },
+        { id: 'a-2', name: 'سلة ترولي زيوت وتوابل استانلس هيدروليك (20 سم)', quantity: 1, unit: 'قطعة', unitPrice: 1450, totalPrice: 1450 },
+        { id: 'a-3', name: 'مقسم أدراج معالق وسكاكين وخامات خشبية فاخرة', quantity: 2, unit: 'طقم', unitPrice: 800, totalPrice: 1600 }
+      ],
+      marble: {
+        typeName: 'رخام جالاكسي أسود اسباني دبل مع شطف ليزر وفتحة حوض وبوتاجاز بلت-إن',
+        meters: 6.0,
+        pricePerMeter: 2800,
+        totalPrice: 16800
+      },
+      otherWorks: [
+        { id: 'o-1', name: 'فتحات وتهيئة وصلات الكهرباء والصرف وتوصيل الأجهزة البلت-إن', quantity: 1, unit: 'خدمة', unitPrice: 2000, totalPrice: 2000 }
+      ],
+      logistics: {
+        location: 'فيلا 14 - التجمع الخامس - القاهرة الجديدة',
+        floor: 'الدور الأرضي + الأول',
+        notes: 'شامل التوصيل بسيارات الشركة المجهزة وفريق فني معتمد',
+        totalPrice: 2300
+      },
+      grandTotal: 118500,
+      paymentTerms: {
+        downPaymentPercent: 40,
+        productionPaymentPercent: 40,
+        deliveryPaymentPercent: 20,
+        deliveryDurationDays: '25 - 35 يوم عمل',
+        warrantyYears: 5
+      }
+    }
   },
 
   // Project 3 Accepted Quotation
@@ -244,7 +300,56 @@ export const initialProjectQuotations: ProjectQuotation[] = [
     totalSelling: 42000,
     totalCost: 22250,
     estimatedProfit: 19750,
-    notes: 'عرض سعر نهائي مقبول وموثق من العميلة سارة علي'
+    notes: 'عرض سعر نهائي مقبول وموثق من العميلة سارة علي',
+    breakdown: {
+      quoteType: 'furniture',
+      specifications: {
+        doors: 'قشرة أرو طبيعي أمريكي دهان أستر مط مسامي مفتوح',
+        carcass: 'MDF أسباني 18مم معالج ومدعم بهيكل حديد تيوبات مخفي للحمل المعلق',
+        hinges: 'مفصلات إيطالي سوفت كلوز ومجرى خفي مخمد دفع Push-to-Open',
+        notes: 'شامل ممرات وتجهيزات كابلات الشاشة والريسيفر والإضاءة الديكورية'
+      },
+      meterage: {
+        baseUnitsMeters: 3.2,
+        upperUnitsMeters: 2.0,
+        tallUnitsMeters: 0,
+        totalMeters: 5.2,
+        pricePerMeter: 4800,
+        totalPrice: 24960
+      },
+      additions: {
+        handles: { description: 'نظام ضغط Touch / Push-to-Open مخفي بدون مقابض', price: 1200 },
+        ledProfile: { description: 'ليد بروفايل جانبي وخلفي دافئ مع ريموت تحكم بالسطوع', price: 3400 },
+        glassFrames: { description: 'أرفف زجاج سيكوريت 8مم كريستال مع قواعد ليد', price: 2840 },
+        cladding: { description: 'بانوهات تجاليد خشبية أرو للجدار خلف الشاشة', price: 5600 },
+        totalPrice: 13040
+      },
+      mechanisms: [],
+      accessories: [
+        { id: 'a-4', name: 'حامل شاشة متحرك متين حتى 75 بوصة', quantity: 1, unit: 'قطعة', unitPrice: 1500, totalPrice: 1500 }
+      ],
+      marble: {
+        typeName: 'بديل رخام بي في سي عالي اللمعان كلكتا جولد',
+        meters: 2.5,
+        pricePerMeter: 600,
+        totalPrice: 1500
+      },
+      otherWorks: [],
+      logistics: {
+        location: 'مدينة نصر - القاهرة',
+        floor: 'الدور الرابع (يوجد مصعد واسع)',
+        notes: 'التركيب بواسطة فريق متخصص للأعمال الديكورية',
+        totalPrice: 1000
+      },
+      grandTotal: 42000,
+      paymentTerms: {
+        downPaymentPercent: 40,
+        productionPaymentPercent: 40,
+        deliveryPaymentPercent: 20,
+        deliveryDurationDays: '20 - 25 يوم عمل',
+        warrantyYears: 5
+      }
+    }
   }
 ];
 

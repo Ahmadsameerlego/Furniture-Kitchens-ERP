@@ -16,10 +16,10 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
   };
 
   return (
-    <div className="min-h-screen bg-[#142921] flex items-center justify-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#23120A] flex items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Dynamic Background Elements */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#1C352D] rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#E06F28]/20 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#361D13] rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#C87A38]/20 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
 
       <div className="max-w-md w-full relative z-10 space-y-6">
         
@@ -43,7 +43,7 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
           
           <div className="flex items-center justify-between pb-3 border-b border-white/10">
             <span className="text-xs font-bold text-emerald-200">اختر سيناريو الدخول للتجربة:</span>
-            <span className="text-[10px] bg-[#E06F28] px-2 py-0.5 rounded text-white font-bold">
+            <span className="text-[10px] bg-[#C87A38] px-2 py-0.5 rounded text-white font-bold">
               3 سيناريوهات جاهزة
             </span>
           </div>
@@ -61,7 +61,7 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
                     onClick={() => setSelectedPersona(persona.id as DemoPersonaId)}
                     className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-start justify-between ${
                       isSelected
-                        ? 'bg-[#E06F28] text-white border-[#E06F28] font-bold shadow-lg ring-2 ring-amber-300/30'
+                        ? 'bg-[#C87A38] text-white border-[#C87A38] font-bold shadow-lg ring-2 ring-amber-300/30'
                         : 'bg-black/20 text-emerald-100 border-white/10 hover:bg-black/30'
                     }`}
                   >
@@ -74,9 +74,9 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
                     </div>
 
                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-1 ${
-                      isSelected ? 'bg-white text-[#E06F28] border-white' : 'border-white/30'
+                      isSelected ? 'bg-white text-[#C87A38] border-white' : 'border-white/30'
                     }`}>
-                      {isSelected && <span className="w-2 h-2 rounded-full bg-[#E06F28]"></span>}
+                      {isSelected && <span className="w-2 h-2 rounded-full bg-[#C87A38]"></span>}
                     </div>
                   </button>
                 );
@@ -85,7 +85,7 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-2xl bg-[#E06F28] hover:bg-[#E06F28]/90 text-white font-black text-sm shadow-xl transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-2xl bg-[#C87A38] hover:bg-[#C87A38]/90 text-white font-black text-sm shadow-xl transition-all flex items-center justify-center gap-2"
             >
               <LogIn className="w-4 h-4" />
               <span>دخول النظام وحفظ التجسيد المختار</span>
@@ -95,8 +95,8 @@ export const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuc
           {/* Company Scope Footer info */}
           <div className="pt-2 text-center border-t border-white/10 text-[11px] text-emerald-200/60">
             <div className="flex items-center justify-center gap-2">
-              <Building2 className="w-3.5 h-3.5 text-[#E06F28]" />
-              <span>شركة فيرني ميكر (أثاث ومطابخ - جاهز وتفصيل)</span>
+              <Building2 className="w-3.5 h-3.5 text-[#C87A38]" />
+              <span>شركة فيرنتشر لاند (أثاث ومطابخ - جاهز وتفصيل)</span>
             </div>
           </div>
 

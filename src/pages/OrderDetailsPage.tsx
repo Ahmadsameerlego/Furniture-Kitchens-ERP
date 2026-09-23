@@ -45,7 +45,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
     return (
       <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
         <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على طلب المبيعات المطلوبة</p>
-        <button onClick={onBack} className="px-4 py-2 bg-[#1C352D] text-white text-xs font-bold rounded-xl">
+        <button onClick={onBack} className="px-4 py-2 bg-[#361D13] text-white text-xs font-bold rounded-xl">
           العودة لقائمة الطلبات
         </button>
       </div>
@@ -68,7 +68,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-all"
         >
-          <ArrowRight className="w-4 h-4 text-[#1C352D]" />
+          <ArrowRight className="w-4 h-4 text-[#361D13]" />
           <span>العودة لقائمة طلبات المبيعات</span>
         </button>
 
@@ -83,9 +83,9 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
 
           <button
             onClick={() => setIsDeliveryModalOpen(true)}
-            className="px-4 py-2 rounded-2xl bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5"
+            className="px-4 py-2 rounded-2xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5"
           >
-            <Truck className="w-4 h-4 text-[#E06F28]" />
+            <Truck className="w-4 h-4 text-[#C87A38]" />
             <span>تحديث حالة التسليم والتوصيل</span>
           </button>
         </div>
@@ -117,7 +117,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
                     setSelectedCustomerId(order.customerId);
                     setActiveModule('customers');
                   }}
-                  className="font-black text-slate-900 underline hover:text-[#E06F28]"
+                  className="font-black text-slate-900 underline hover:text-[#C87A38]"
                 >
                   {order.customerName} ({order.customerPhone})
                 </button>
@@ -142,7 +142,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
 
             <div className="flex items-center justify-between pt-1 border-t border-emerald-900">
               <span className="font-bold text-white">هامش الربح المحقق (Gross Profit):</span>
-              <span className="font-black text-[#E06F28] text-sm font-mono">+{order.grossProfit.toLocaleString('ar-EG')} ج.م</span>
+              <span className="font-black text-[#C87A38] text-sm font-mono">+{order.grossProfit.toLocaleString('ar-EG')} ج.م</span>
             </div>
           </div>
 
@@ -201,7 +201,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
           {/* Delivery & Address Details */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3">
             <h3 className="text-sm font-black text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
-              <Truck className="w-4 h-4 text-[#1C352D]" />
+              <Truck className="w-4 h-4 text-[#361D13]" />
               <span>تفاصيل العنوان واستلام التوصيل</span>
             </h3>
 

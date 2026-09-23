@@ -79,7 +79,7 @@ export const ReadyOrdersListPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">طلبات ومبيعات الأثاث الجاهز (Ready Orders)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {filteredOrders.length} طلب مصرح
             </span>
           </div>
@@ -91,9 +91,9 @@ export const ReadyOrdersListPage: React.FC = () => {
         {canCreate && (
           <button
             onClick={() => setIsOrderModalOpen(true)}
-            className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
+            className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
           >
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>إنشاء طلب مبيعات جديد</span>
           </button>
         )}
@@ -111,7 +111,7 @@ export const ReadyOrdersListPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث برقم الطلب أو اسم العميل أو الهاتف..."
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             />
           </div>
 
@@ -167,7 +167,7 @@ export const ReadyOrdersListPage: React.FC = () => {
       <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+            <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
                 <th className="p-4 min-w-[200px] text-right whitespace-nowrap">رقم الطلب والعميل</th>
                 <th className="p-4 min-w-[150px] text-right whitespace-nowrap">الفرع المسؤول</th>
@@ -197,7 +197,7 @@ export const ReadyOrdersListPage: React.FC = () => {
                             setSelectedCustomerId(o.customerId);
                             setActiveModule('customers');
                           }}
-                          className="font-bold text-slate-600 hover:text-[#E06F28] hover:underline block text-xs truncate max-w-[180px]"
+                          className="font-bold text-slate-600 hover:text-[#C87A38] hover:underline block text-xs truncate max-w-[180px]"
                         >
                           {o.customerName} ({o.customerPhone})
                         </button>
@@ -262,9 +262,9 @@ export const ReadyOrdersListPage: React.FC = () => {
 
                         <button
                           onClick={() => setSelectedOrderId(o.id)}
-                          className="px-3 py-1.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1 shrink-0 whitespace-nowrap"
+                          className="px-3 py-1.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1 shrink-0 whitespace-nowrap"
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                          <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                           <span>تفاصيل الطلب</span>
                         </button>
                       </div>
@@ -302,7 +302,7 @@ export const ReadyOrdersListPage: React.FC = () => {
 
               <button
                 onClick={() => setSelectedOrderId(o.id)}
-                className="w-full py-2 rounded-xl bg-[#1C352D] text-white font-black text-center"
+                className="w-full py-2 rounded-xl bg-[#361D13] text-white font-black text-center"
               >
                 فتح تفاصيل الطلب بالكامل
               </button>

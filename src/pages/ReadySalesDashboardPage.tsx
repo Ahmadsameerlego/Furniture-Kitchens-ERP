@@ -52,7 +52,7 @@ export const ReadySalesDashboardPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">مؤشرات أداء مبيعات الأثاث الجاهز (Ready Sales Overview)</h1>
-            <span className="bg-[#1C352D] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+            <span className="bg-[#361D13] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
               تتبع لحظي للمبيعات والتسليم والأرباح
             </span>
           </div>
@@ -63,9 +63,9 @@ export const ReadySalesDashboardPage: React.FC = () => {
 
         <button
           onClick={() => setActiveModule('sales')}
-          className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+          className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
         >
-          <ShoppingBag className="w-4 h-4 text-[#E06F28]" />
+          <ShoppingBag className="w-4 h-4 text-[#C87A38]" />
           <span>فتح قائمة الطلبات التفصيلية</span>
         </button>
       </div>

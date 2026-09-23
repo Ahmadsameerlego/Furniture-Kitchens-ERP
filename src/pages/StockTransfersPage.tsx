@@ -51,7 +51,7 @@ export const StockTransfersPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">تحويلات المخزون والتسويات (Stock Transfers & Adjustments)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {filteredTransfers.length} تحويل مسجل
             </span>
           </div>
@@ -73,9 +73,9 @@ export const StockTransfersPage: React.FC = () => {
 
               <button
                 onClick={() => setIsTransferModalOpen(true)}
-                className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
+                className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
               >
-                <Plus className="w-4 h-4 text-[#E06F28]" />
+                <Plus className="w-4 h-4 text-[#C87A38]" />
                 <span>طلب تحويل مخزون جديد</span>
               </button>
             </>
@@ -94,7 +94,7 @@ export const StockTransfersPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث برقم التحويل أو الفرع الصادر/المستلم..."
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             />
           </div>
 
@@ -119,7 +119,7 @@ export const StockTransfersPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+            <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
                 <th className="p-4 min-w-[160px] text-right whitespace-nowrap">رقم التحويل والتاريخ</th>
                 <th className="p-4 min-w-[200px] text-right whitespace-nowrap">المسار (من ← إلى)</th>

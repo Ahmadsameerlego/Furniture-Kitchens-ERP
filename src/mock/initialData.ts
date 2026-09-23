@@ -26,14 +26,14 @@ const createFullPermissions = (): ModulePermissions => ({
 });
 
 export const initialCompany: CompanyConfig = {
-  name: 'فيرني ميكر للأثاث والمطابخ',
-  nameEn: 'Furni Maker Furniture & Kitchens Co.',
+  name: 'فيرنتشر لاند للأثاث والمطابخ',
+  nameEn: 'Furniture Land Furniture & Kitchens Co.',
   taxNumber: '302-881-492',
   commercialReg: '748291-EG',
   businessType: 'furniture_kitchens',
   businessModel: 'ready_custom',
   phone: '01001234567',
-  email: 'info@furnimaker.eg',
+  email: 'info@furnitureland.eg',
   address: 'شارع التسعين الشمالي، القطاع الأول، التجمع الخامس، القاهرة',
   currency: 'ج.م',
   mainBranchId: 'branch-1'
@@ -186,7 +186,7 @@ export const initialUsers: User[] = [
   {
     id: 'user-1',
     fullName: 'أحمد محمود',
-    email: 'ahmed@furnimaker.eg',
+    email: 'ahmed@furnitureland.eg',
     phone: '01001234567',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     roleId: 'role-superadmin',
@@ -199,7 +199,7 @@ export const initialUsers: User[] = [
   {
     id: 'user-2',
     fullName: 'محمود القاضي',
-    email: 'mahmoud@furnimaker.eg',
+    email: 'mahmoud@furnitureland.eg',
     phone: '01112345678',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
     roleId: 'role-admin',
@@ -212,7 +212,7 @@ export const initialUsers: User[] = [
   {
     id: 'user-3',
     fullName: 'سارة الشريف',
-    email: 'sara@furnimaker.eg',
+    email: 'sara@furnitureland.eg',
     phone: '01229876543',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
     roleId: 'role-accountant',
@@ -225,7 +225,7 @@ export const initialUsers: User[] = [
   {
     id: 'user-4',
     fullName: 'عمر فاروق',
-    email: 'omar@furnimaker.eg',
+    email: 'omar@furnitureland.eg',
     phone: '01098765432',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
     roleId: 'role-moderator',
@@ -238,7 +238,7 @@ export const initialUsers: User[] = [
   {
     id: 'user-5',
     fullName: 'خالد توفيق',
-    email: 'khaled@furnimaker.eg',
+    email: 'khaled@furnitureland.eg',
     phone: '01223456789',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200',
     roleId: 'role-production-coord',
@@ -260,7 +260,7 @@ export const initialAuditLogs: AuditLog[] = [
     category: 'company',
     action: 'تحديث بيانات الشركة',
     actionEn: 'Company Settings Updated',
-    target: 'شركة فيرني ميكر',
+    target: 'شركة فيرنتشر لاند',
     details: 'تحديث نوع النشاط: أثاث ومطابخ | نموذج العمل: جاهز وتفصيل',
     status: 'success',
     ipAddress: '197.34.12.89'

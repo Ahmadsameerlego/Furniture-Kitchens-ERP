@@ -106,7 +106,7 @@ export const Header: React.FC = () => {
         {/* Mobile-only Sidebar Toggle Button */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className="md:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-[#1C352D] hover:text-white transition-colors"
+          className="md:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-[#361D13] hover:text-white transition-colors"
           title="القائمة الجانبية"
         >
           <Menu className="w-5 h-5" />
@@ -118,7 +118,7 @@ export const Header: React.FC = () => {
             onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
             className="flex items-center gap-2.5 px-3 py-1.5 sm:py-2 rounded-2xl bg-slate-50 hover:bg-slate-100/90 border border-slate-200/90 transition-all text-slate-800 font-medium text-xs group"
           >
-            <div className="w-7 h-7 rounded-xl bg-[#1C352D] text-emerald-300 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-7 h-7 rounded-xl bg-[#361D13] text-amber-300 flex items-center justify-center shrink-0 shadow-xs">
               {getLocationIcon(currentBranch.type)}
             </div>
 
@@ -128,7 +128,7 @@ export const Header: React.FC = () => {
                   {currentBranch.name}
                 </span>
                 {currentBranch.isMain && (
-                  <span className="bg-[#E06F28] text-white text-[9px] font-black px-1.5 py-0.2 rounded shadow-xs">
+                  <span className="bg-[#C87A38] text-white text-[9px] font-black px-1.5 py-0.2 rounded shadow-xs">
                     رئيسي
                   </span>
                 )}
@@ -164,7 +164,7 @@ export const Header: React.FC = () => {
                       }}
                       className={`w-full flex items-center justify-between p-2.5 rounded-2xl transition-colors text-right text-xs ${
                         isSelected
-                          ? 'bg-[#1C352D] text-white font-bold'
+                          ? 'bg-[#361D13] text-white font-bold'
                           : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
@@ -176,18 +176,18 @@ export const Header: React.FC = () => {
                           <div className="flex items-center gap-1">
                             <span className="font-black">{branch.name}</span>
                             {branch.isMain && (
-                              <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${isSelected ? 'bg-[#E06F28] text-white' : 'bg-[#E06F28]/15 text-[#E06F28]'}`}>
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${isSelected ? 'bg-[#C87A38] text-white' : 'bg-[#C87A38]/15 text-[#C87A38]'}`}>
                                 رئيسي
                               </span>
                             )}
                           </div>
-                          <p className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
+                          <p className={`text-[10px] ${isSelected ? 'text-amber-100' : 'text-slate-500'}`}>
                             {getLocationLabel(branch.type)}
                           </p>
                         </div>
                       </div>
 
-                      {isSelected && <Check className="w-4 h-4 text-emerald-300" />}
+                      {isSelected && <Check className="w-4 h-4 text-amber-300" />}
                     </button>
                   );
                 })}
@@ -203,7 +203,7 @@ export const Header: React.FC = () => {
         <input
           type="text"
           placeholder="ابحث بالشفرة، اسم المشروع، أو بيانات العميل..."
-          className="w-full pl-4 pr-10 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200/90 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#1C352D]/20 transition-all"
+          className="w-full pl-4 pr-10 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200/90 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#361D13]/20 transition-all"
         />
       </div>
 
@@ -213,10 +213,10 @@ export const Header: React.FC = () => {
         {/* Customer Portal Button */}
         <button
           onClick={() => setActiveModule('portal')}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs shadow-md transition-all shrink-0 border border-emerald-800"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-md transition-all shrink-0 border border-amber-900/50"
           title="دخول بوابة العملاء التفاعلية"
         >
-          <UserIcon className="w-4 h-4 text-[#E06F28]" />
+          <UserIcon className="w-4 h-4 text-[#C87A38]" />
           <span>بوابة العملاء 🌐</span>
         </button>
 
@@ -226,9 +226,9 @@ export const Header: React.FC = () => {
             onClick={() => setIsPersonaDropdownOpen(!isPersonaDropdownOpen)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-900 transition-all font-bold text-xs shrink-0"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#E06F28] shrink-0" />
+            <Sparkles className="w-3.5 h-3.5 text-[#C87A38] shrink-0" />
             <span className="hidden sm:inline text-slate-500 font-normal">السيناريو:</span>
-            <span className="font-black text-[#E06F28]">
+            <span className="font-black text-[#C87A38]">
               {currentUser.fullName.split(' ')[0]}
             </span>
             <ChevronDown className={`w-3.5 h-3.5 text-amber-700 transition-transform ${isPersonaDropdownOpen ? 'rotate-180' : ''}`} />
@@ -239,7 +239,7 @@ export const Header: React.FC = () => {
             <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-3xl shadow-2xl border border-slate-100 p-3 z-50 animate-in fade-in duration-150">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <span className="text-xs font-black text-slate-800">اختر شخصية الاختبار (Demo Persona)</span>
-                <span className="text-[10px] bg-[#E06F28] text-white font-bold px-2 py-0.5 rounded-full">
+                <span className="text-[10px] bg-[#C87A38] text-white font-bold px-2 py-0.5 rounded-full">
                   3 سيناريوهات
                 </span>
               </div>
@@ -257,13 +257,13 @@ export const Header: React.FC = () => {
                       }}
                       className={`w-full flex items-center justify-between p-2.5 rounded-2xl transition-all text-right ${
                         isActive
-                          ? 'bg-[#E06F28] text-white font-bold shadow-md'
+                          ? 'bg-[#C87A38] text-white font-bold shadow-md'
                           : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
                       }`}
                     >
                       <div>
                         <p className="font-black text-xs">{persona.name}</p>
-                        <p className={`text-[10px] ${isActive ? 'text-amber-200' : 'text-[#E06F28]'}`}>
+                        <p className={`text-[10px] ${isActive ? 'text-amber-200' : 'text-[#C87A38]'}`}>
                           {persona.roleTitle}
                         </p>
                       </div>
@@ -285,7 +285,7 @@ export const Header: React.FC = () => {
           >
             <Bell className="w-4 h-4" />
             {unreadNotifications.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#E06F28] text-white text-[9px] font-black flex items-center justify-center animate-pulse border-2 border-white">
+              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#C87A38] text-white text-[9px] font-black flex items-center justify-center animate-pulse border-2 border-white">
                 {unreadNotifications.length}
               </span>
             )}
@@ -296,7 +296,7 @@ export const Header: React.FC = () => {
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-black text-slate-800">التنبيهات والإشعارات الحية</span>
-                  <span className="text-[10px] bg-[#E06F28]/15 text-[#E06F28] font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+                  <span className="text-[10px] bg-[#C87A38]/15 text-[#C87A38] font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
                     {unreadNotifications.length} غير مقروء
                   </span>
                 </div>
@@ -339,7 +339,7 @@ export const Header: React.FC = () => {
                         : 'bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 text-slate-900 font-bold'
                     }`}
                   >
-                    <div className="w-2 h-2 rounded-full bg-[#E06F28] shrink-0 mt-1.5" />
+                    <div className="w-2 h-2 rounded-full bg-[#C87A38] shrink-0 mt-1.5" />
                     <div className="space-y-1 flex-1">
                       <p className="font-black text-xs text-slate-900 leading-tight">{notif.title}</p>
                       <p className="text-[11px] text-slate-600 font-normal line-clamp-2">{notif.message}</p>
@@ -354,7 +354,7 @@ export const Header: React.FC = () => {
                   setActiveModule('notifications');
                   setIsNotificationsOpen(false);
                 }}
-                className="w-full mt-2 py-2 text-center text-xs font-black bg-slate-100 hover:bg-[#1C352D] hover:text-white rounded-2xl text-[#1C352D] transition-all"
+                className="w-full mt-2 py-2 text-center text-xs font-black bg-slate-100 hover:bg-[#361D13] hover:text-white rounded-2xl text-[#361D13] transition-all"
               >
                 عرض واستكشاف كافة الإشعارات ({notifications.length}) ←
               </button>
@@ -380,14 +380,14 @@ export const Header: React.FC = () => {
             <img
               src={currentUser.avatar}
               alt=""
-              className="w-8 h-8 rounded-xl object-cover ring-2 ring-[#1C352D]/20 shadow-xs shrink-0"
+              className="w-8 h-8 rounded-xl object-cover ring-2 ring-[#361D13]/20 shadow-xs shrink-0"
             />
             
             <div className="text-right hidden xl:block">
               <p className="text-xs font-black text-slate-900 leading-tight">
                 {currentUser.fullName}
               </p>
-              <p className="text-[10px] font-bold text-[#E06F28]">
+              <p className="text-[10px] font-bold text-[#C87A38]">
                 {currentRole.name.split(' ')[0]}
               </p>
             </div>
@@ -408,7 +408,7 @@ export const Header: React.FC = () => {
                   <div>
                     <p className="font-black text-slate-900 text-xs">{currentUser.fullName}</p>
                     <p className="text-[10px] text-slate-500 font-mono" dir="ltr">{currentUser.email}</p>
-                    <span className="inline-block mt-1 bg-[#1C352D] text-[#E06F28] text-[9px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="inline-block mt-1 bg-[#361D13] text-[#C87A38] text-[9px] font-bold px-2 py-0.5 rounded-full">
                       {currentRole.name}
                     </span>
                   </div>

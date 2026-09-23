@@ -122,7 +122,7 @@ export const ProductsListPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">إدارة المنتجات والأثاث الجاهز (Products Catalog)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {filteredProducts.length} منتج مسجل
             </span>
           </div>
@@ -134,9 +134,9 @@ export const ProductsListPage: React.FC = () => {
         {canCreate && (
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
+            className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0"
           >
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>إضافة منتج جديد</span>
           </button>
         )}
@@ -154,7 +154,7 @@ export const ProductsListPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث باسم المنتج أو الكود أو الـ SKU..."
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             />
           </div>
 
@@ -196,7 +196,7 @@ export const ProductsListPage: React.FC = () => {
       <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+            <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
                 <th className="p-4 min-w-[260px] text-right whitespace-nowrap">المنتج والكود</th>
                 <th className="p-4 min-w-[140px] text-right whitespace-nowrap">التصنيف</th>
@@ -226,11 +226,11 @@ export const ProductsListPage: React.FC = () => {
                             src={p.images[0]}
                             alt=""
                             onError={() => setFailedImages(prev => ({ ...prev, [p.id]: true }))}
-                            className="w-12 h-12 rounded-2xl object-cover ring-2 ring-[#1C352D]/20 shadow-xs shrink-0"
+                            className="w-12 h-12 rounded-2xl object-cover ring-2 ring-[#361D13]/20 shadow-xs shrink-0"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#1C352D] flex items-center justify-center border border-emerald-200 shrink-0 font-bold">
-                            <Package className="w-6 h-6 text-[#1C352D]" />
+                          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#361D13] flex items-center justify-center border border-emerald-200 shrink-0 font-bold">
+                            <Package className="w-6 h-6 text-[#361D13]" />
                           </div>
                         )}
                         <div className="min-w-0">
@@ -277,9 +277,9 @@ export const ProductsListPage: React.FC = () => {
                     <td className="p-4 text-center whitespace-nowrap">
                       <button
                         onClick={() => setSelectedProductId(p.id)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5 mx-auto shrink-0 whitespace-nowrap"
+                        className="px-3.5 py-1.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5 mx-auto shrink-0 whitespace-nowrap"
                       >
-                        <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                        <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                         <span>تفاصيل ومكونات</span>
                       </button>
                     </td>
@@ -311,7 +311,7 @@ export const ProductsListPage: React.FC = () => {
 
             <button
               onClick={() => setSelectedProductId(p.id)}
-              className="w-full py-2.5 rounded-xl bg-[#1C352D] text-white font-black text-center"
+              className="w-full py-2.5 rounded-xl bg-[#361D13] text-white font-black text-center"
             >
               عرض التكلفة والبدائل 360
             </button>
@@ -425,7 +425,7 @@ export const ProductsListPage: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#1C352D] text-white font-black rounded-xl"
+                  className="px-5 py-2 bg-[#361D13] text-white font-black rounded-xl"
                 >
                   حفظ المنتج ورابطه بالمورد
                 </button>

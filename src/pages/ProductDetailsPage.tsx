@@ -31,7 +31,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
     return (
       <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
         <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على المنتج المطلوب</p>
-        <button onClick={onBack} className="px-4 py-2 bg-[#1C352D] text-white text-xs font-bold rounded-xl">
+        <button onClick={onBack} className="px-4 py-2 bg-[#361D13] text-white text-xs font-bold rounded-xl">
           العودة لقائمة المنتجات
         </button>
       </div>
@@ -63,7 +63,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-all"
         >
-          <ArrowRight className="w-4 h-4 text-[#1C352D]" />
+          <ArrowRight className="w-4 h-4 text-[#361D13]" />
           <span>العودة لكتالوج المنتجات</span>
         </button>
 
@@ -78,13 +78,13 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
             <img
               src={product.images[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=600'}
               alt=""
-              className="w-24 h-24 rounded-3xl object-cover ring-4 ring-[#1C352D]/15 shadow-md shrink-0"
+              className="w-24 h-24 rounded-3xl object-cover ring-4 ring-[#361D13]/15 shadow-md shrink-0"
             />
 
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-black text-slate-900">{product.name}</h1>
-                <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+                <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
                   {product.categoryName}
                 </span>
               </div>
@@ -124,7 +124,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'overview' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'overview' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           نظرة عامة (Overview)
@@ -133,7 +133,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
         <button
           onClick={() => setActiveTab('variants')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'variants' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'variants' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>المواصفات والأنواع (Variants)</span>
@@ -143,17 +143,17 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
         <button
           onClick={() => setActiveTab('suppliers')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'suppliers' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'suppliers' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>الموردون وأسعار الشراء (Suppliers)</span>
-          <span className="bg-[#E06F28] text-white text-[10px] px-2 py-0.2 rounded-full">{product.suppliers.length}</span>
+          <span className="bg-[#C87A38] text-white text-[10px] px-2 py-0.2 rounded-full">{product.suppliers.length}</span>
         </button>
 
         <button
           onClick={() => setActiveTab('inventory')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'inventory' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'inventory' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           المخزون بجميع الفروع ({totalOnHand} قطعة)
@@ -162,7 +162,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
         <button
           onClick={() => setActiveTab('sales_history')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'sales_history' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'sales_history' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           سجل المبيعات والأرباح ({productOrders.length})
@@ -186,7 +186,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
 
                 <div>
                   <span className="text-slate-400 font-bold block">الفئة والتصنيف:</span>
-                  <span className="font-black text-[#E06F28]">{product.categoryName}</span>
+                  <span className="font-black text-[#C87A38]">{product.categoryName}</span>
                 </div>
 
                 <div>
@@ -273,7 +273,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-[#1C352D]" />
+                    <Truck className="w-4 h-4 text-[#361D13]" />
                     <span className="font-black text-slate-900 text-sm">{sup.supplierName}</span>
                     {sup.isPreferred && (
                       <span className="bg-amber-200 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full">
@@ -305,7 +305,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({ productI
             {product.stockByLocation.map(loc => (
               <div key={loc.branchId} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
                 <div className="flex items-center gap-2 font-black text-slate-900 text-sm">
-                  <Building className="w-4 h-4 text-[#1C352D]" />
+                  <Building className="w-4 h-4 text-[#361D13]" />
                   <span>{loc.branchName}</span>
                 </div>
 

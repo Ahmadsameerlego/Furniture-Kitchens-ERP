@@ -74,7 +74,7 @@ export const InstallationsListPage: React.FC = () => {
             onClick={() => setActiveModule('production')}
             className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-2xl shadow-md transition-all flex items-center gap-1.5 shrink-0"
           >
-            <ArrowRight className="w-4 h-4 text-[#E06F28]" />
+            <ArrowRight className="w-4 h-4 text-[#C87A38]" />
             <span>العودة لأوامر الإنتاج والورشة</span>
           </button>
         </div>
@@ -95,7 +95,7 @@ export const InstallationsListPage: React.FC = () => {
           <span className="text-[10px] text-blue-500 font-bold">✓ جاهزة لإقرار التسليم</span>
         </div>
 
-        <div className="p-5 rounded-3xl bg-[#1C352D] text-white border border-emerald-800 shadow-md space-y-1">
+        <div className="p-5 rounded-3xl bg-[#361D13] text-white border border-emerald-800 shadow-md space-y-1">
           <span className="text-emerald-300 font-bold block">مشاريع تم تسليمها بالكامل (100%):</span>
           <p className="text-2xl font-black text-amber-300 font-mono">{countHandover}</p>
           <span className="text-[10px] text-emerald-200">✓ تم التسليم وإغلاق الملف</span>
@@ -151,7 +151,7 @@ export const InstallationsListPage: React.FC = () => {
                     <h3 className="text-base font-black text-slate-900">العميل: {inst.customerName} ({inst.customerPhone})</h3>
                   </div>
                   <p className="text-xs text-slate-500 font-bold flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#E06F28]" />
+                    <MapPin className="w-4 h-4 text-[#C87A38]" />
                     <span>{inst.address}</span>
                   </p>
                 </div>
@@ -227,7 +227,7 @@ export const InstallationsListPage: React.FC = () => {
                   {isCompleted && !isDelivered && (
                     <button
                       onClick={() => completeHandover(inst.id, 'تم توقيع إقرار التسليم الفعلي من العميل')}
-                      className="px-5 py-2.5 bg-[#E06F28] hover:bg-[#c85e1b] text-white font-black rounded-xl shadow-lg flex items-center gap-1.5 animate-pulse"
+                      className="px-5 py-2.5 bg-[#C87A38] hover:bg-[#c85e1b] text-white font-black rounded-xl shadow-lg flex items-center gap-1.5 animate-pulse"
                     >
                       <Sparkles className="w-4 h-4 text-amber-300" />
                       <span>تسليم العميل النهائي وتأكيد 100% (Handover Completed)</span>

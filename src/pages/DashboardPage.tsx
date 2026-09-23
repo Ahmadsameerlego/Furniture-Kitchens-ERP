@@ -45,14 +45,14 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       
       {/* Welcome Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1C352D] via-[#142921] to-[#1E3A2F] text-white p-6 md:p-8 shadow-2xl border border-emerald-900/50">
-        <div className="absolute top-0 left-0 translate-x-[-20%] translate-y-[-20%] w-96 h-96 bg-[#E06F28]/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#361D13] via-[#23120A] to-[#1E3A2F] text-white p-6 md:p-8 shadow-2xl border border-emerald-900/50">
+        <div className="absolute top-0 left-0 translate-x-[-20%] translate-y-[-20%] w-96 h-96 bg-[#C87A38]/15 rounded-full blur-3xl pointer-events-none"></div>
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-amber-300 text-xs font-black">
-              <Sparkles className="w-3.5 h-3.5 text-[#E06F28]" />
-              <span>نظام فيرني ميكر المتخصص لأعمال الأثاث والمطابخ</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#C87A38]" />
+              <span>نظام فيرنتشر لاند المتخصص لأعمال الأثاث والمطابخ</span>
             </div>
 
             <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
@@ -65,7 +65,7 @@ export const DashboardPage: React.FC = () => {
 
             <div className="flex flex-wrap gap-2 pt-2 text-xs font-bold">
               <span className="bg-emerald-900/80 text-emerald-200 px-3 py-1.5 rounded-xl border border-emerald-700/50 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#E06F28]" />
+                <MapPin className="w-3.5 h-3.5 text-[#C87A38]" />
                 <span>الفرع الحالي: {currentBranch.name} {currentBranch.isMain ? '(الرئيسي)' : ''}</span>
               </span>
               
@@ -79,7 +79,7 @@ export const DashboardPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
             <button
               onClick={() => setActiveModule('settings')}
-              className="w-full sm:w-auto px-5 py-3 bg-[#E06F28] hover:bg-[#E06F28]/90 text-white font-black text-xs rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-3 bg-[#C87A38] hover:bg-[#C87A38]/90 text-white font-black text-xs rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
             >
               <Building2 className="w-4 h-4" />
               <span>إدارة الشركة والفروع</span>
@@ -94,21 +94,21 @@ export const DashboardPage: React.FC = () => {
         <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-all space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">طبيعة النشاط والشركة</span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1C352D] flex items-center justify-center font-bold">
-              <Building2 className="w-5 h-5 text-[#1C352D]" />
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#361D13] flex items-center justify-center font-bold">
+              <Building2 className="w-5 h-5 text-[#361D13]" />
             </div>
           </div>
           <div>
             <p className="text-lg font-black text-slate-900">
               {company.businessType === 'furniture_kitchens' ? 'أثاث ومطابخ' : company.businessType}
             </p>
-            <p className="text-xs font-bold text-[#E06F28] mt-0.5">
+            <p className="text-xs font-bold text-[#C87A38] mt-0.5">
               نموذج العمل: {company.businessModel === 'ready_custom' ? 'جاهز + تفصيل' : company.businessModel}
             </p>
           </div>
           <button
             onClick={() => setActiveModule('settings')}
-            className="text-[11px] font-bold text-[#1C352D] hover:underline flex items-center gap-1 pt-1"
+            className="text-[11px] font-bold text-[#361D13] hover:underline flex items-center gap-1 pt-1"
           >
             <span>إعدادات الشركة</span>
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -119,8 +119,8 @@ export const DashboardPage: React.FC = () => {
         <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-all space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">الفروع والمقرات التابعة</span>
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-[#E06F28] flex items-center justify-center font-bold">
-              <MapPin className="w-5 h-5 text-[#E06F28]" />
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-[#C87A38] flex items-center justify-center font-bold">
+              <MapPin className="w-5 h-5 text-[#C87A38]" />
             </div>
           </div>
           <div>
@@ -133,7 +133,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActiveModule('settings')}
-            className="text-[11px] font-bold text-[#1C352D] hover:underline flex items-center gap-1 pt-1"
+            className="text-[11px] font-bold text-[#361D13] hover:underline flex items-center gap-1 pt-1"
           >
             <span>إدارة الفروع والورش</span>
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -158,7 +158,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActiveModule('settings')}
-            className="text-[11px] font-bold text-[#1C352D] hover:underline flex items-center gap-1 pt-1"
+            className="text-[11px] font-bold text-[#361D13] hover:underline flex items-center gap-1 pt-1"
           >
             <span>إدارة حسابات الفريق</span>
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -183,7 +183,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActiveModule('settings')}
-            className="text-[11px] font-bold text-[#1C352D] hover:underline flex items-center gap-1 pt-1"
+            className="text-[11px] font-bold text-[#361D13] hover:underline flex items-center gap-1 pt-1"
           >
             <span>مصفوفة الصلاحيات</span>
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -202,7 +202,7 @@ export const DashboardPage: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-black text-slate-900">هيكل المقرات التشغيلية والفروع للشركة</h3>
-                <p className="text-xs text-slate-500">توزيع المعارض والمخازن والورش التابعة لشركة فيرني ميكر</p>
+                <p className="text-xs text-slate-500">توزيع المعارض والمخازن والورش التابعة لشركة فيرنتشر لاند</p>
               </div>
               <button
                 onClick={() => setActiveModule('settings')}
@@ -232,7 +232,7 @@ export const DashboardPage: React.FC = () => {
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-black text-sm text-slate-900">{b.name}</span>
                           {b.isMain && (
-                            <span className="bg-[#E06F28] text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-xs">
+                            <span className="bg-[#C87A38] text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-xs">
                               الفرع الرئيسي
                             </span>
                           )}
@@ -270,7 +270,7 @@ export const DashboardPage: React.FC = () => {
           {/* Active Demo Persona Guide */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
             <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-              <ShieldCheck className="w-5 h-5 text-[#E06F28]" />
+              <ShieldCheck className="w-5 h-5 text-[#C87A38]" />
               <div>
                 <h3 className="text-sm font-black text-slate-900">إرشادات تجربة السيناريو الحالي</h3>
                 <p className="text-[11px] text-slate-500">نطاق صلاحيات الشخصية المحددة</p>
@@ -278,7 +278,7 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 space-y-2">
-              <p className="font-black text-xs text-[#E06F28]">{currentPersona.name} ({currentPersona.roleTitle})</p>
+              <p className="font-black text-xs text-[#C87A38]">{currentPersona.name} ({currentPersona.roleTitle})</p>
               <p className="text-xs text-slate-700 leading-relaxed font-medium">
                 {currentPersona.description}
               </p>
@@ -289,7 +289,7 @@ export const DashboardPage: React.FC = () => {
               <ul className="space-y-2 text-xs text-slate-600 font-medium">
                 {currentPersona.keyTests.map((t, idx) => (
                   <li key={idx} className="flex items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <span className="w-4 h-4 rounded-full bg-[#1C352D] text-white text-[10px] flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                    <span className="w-4 h-4 rounded-full bg-[#361D13] text-white text-[10px] flex items-center justify-center shrink-0 mt-0.5 font-bold">
                       {idx + 1}
                     </span>
                     <span>{t}</span>
@@ -305,7 +305,7 @@ export const DashboardPage: React.FC = () => {
               <h3 className="text-sm font-black text-slate-900">سجل الأحداث والأمان الأخير</h3>
               <button
                 onClick={() => setActiveModule('settings')}
-                className="text-xs text-[#1C352D] font-bold hover:underline"
+                className="text-xs text-[#361D13] font-bold hover:underline"
               >
                 عرض الكل
               </button>

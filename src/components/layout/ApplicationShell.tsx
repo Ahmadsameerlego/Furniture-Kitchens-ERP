@@ -102,11 +102,11 @@ export const ApplicationShell: React.FC = () => {
                 onClick={() => setSettingsSubTab('company')}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-black transition-all ${
                   settingsSubTab === 'company'
-                    ? 'bg-[#1C352D] text-white shadow-md'
+                    ? 'bg-[#361D13] text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                <Building2 className="w-4 h-4 text-[#E06F28]" />
+                <Building2 className="w-4 h-4 text-[#C87A38]" />
                 <span>إعدادات الشركة والنشاط</span>
               </button>
 
@@ -114,11 +114,11 @@ export const ApplicationShell: React.FC = () => {
                 onClick={() => setSettingsSubTab('branches')}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-black transition-all ${
                   settingsSubTab === 'branches'
-                    ? 'bg-[#1C352D] text-white shadow-md'
+                    ? 'bg-[#361D13] text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                <MapPin className="w-4 h-4 text-[#E06F28]" />
+                <MapPin className="w-4 h-4 text-[#C87A38]" />
                 <span>هيكل الفروع والمقرات</span>
               </button>
 
@@ -126,11 +126,11 @@ export const ApplicationShell: React.FC = () => {
                 onClick={() => setSettingsSubTab('users')}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-black transition-all ${
                   settingsSubTab === 'users'
-                    ? 'bg-[#1C352D] text-white shadow-md'
+                    ? 'bg-[#361D13] text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                <UsersIcon className="w-4 h-4 text-[#E06F28]" />
+                <UsersIcon className="w-4 h-4 text-[#C87A38]" />
                 <span>إدارة الموظفين والمستخدمين</span>
               </button>
 
@@ -138,11 +138,11 @@ export const ApplicationShell: React.FC = () => {
                 onClick={() => setSettingsSubTab('roles')}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-black transition-all ${
                   settingsSubTab === 'roles'
-                    ? 'bg-[#1C352D] text-white shadow-md'
+                    ? 'bg-[#361D13] text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                <ShieldCheck className="w-4 h-4 text-[#E06F28]" />
+                <ShieldCheck className="w-4 h-4 text-[#C87A38]" />
                 <span>الأدوار ومصفوفة الصلاحيات</span>
               </button>
 
@@ -150,11 +150,11 @@ export const ApplicationShell: React.FC = () => {
                 onClick={() => setSettingsSubTab('audit')}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-black transition-all ${
                   settingsSubTab === 'audit'
-                    ? 'bg-[#1C352D] text-white shadow-md'
+                    ? 'bg-[#361D13] text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                <History className="w-4 h-4 text-[#E06F28]" />
+                <History className="w-4 h-4 text-[#C87A38]" />
                 <span>سجل المراجعة والأمان (Audit Log)</span>
               </button>
 
@@ -162,7 +162,7 @@ export const ApplicationShell: React.FC = () => {
                 onClick={() => setSettingsSubTab('security')}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-black transition-all ${
                   settingsSubTab === 'security'
-                    ? 'bg-[#E06F28] text-white shadow-md'
+                    ? 'bg-[#C87A38] text-white shadow-md'
                     : 'text-slate-600 hover:bg-amber-50'
                 }`}
               >
@@ -187,7 +187,7 @@ export const ApplicationShell: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#F4F7F5] font-sans text-slate-800">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#FAF7F2] font-sans text-slate-800">
       
       {/* Sidebar Navigation */}
       <Sidebar />

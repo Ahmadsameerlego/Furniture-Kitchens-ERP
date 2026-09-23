@@ -40,7 +40,7 @@ export const MaterialDetailsPage: React.FC<MaterialDetailsPageProps> = ({ materi
     return (
       <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
         <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على خامة التصنيع المطلوبة</p>
-        <button onClick={onBack} className="px-4 py-2 bg-[#1C352D] text-white text-xs font-bold rounded-xl">
+        <button onClick={onBack} className="px-4 py-2 bg-[#361D13] text-white text-xs font-bold rounded-xl">
           العودة لمكتبة الخامات
         </button>
       </div>
@@ -68,7 +68,7 @@ export const MaterialDetailsPage: React.FC<MaterialDetailsPageProps> = ({ materi
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-all"
         >
-          <ArrowRight className="w-4 h-4 text-[#1C352D]" />
+          <ArrowRight className="w-4 h-4 text-[#361D13]" />
           <span>العودة لمكتبة الخامات</span>
         </button>
       </div>
@@ -131,7 +131,7 @@ export const MaterialDetailsPage: React.FC<MaterialDetailsPageProps> = ({ materi
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'overview' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'overview' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           نظرة عامة والمواصفات
@@ -140,7 +140,7 @@ export const MaterialDetailsPage: React.FC<MaterialDetailsPageProps> = ({ materi
         <button
           onClick={() => setActiveTab('suppliers')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'suppliers' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'suppliers' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>الموردون والتكلفة التاريخية</span>
@@ -150,7 +150,7 @@ export const MaterialDetailsPage: React.FC<MaterialDetailsPageProps> = ({ materi
         <button
           onClick={() => setActiveTab('inventory')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'inventory' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'inventory' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           توزيع المخزون حسب المقرات ({material.stockByLocation.length})
@@ -159,7 +159,7 @@ export const MaterialDetailsPage: React.FC<MaterialDetailsPageProps> = ({ materi
         <button
           onClick={() => setActiveTab('movements')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'movements' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'movements' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>سجل تتبع الحركات ({matMovements.length})</span>

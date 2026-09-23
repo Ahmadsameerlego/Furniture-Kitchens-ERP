@@ -118,7 +118,7 @@ export const SecurityTestRunner: React.FC = () => {
         <button
           onClick={handleRunAll}
           disabled={isRunningAll}
-          className="px-5 py-2.5 bg-[#E06F28] hover:bg-[#E06F28]/90 text-white rounded-2xl font-black text-xs shadow-lg flex items-center gap-2 transition-all self-start md:self-auto shrink-0"
+          className="px-5 py-2.5 bg-[#C87A38] hover:bg-[#C87A38]/90 text-white rounded-2xl font-black text-xs shadow-lg flex items-center gap-2 transition-all self-start md:self-auto shrink-0"
         >
           <Play className={`w-4 h-4 ${isRunningAll ? 'animate-spin' : ''}`} />
           <span>تشغيل كافة اختبارات API الأربعة</span>
@@ -132,7 +132,7 @@ export const SecurityTestRunner: React.FC = () => {
           <div>
             <span className="text-slate-400">الفحص باسم المستخدم: </span>
             <strong className="text-white font-black text-sm">{currentUser.fullName}</strong>
-            <span className="mr-2 text-[11px] text-[#E06F28] font-bold">({currentRole.name})</span>
+            <span className="mr-2 text-[11px] text-[#C87A38] font-bold">({currentRole.name})</span>
           </div>
         </div>
 

@@ -35,6 +35,8 @@ import { CustomerFormModal } from '../components/modals/CustomerFormModal';
 import { LostReasonModal } from '../components/modals/LostReasonModal';
 import { ActivityFormModal } from '../components/modals/ActivityFormModal';
 import { ReminderFormModal } from '../components/modals/ReminderFormModal';
+import { OfficialQuotationModal } from '../components/modals/OfficialQuotationModal';
+import { ProjectQuotation } from '../types/erp';
 
 interface CustomerProfilePageProps {
   customerId: string;
@@ -44,6 +46,7 @@ interface CustomerProfilePageProps {
 export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customerId, onBack }) => {
   const {
     customProjects,
+    projectQuotations,
     setSelectedProjectId,
     customers,
     activities,
@@ -57,7 +60,8 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
     addCustomerActivity,
     addCustomerReminder,
     toggleReminderCompleted,
-    updateCustomer
+    updateCustomer,
+    acceptQuotation
   } = useERP();
 
   const customer = customers.find(c => c.id === customerId);
@@ -68,12 +72,13 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [selectedQuoteForModal, setSelectedQuoteForModal] = useState<{ quote: ProjectQuotation; project?: any } | null>(null);
 
   if (!customer) {
     return (
       <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
         <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على ملف العميل المطلوبة</p>
-        <button onClick={onBack} className="px-4 py-2 bg-[#1C352D] text-white text-xs font-bold rounded-xl">
+        <button onClick={onBack} className="px-4 py-2 bg-[#361D13] text-white text-xs font-bold rounded-xl">
           العودة لقائمة العملاء
         </button>
       </div>
@@ -112,7 +117,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200/90 text-slate-700 font-bold text-xs shadow-xs transition-all"
         >
-          <ArrowRight className="w-4 h-4 text-[#1C352D]" />
+          <ArrowRight className="w-4 h-4 text-[#361D13]" />
           <span>العودة لقائمة العملاء</span>
         </button>
 
@@ -152,7 +157,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             <img
               src={customer.avatar}
               alt=""
-              className="w-16 h-16 rounded-3xl object-cover ring-4 ring-[#1C352D]/15 shadow-md shrink-0"
+              className="w-16 h-16 rounded-3xl object-cover ring-4 ring-[#361D13]/15 shadow-md shrink-0"
             />
 
             <div className="space-y-1.5">
@@ -191,7 +196,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                             key={st.id}
                             onClick={() => handleStatusSelect(st.id as CustomerStatus)}
                             className={`w-full text-right px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                              customer.status === st.id ? 'bg-[#1C352D] text-white' : 'hover:bg-slate-50 text-slate-700'
+                              customer.status === st.id ? 'bg-[#361D13] text-white' : 'hover:bg-slate-50 text-slate-700'
                             }`}
                           >
                             {st.label}
@@ -218,7 +223,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                 )}
 
                 <span className="flex items-center gap-1 text-slate-500">
-                  <Building className="w-3.5 h-3.5 text-[#1C352D]" />
+                  <Building className="w-3.5 h-3.5 text-[#361D13]" />
                   الفرع: {customer.branchName}
                 </span>
               </div>
@@ -251,7 +256,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
             {customer.campaignName && (
               <span className="bg-emerald-950 text-emerald-200 px-3 py-1 rounded-xl font-bold border border-emerald-800 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#E06F28]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#C87A38]" />
                 <span>الحملة: {customer.campaignName}</span>
               </span>
             )}
@@ -291,7 +296,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'overview' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'overview' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           نظرة عامة (Overview)
@@ -300,7 +305,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         <button
           onClick={() => setActiveTab('activity')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'activity' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'activity' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>سجل النشاط والتتبع</span>
@@ -310,12 +315,12 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         <button
           onClick={() => setActiveTab('reminders')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'reminders' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'reminders' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>التذكيرات والمتابعات</span>
           {customerReminders.length > 0 && (
-            <span className="bg-[#E06F28] text-white text-[10px] px-2 py-0.2 rounded-full">
+            <span className="bg-[#C87A38] text-white text-[10px] px-2 py-0.2 rounded-full">
               {customerReminders.length}
             </span>
           )}
@@ -325,7 +330,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         <button
           onClick={() => setActiveTab('sales')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'sales' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'sales' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>المبيعات وطلبات الأثاث الجاهز</span>
@@ -340,7 +345,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
           <button
             onClick={() => setActiveTab('projects')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-              activeTab === 'projects' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+              activeTab === 'projects' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             المشاريع والتفصيل
@@ -350,7 +355,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         <button
           onClick={() => setActiveTab('documents')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'documents' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'documents' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           الوثائق والمستندات ({customerDocuments.length})
@@ -360,7 +365,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
           <button
             onClick={() => setActiveTab('after_sales')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'after_sales' ? 'bg-[#E06F28] text-white shadow-md' : 'text-amber-800 bg-amber-50 hover:bg-amber-100'
+              activeTab === 'after_sales' ? 'bg-[#C87A38] text-white shadow-md' : 'text-amber-800 bg-amber-50 hover:bg-amber-100'
             }`}
           >
             <Award className="w-3.5 h-3.5 text-amber-500" />
@@ -412,7 +417,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
                 <div>
                   <span className="text-slate-400 font-bold block">نوع الاهتمام:</span>
-                  <span className="font-bold text-[#E06F28]">
+                  <span className="font-bold text-[#C87A38]">
                     {customer.interestType === 'kitchens' ? 'مطابخ تفصيل' : customer.interestType === 'furniture' ? 'أثاث جاهز' : 'أثاث ومطابخ معا'}
                   </span>
                 </div>
@@ -431,7 +436,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             {/* Campaign Attribution & Origin Box */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3">
               <h3 className="text-sm font-black text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#E06F28]" />
+                <Sparkles className="w-4 h-4 text-[#C87A38]" />
                 <span>إسناد الحملات والتسويق (Campaign Attribution)</span>
               </h3>
 
@@ -463,7 +468,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               <div className="space-y-2 text-xs">
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                   <span className="text-slate-500 font-bold">الفرع المخصص:</span>
-                  <span className="font-black text-[#1C352D]">{customer.branchName}</span>
+                  <span className="font-black text-[#361D13]">{customer.branchName}</span>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
@@ -479,7 +484,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                 <h3 className="text-sm font-black text-slate-900">طلبات المبيعات الحالية ({customerOrders.length})</h3>
                 <button
                   onClick={() => setActiveTab('sales')}
-                  className="text-xs text-[#E06F28] font-bold hover:underline"
+                  className="text-xs text-[#C87A38] font-bold hover:underline"
                 >
                   استعراض الكل
                 </button>
@@ -498,11 +503,11 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                           setSelectedOrderId(ord.id);
                           setActiveModule('sales');
                         }}
-                        className="p-3 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer hover:border-[#1C352D] transition-all space-y-1 text-xs"
+                        className="p-3 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer hover:border-[#361D13] transition-all space-y-1 text-xs"
                       >
                         <div className="flex items-center justify-between font-black text-slate-900">
                           <span>{ord.orderNumber}</span>
-                          <span className="font-mono text-[#E06F28]">{ord.orderTotal.toLocaleString('ar-EG')} ج.م</span>
+                          <span className="font-mono text-[#C87A38]">{ord.orderTotal.toLocaleString('ar-EG')} ج.م</span>
                         </div>
                         <div className="flex items-center justify-between text-[11px] text-slate-500">
                           <span>التسليم: {delMeta.label}</span>
@@ -530,9 +535,9 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
             <button
               onClick={() => setIsActivityModalOpen(true)}
-              className="px-4 py-2 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4 text-[#E06F28]" />
+              <Plus className="w-4 h-4 text-[#C87A38]" />
               <span>تسجيل إجراء جديد</span>
             </button>
           </div>
@@ -540,7 +545,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
           <div className="relative pr-6 border-r-2 border-slate-200 space-y-6">
             {customerActivities.map(act => (
               <div key={act.id} className="relative group">
-                <div className="absolute -right-8 top-1 w-4 h-4 rounded-full bg-[#1C352D] ring-4 ring-white border-2 border-[#E06F28]"></div>
+                <div className="absolute -right-8 top-1 w-4 h-4 rounded-full bg-[#361D13] ring-4 ring-white border-2 border-[#C87A38]"></div>
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
                   <div className="flex items-center justify-between">
@@ -569,7 +574,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             <h3 className="text-base font-black text-slate-900">جدول التذكيرات والمتابعات</h3>
             <button
               onClick={() => setIsReminderModalOpen(true)}
-              className="px-4 py-2 bg-[#E06F28] hover:bg-[#E06F28]/90 text-white font-black text-xs rounded-xl shadow-lg transition-all"
+              className="px-4 py-2 bg-[#C87A38] hover:bg-[#C87A38]/90 text-white font-black text-xs rounded-xl shadow-lg transition-all"
             >
               + إضافة تذكير جديد
             </button>
@@ -595,7 +600,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                 <button
                   onClick={() => toggleReminderCompleted(rem.id)}
                   className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors shrink-0 ${
-                    rem.isCompleted ? 'bg-slate-200 text-slate-700' : 'bg-[#1C352D] text-white hover:bg-[#142921]'
+                    rem.isCompleted ? 'bg-slate-200 text-slate-700' : 'bg-[#361D13] text-white hover:bg-[#23120A]'
                   }`}
                 >
                   {rem.isCompleted ? 'إعادة الفتح' : 'تأكيد الإتمام'}
@@ -617,7 +622,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
             <button
               onClick={() => setActiveModule('sales')}
-              className="px-4 py-2 bg-[#1C352D] text-white text-xs font-black rounded-xl hover:bg-[#142921]"
+              className="px-4 py-2 bg-[#361D13] text-white text-xs font-black rounded-xl hover:bg-[#23120A]"
             >
               + إنشاء طلب مبيعات جديد
             </button>
@@ -652,9 +657,9 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                           setSelectedOrderId(ord.id);
                           setActiveModule('sales');
                         }}
-                        className="px-3.5 py-1.5 bg-[#1C352D] text-white font-bold text-xs rounded-xl hover:bg-[#142921] flex items-center gap-1"
+                        className="px-3.5 py-1.5 bg-[#361D13] text-white font-bold text-xs rounded-xl hover:bg-[#23120A] flex items-center gap-1"
                       >
-                        <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                        <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                         <span>فتح تفاصيل الطلب 360</span>
                       </button>
                     </div>
@@ -697,7 +702,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               onClick={() => {
                 setActiveModule('custom_projects');
               }}
-              className="px-4 py-2 bg-[#1C352D] text-white text-xs font-black rounded-xl hover:bg-[#142921]"
+              className="px-4 py-2 bg-[#361D13] text-white text-xs font-black rounded-xl hover:bg-[#23120A]"
             >
               + إنشاء مشروع تفصيل جديد
             </button>
@@ -726,18 +731,34 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-3 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold">
                         {proj.status}
                       </span>
+
+                      {(() => {
+                        const relatedQuote = projectQuotations.find(q => q.projectId === proj.id);
+                        if (!relatedQuote) return null;
+                        return (
+                          <button
+                            onClick={() => setSelectedQuoteForModal({ quote: relatedQuote, project: proj })}
+                            className="px-3.5 py-1.5 bg-[#C87A38] hover:bg-[#DB8D48] text-white font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all shrink-0"
+                            title="عرض وطباعة عرض السعر الرسمي PDF"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>عرض السعر الرسمي PDF</span>
+                          </button>
+                        );
+                      })()}
+
                       <button
                         onClick={() => {
                           setSelectedProjectId(proj.id);
                           setActiveModule('custom_projects');
                         }}
-                        className="px-3.5 py-1.5 bg-[#1C352D] text-white font-bold rounded-xl hover:bg-[#142921] flex items-center gap-1 shrink-0"
+                        className="px-3.5 py-1.5 bg-[#361D13] text-white font-bold rounded-xl hover:bg-[#23120A] flex items-center gap-1 shrink-0"
                       >
-                        <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                        <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                         <span>كشف المشروع 360</span>
                       </button>
                     </div>
@@ -754,7 +775,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h3 className="text-base font-black text-slate-900">وثائق ومستندات العميل</h3>
-            <button className="px-3.5 py-1.5 bg-[#1C352D] text-white text-xs font-bold rounded-xl hover:bg-[#142921]">
+            <button className="px-3.5 py-1.5 bg-[#361D13] text-white text-xs font-bold rounded-xl hover:bg-[#23120A]">
               + رفع ملف جديد
             </button>
           </div>
@@ -766,7 +787,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               {customerDocuments.map(doc => (
                 <div key={doc.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-[#E06F28]" />
+                    <FileText className="w-6 h-6 text-[#C87A38]" />
                     <div>
                       <p className="font-bold text-slate-900">{doc.title}</p>
                       <p className="text-[10px] text-slate-500">{doc.fileName} ({doc.fileSize})</p>
@@ -805,7 +826,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
               <div className="flex items-center justify-between pt-2 border-t border-amber-200/80">
                 <span className="font-bold">شهادة الضمان المعتمدة:</span>
-                <span className="font-black text-[#1C352D]">{customerAfterSales.warrantyPeriod}</span>
+                <span className="font-black text-[#361D13]">{customerAfterSales.warrantyPeriod}</span>
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-amber-200/80">
@@ -857,6 +878,20 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         onSave={(title, dueDate, dueTime, priority) => addCustomerReminder(customer.id, title, dueDate, dueTime, priority)}
         onClose={() => setIsReminderModalOpen(false)}
       />
+
+      {selectedQuoteForModal && (
+        <OfficialQuotationModal
+          isOpen={true}
+          onClose={() => setSelectedQuoteForModal(null)}
+          quotation={selectedQuoteForModal.quote}
+          project={selectedQuoteForModal.project}
+          customer={customer}
+          onApprove={(quoteId) => {
+            acceptQuotation(quoteId);
+            setSelectedQuoteForModal(null);
+          }}
+        />
+      )}
 
     </div>
   );

@@ -29,16 +29,16 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     xl: 'text-2xl font-black tracking-tight'
   };
 
-  const textColor = variant === 'dark' ? 'text-white' : 'text-[#1C352D]';
+  const textColor = variant === 'dark' ? 'text-white' : 'text-[#361D13]';
 
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      {/* Official Furni Maker Brand Logo Image */}
+      {/* Official Furniture Land Brand Logo Image */}
       <div className="relative group shrink-0">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#1C352D] to-[#E06F28] rounded-full blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#361D13] to-[#C87A38] rounded-full blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
         <img
           src="/logo.jpg"
-          alt="Furni Maker Logo"
+          alt="Furniture Land Logo"
           className={`${sizeClasses[size]} rounded-full object-cover relative shadow-xs border border-white/20`}
         />
       </div>
@@ -47,16 +47,16 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <span className={`font-sans ${textClasses[size]} ${textColor} truncate`}>
-              فيرني ميكر
+              فيرنتشر لاند
             </span>
-            <span className="bg-[#E06F28]/20 text-[#E06F28] text-[9px] font-black px-1.5 py-0.2 rounded border border-[#E06F28]/40 uppercase tracking-wider shrink-0">
+            <span className="bg-[#C87A38]/20 text-[#C87A38] text-[9px] font-black px-1.5 py-0.2 rounded border border-[#C87A38]/40 uppercase tracking-wider shrink-0">
               ERP
             </span>
           </div>
           
           {showSubtext && (
-            <span className={`text-[10px] font-medium ${variant === 'dark' ? 'text-emerald-200/70' : 'text-slate-500'} truncate`}>
-              Furni Maker Systems
+            <span className={`text-[10px] font-medium ${variant === 'dark' ? 'text-amber-200/70' : 'text-slate-500'} truncate`}>
+              Furniture Land Natural Home
             </span>
           )}
         </div>

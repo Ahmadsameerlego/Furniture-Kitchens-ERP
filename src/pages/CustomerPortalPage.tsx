@@ -28,6 +28,7 @@ import {
   Camera
 } from 'lucide-react';
 import { ImageZoomModal } from '../components/common/ImageZoomModal';
+import { OfficialQuotationSheet } from '../components/quotations/OfficialQuotationSheet';
 
 export const CustomerPortalPage: React.FC = () => {
   const {
@@ -93,7 +94,7 @@ export const CustomerPortalPage: React.FC = () => {
     <div className="min-h-screen bg-slate-900 text-white font-sans dir-rtl flex flex-col">
       
       {/* Top Customer Header Bar */}
-      <header className="bg-[#142921] border-b border-emerald-900/60 sticky top-0 z-40 px-4 md:px-8 py-3 shadow-xl">
+      <header className="bg-[#23120A] border-b border-emerald-900/60 sticky top-0 z-40 px-4 md:px-8 py-3 shadow-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           
           <div className="flex items-center gap-3">
@@ -105,7 +106,7 @@ export const CustomerPortalPage: React.FC = () => {
           {/* Persona / Customer Account Switcher Dropdown */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-2xl border border-slate-700 text-xs">
-              <User className="w-4 h-4 text-[#E06F28]" />
+              <User className="w-4 h-4 text-[#C87A38]" />
               <span className="text-slate-400 font-bold hidden sm:inline">حساب العميل:</span>
               <select
                 value={portalCurrentCustomerId}
@@ -136,11 +137,11 @@ export const CustomerPortalPage: React.FC = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-6">
         
         {/* Customer Welcome Greeting Card */}
-        <div className="bg-gradient-to-r from-[#1C352D] via-[#142921] to-slate-900 rounded-3xl p-6 md:p-8 border border-emerald-800/50 shadow-2xl space-y-4">
+        <div className="bg-gradient-to-r from-[#361D13] via-[#23120A] to-slate-900 rounded-3xl p-6 md:p-8 border border-emerald-800/50 shadow-2xl space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="bg-[#E06F28] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">حساب عميل مميز</span>
+                <span className="bg-[#C87A38] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">حساب عميل مميز</span>
                 <h1 className="text-2xl font-black text-white">أهلاً بك، {customer.fullName} 👋</h1>
               </div>
               <p className="text-xs text-emerald-200/80 font-medium">
@@ -167,7 +168,7 @@ export const CustomerPortalPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('home')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'home' ? 'bg-[#E06F28] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
+              activeTab === 'home' ? 'bg-[#C87A38] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -177,7 +178,7 @@ export const CustomerPortalPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('projects')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'projects' ? 'bg-[#E06F28] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
+              activeTab === 'projects' ? 'bg-[#C87A38] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
             <Ruler className="w-4 h-4" />
@@ -187,7 +188,7 @@ export const CustomerPortalPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('designs')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'designs' ? 'bg-[#E06F28] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
+              activeTab === 'designs' ? 'bg-[#C87A38] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -197,7 +198,7 @@ export const CustomerPortalPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('quotations')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'quotations' ? 'bg-[#E06F28] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
+              activeTab === 'quotations' ? 'bg-[#C87A38] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -207,7 +208,7 @@ export const CustomerPortalPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('contract')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'contract' ? 'bg-[#E06F28] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
+              activeTab === 'contract' ? 'bg-[#C87A38] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
             <CheckCircle2 className="w-4 h-4" />
@@ -217,7 +218,7 @@ export const CustomerPortalPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('payments')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'payments' ? 'bg-[#E06F28] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
+              activeTab === 'payments' ? 'bg-[#C87A38] text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
             <CreditCard className="w-4 h-4" />
@@ -246,7 +247,7 @@ export const CustomerPortalPage: React.FC = () => {
 
                   <div className="text-left font-mono">
                     <span className="text-xs text-slate-400 block font-sans">الحالة الحالية:</span>
-                    <span className="px-3.5 py-1 rounded-xl text-xs font-black bg-[#E06F28] text-white inline-block">
+                    <span className="px-3.5 py-1 rounded-xl text-xs font-black bg-[#C87A38] text-white inline-block">
                       {CustomProjectService.getProjectStatusMeta(activeProject.status).label}
                     </span>
                   </div>
@@ -272,10 +273,10 @@ export const CustomerPortalPage: React.FC = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs font-bold">
                           <span className="text-slate-300">نسبة التقدم الكلية للمشروع (Project Progress):</span>
-                          <span className="text-[#E06F28] font-mono font-black text-sm">{progressPct}%</span>
+                          <span className="text-[#C87A38] font-mono font-black text-sm">{progressPct}%</span>
                         </div>
                         <div className="w-full h-3.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-700">
-                          <div className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-[#E06F28] rounded-full transition-all duration-500 shadow-lg" style={{ width: `${progressPct}%` }}></div>
+                          <div className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-[#C87A38] rounded-full transition-all duration-500 shadow-lg" style={{ width: `${progressPct}%` }}></div>
                         </div>
                       </div>
 
@@ -289,7 +290,7 @@ export const CustomerPortalPage: React.FC = () => {
                         <div className={`p-2 rounded-xl border ${stepNumber >= 6 ? 'bg-emerald-900/60 text-emerald-200 border-emerald-600' : 'bg-slate-900 text-slate-500'}`}>
                           {stepNumber >= 6 ? '✓ التصنيع' : '6. التصنيع'}
                         </div>
-                        <div className={`p-2 rounded-xl border ${stepNumber >= 7 ? 'bg-emerald-900/60 text-emerald-200 border-emerald-600' : stepNumber === 6 ? 'bg-[#E06F28] text-white font-black animate-pulse' : 'bg-slate-900 text-slate-500'}`}>
+                        <div className={`p-2 rounded-xl border ${stepNumber >= 7 ? 'bg-emerald-900/60 text-emerald-200 border-emerald-600' : stepNumber === 6 ? 'bg-[#C87A38] text-white font-black animate-pulse' : 'bg-slate-900 text-slate-500'}`}>
                           {stepNumber >= 7 ? '✓ التركيب' : '7. التركيب'}
                         </div>
                         <div className={`p-2 rounded-xl border ${stepNumber === 8 ? 'bg-emerald-600 text-white font-black' : 'bg-slate-900 text-slate-500'}`}>
@@ -327,7 +328,7 @@ export const CustomerPortalPage: React.FC = () => {
                 <span className="text-[10px] text-slate-400">موزعة على الأقساط القادمة</span>
               </div>
 
-              <div className="p-5 rounded-3xl bg-[#1C352D] border border-emerald-700 shadow-md space-y-1 text-xs">
+              <div className="p-5 rounded-3xl bg-[#361D13] border border-emerald-700 shadow-md space-y-1 text-xs">
                 <span className="text-emerald-300 font-bold">القسط القادم الاستحقاق:</span>
                 <p className="text-2xl font-black text-amber-300 font-mono">
                   {nextUpcomingSchedule ? `${nextUpcomingSchedule.amount.toLocaleString('ar-EG')} ج.م` : 'لا يوجد'}
@@ -389,7 +390,7 @@ export const CustomerPortalPage: React.FC = () => {
                       {/* Project Header */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-[#E06F28] text-white flex items-center justify-center font-black">
+                          <div className="w-12 h-12 rounded-2xl bg-[#C87A38] text-white flex items-center justify-center font-black">
                             <Ruler className="w-6 h-6" />
                           </div>
                           <div>
@@ -413,7 +414,7 @@ export const CustomerPortalPage: React.FC = () => {
                         <div className="p-5 rounded-2xl bg-slate-800/90 border border-slate-700 space-y-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Calendar className="w-5 h-5 text-[#E06F28]" />
+                              <Calendar className="w-5 h-5 text-[#C87A38]" />
                               <h5 className="font-black text-white text-sm">تقرير المعاينة والشروط الفنية بالموقع (Site Technical Inspection)</h5>
                             </div>
                             <span className="px-3 py-0.5 rounded-full bg-emerald-900/80 text-emerald-300 border border-emerald-600 text-[10px] font-bold">
@@ -523,7 +524,7 @@ export const CustomerPortalPage: React.FC = () => {
                           <div key={meas.id} className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700 space-y-3">
                             <div className="flex items-center justify-between text-xs border-b border-slate-700 pb-2">
                               <div className="flex items-center gap-2">
-                                <span className="w-7 h-7 rounded-lg bg-[#E06F28] text-white flex items-center justify-center font-black font-mono">
+                                <span className="w-7 h-7 rounded-lg bg-[#C87A38] text-white flex items-center justify-center font-black font-mono">
                                   V{meas.version}
                                 </span>
                                 <span className="font-bold text-white">إصدار المقاسات رقم V{meas.version}</span>
@@ -579,7 +580,7 @@ export const CustomerPortalPage: React.FC = () => {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="w-7 h-7 rounded-xl bg-[#E06F28] text-white flex items-center justify-center font-black text-xs font-mono">V{dsg.version}</span>
+                            <span className="w-7 h-7 rounded-xl bg-[#C87A38] text-white flex items-center justify-center font-black text-xs font-mono">V{dsg.version}</span>
                             <h4 className="text-base font-black text-white">{dsg.designName}</h4>
                           </div>
                           <span className="text-[11px] text-slate-400">تاريخ الإرسال: {dsg.createdDate}</span>
@@ -641,7 +642,7 @@ export const CustomerPortalPage: React.FC = () => {
                         <p className="font-bold text-slate-300">ملاحظاتك واستفساراتك على التصميم V{dsg.version}:</p>
                         <div className="space-y-2">
                           {dsg.comments.map(c => (
-                            <div key={c.id} className={`p-3 rounded-xl border ${c.isCustomer ? 'bg-[#1C352D] border-emerald-800 text-emerald-100' : 'bg-slate-900 border-slate-700 text-slate-200'}`}>
+                            <div key={c.id} className={`p-3 rounded-xl border ${c.isCustomer ? 'bg-[#361D13] border-emerald-800 text-emerald-100' : 'bg-slate-900 border-slate-700 text-slate-200'}`}>
                               <div className="flex justify-between text-[10px] text-slate-400 font-bold">
                                 <span>{c.userName}</span>
                                 <span className="font-mono">{c.date}</span>
@@ -665,7 +666,7 @@ export const CustomerPortalPage: React.FC = () => {
                               addDesignComment(dsg.id, commentText, true);
                               setCommentText('');
                             }}
-                            className="px-4 py-2 bg-[#E06F28] text-white font-bold rounded-xl"
+                            className="px-4 py-2 bg-[#C87A38] text-white font-bold rounded-xl"
                           >
                             إرسال الملاحظة
                           </button>
@@ -682,80 +683,40 @@ export const CustomerPortalPage: React.FC = () => {
 
         {/* SUB-VIEW 3: MY QUOTATIONS */}
         {activeTab === 'quotations' && (
-          <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700 shadow-xl space-y-6">
-            <div className="pb-3 border-b border-slate-700">
-              <h3 className="text-lg font-black text-white">عروض الأسعار المعتمدة لك (Quotations)</h3>
-              <p className="text-xs text-slate-400">استعراض بنود وسعر البيع النهائي المتفق عليه بدون أدنى تكاليف أو هامش ربح داخلي</p>
+          <div className="space-y-6">
+            <div className="bg-slate-800/90 rounded-3xl p-6 border border-slate-700 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <span>عروض الأسعار الرسمية المعتمدة لك (Official Quotations)</span>
+                  <span className="text-xs bg-[#C87A38] text-white px-2.5 py-0.5 rounded-full font-mono">
+                    {myQuotes.length}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  عرض سعر تفصيلي شامل للأمتار والمواصفات والخامات والتجهيزات مع إمكانية التحميل والطباعة PDF
+                </p>
+              </div>
             </div>
 
             {myQuotes.length === 0 ? (
-              <p className="text-xs text-slate-400 py-6 text-center">لا توجد عروض أسعار صادرة لحسابك بعد</p>
+              <div className="bg-slate-800 rounded-3xl p-12 text-center border border-slate-700">
+                <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-sm text-slate-400 font-bold">لا توجد عروض أسعار صادرة لحسابك بعد</p>
+                <p className="text-xs text-slate-500 mt-1">يقوم مهندس التصميم بإعداد عرض السعر الرسمي عقب انتهاء مرحلة رفع المقاسات والتصميم</p>
+              </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {myQuotes.map(qte => {
-                  const quoteMeta = CustomProjectService.getQuotationStatusMeta(qte.status);
-
+                  const currentProject = myProjects.find(p => p.id === qte.projectId);
                   return (
-                    <div key={qte.id} className="p-6 rounded-3xl bg-slate-900 border border-slate-700 space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-7 h-7 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-black text-xs font-mono">V{qte.version}</span>
-                            <h4 className="text-base font-black text-white">عرض سعر V{qte.version}</h4>
-                          </div>
-                          <span className="text-[11px] text-slate-400">تاريخ الإصدار: {qte.createdDate}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span className={`px-3.5 py-1 rounded-xl text-xs font-bold border ${quoteMeta.bgClass}`}>
-                            {quoteMeta.label}
-                          </span>
-
-                          {qte.status !== 'accepted' && (
-                            <button
-                              onClick={() => acceptQuotation(qte.id)}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span>موافقة واعتمد عرض السعر (Approve)</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Items Table (NO INTERNAL COSTS SHOWN!) */}
-                      <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden text-xs">
-                        <table className="w-full text-right">
-                          <thead className="bg-slate-900 text-slate-300 font-bold border-b border-slate-700">
-                            <tr>
-                              <th className="p-3.5 text-right">البند / المكون</th>
-                              <th className="p-3.5 text-center">الكمية</th>
-                              <th className="p-3.5 text-left">سعر الوحدة المعروض</th>
-                              <th className="p-3.5 text-left">إجمالي البند</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-700/60 text-slate-200">
-                            {qte.items.map(item => (
-                              <tr key={item.id}>
-                                <td className="p-3.5 font-bold text-white">
-                                  {item.materialName}
-                                  {item.description && <span className="text-[10px] text-slate-400 block">{item.description}</span>}
-                                </td>
-                                <td className="p-3.5 text-center font-mono">{item.quantity} {item.unit}</td>
-                                <td className="p-3.5 text-left font-mono font-bold">{item.unitSellingPrice.toLocaleString('ar-EG')} ج.م</td>
-                                <td className="p-3.5 text-left font-mono font-black text-amber-300">{item.totalSellingPrice.toLocaleString('ar-EG')} ج.م</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* Total Bar */}
-                      <div className="p-4 bg-[#142921] rounded-2xl border border-emerald-700/60 flex justify-between items-center text-sm font-black">
-                        <span>إجمالي التكلفة الإجمالية المعروضة:</span>
-                        <span className="font-mono text-xl text-amber-300">{qte.totalSelling.toLocaleString('ar-EG')} ج.م</span>
-                      </div>
-                    </div>
+                    <OfficialQuotationSheet
+                      key={qte.id}
+                      quotation={qte}
+                      project={currentProject}
+                      customer={customer}
+                      onApprove={acceptQuotation}
+                      showActions={true}
+                    />
                   );
                 })}
               </div>

@@ -160,8 +160,8 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#E06F28]/15 text-[#E06F28] flex items-center justify-center font-bold border border-[#E06F28]/30">
-              <ShoppingBag className="w-5 h-5 text-[#E06F28]" />
+            <div className="w-10 h-10 rounded-2xl bg-[#C87A38]/15 text-[#C87A38] flex items-center justify-center font-bold border border-[#C87A38]/30">
+              <ShoppingBag className="w-5 h-5 text-[#C87A38]" />
             </div>
             <div>
               <h3 className="text-lg font-black text-slate-900">
@@ -191,7 +191,7 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsQuickCustomerModalOpen(true)}
-                  className="text-[#E06F28] font-bold text-[11px] hover:underline flex items-center gap-1"
+                  className="text-[#C87A38] font-bold text-[11px] hover:underline flex items-center gap-1"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>+ عميل جديد سريع</span>
@@ -307,9 +307,9 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({
                 type="button"
                 onClick={handleAddItem}
                 disabled={!selectedProductId || quantity <= 0}
-                className="px-4 py-2 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-1.5"
               >
-                <Plus className="w-4 h-4 text-[#E06F28]" />
+                <Plus className="w-4 h-4 text-[#C87A38]" />
                 <span>إضافة الصنف لجدول الطلب</span>
               </button>
             </div>
@@ -384,7 +384,7 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({
             <div className="p-4 rounded-2xl bg-emerald-950 text-white space-y-3 shadow-inner">
               <h4 className="font-black text-emerald-200 text-xs flex items-center justify-between border-b border-emerald-900 pb-2">
                 <span>الملخص المالي وهامش الأرباح المحسوب</span>
-                <ShieldCheck className="w-4 h-4 text-[#E06F28]" />
+                <ShieldCheck className="w-4 h-4 text-[#C87A38]" />
               </h4>
 
               <div className="space-y-1.5 text-xs">
@@ -400,7 +400,7 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({
 
                 <div className="flex items-center justify-between pt-2 border-t border-emerald-900">
                   <span className="font-bold text-white">إجمالي مجمل الربح (Gross Profit):</span>
-                  <span className="font-black text-[#E06F28] text-base">
+                  <span className="font-black text-[#C87A38] text-base">
                     +{orderGrossProfit.toLocaleString('ar-EG')} ج.m
                   </span>
                 </div>
@@ -488,7 +488,7 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
                 placeholder="العنوان التفصيلي بالتحديد للعميل..."
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
               />
             </div>
           </div>
@@ -506,9 +506,9 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({
             <button
               type="submit"
               disabled={items.length === 0}
-              className="px-6 py-2.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />
+              <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />
               <span>تأكيد الطلب وحجز المخزون الآن</span>
             </button>
           </div>

@@ -147,9 +147,9 @@ export const OrderDeliveryModal: React.FC<OrderDeliveryModalProps> = ({
             
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black shadow-lg transition-all flex items-center gap-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />
+              <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />
               <span>تأكيد حالة التسليم</span>
             </button>
           </div>

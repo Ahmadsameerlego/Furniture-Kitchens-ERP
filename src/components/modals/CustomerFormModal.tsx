@@ -134,8 +134,8 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1C352D] flex items-center justify-center font-bold border border-emerald-200">
-              <Users className="w-5 h-5 text-[#1C352D]" />
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#361D13] flex items-center justify-center font-bold border border-emerald-200">
+              <Users className="w-5 h-5 text-[#361D13]" />
             </div>
             <div>
               <h3 className="text-lg font-black text-slate-900">
@@ -179,7 +179,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                     onClose();
                   }
                 }}
-                className="px-3.5 py-1.5 rounded-xl bg-[#1C352D] text-white text-xs font-bold hover:bg-[#142921] transition-colors"
+                className="px-3.5 py-1.5 rounded-xl bg-[#361D13] text-white text-xs font-bold hover:bg-[#23120A] transition-colors"
               >
                 فتح ملف العميل المسجل حالياً 360
               </button>
@@ -207,7 +207,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="اسم العميل الثلاثي"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
               />
             </div>
 
@@ -220,7 +220,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                 onChange={(e) => setPhone(e.target.value)}
                 onBlur={handlePhoneBlur}
                 placeholder="010xxxxxxx"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left font-mono"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left font-mono"
                 dir="ltr"
               />
             </div>
@@ -234,7 +234,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                 value={altPhone}
                 onChange={(e) => setAltPhone(e.target.value)}
                 placeholder="01xxxxxxxxx"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left font-mono"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left font-mono"
                 dir="ltr"
               />
             </div>
@@ -246,7 +246,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="client@domain.com"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left"
                 dir="ltr"
               />
             </div>
@@ -277,7 +277,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="مثال: التجمع الخامس، سموحة"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
               />
             </div>
 
@@ -299,7 +299,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
           <div className="p-4 rounded-2xl bg-emerald-950 text-white space-y-3 shadow-inner">
             <div className="flex items-center justify-between">
               <span className="font-bold text-emerald-100 text-xs flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#E06F28]" />
+                <Sparkles className="w-4 h-4 text-[#C87A38]" />
                 <span>مصدر العميل والحملة الإعلانية (Campaign Attribution)</span>
               </span>
             </div>
@@ -395,7 +395,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="اكتب أي ملاحظات خاصة بمتطلبات العميل أو المقاسات المطلوبة..."
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
             ></textarea>
           </div>
 
@@ -411,9 +411,9 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
 
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white font-black shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black shadow-lg transition-all flex items-center gap-2"
             >
-              <CheckCircle className="w-4 h-4 text-[#E06F28]" />
+              <CheckCircle className="w-4 h-4 text-[#C87A38]" />
               <span>{customerToEdit ? 'حفظ تعديلات العميل' : 'حفظ وتسجيل العميل الآن'}</span>
             </button>
           </div>

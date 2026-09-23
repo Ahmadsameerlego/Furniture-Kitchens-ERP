@@ -50,7 +50,7 @@ export const InventoryPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">إدارة المخزون والحركات (Inventory & Operations)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {availableBranches.length} مقرات مصرحة
             </span>
           </div>
@@ -90,7 +90,7 @@ export const InventoryPage: React.FC = () => {
         <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-1 text-xs">
           <div className="flex items-center justify-between text-slate-500 font-bold">
             <span>المنتجات الجاهزة بالمخزن:</span>
-            <Package className="w-5 h-5 text-[#1C352D]" />
+            <Package className="w-5 h-5 text-[#361D13]" />
           </div>
           <p className="text-2xl font-black text-slate-900 font-mono">{products.length} منتج</p>
           <span className="text-[11px] text-slate-400">متاحة بالمعارض والمخزن المركزي</span>
@@ -123,7 +123,7 @@ export const InventoryPage: React.FC = () => {
         <button
           onClick={() => setActiveSubView('overview')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeSubView === 'overview' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeSubView === 'overview' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           نظرة عامة على الكميات والمواقف
@@ -132,23 +132,23 @@ export const InventoryPage: React.FC = () => {
         <button
           onClick={() => setActiveSubView('purchases')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeSubView === 'purchases' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeSubView === 'purchases' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <ShoppingBag className="w-4 h-4 text-[#E06F28]" />
+          <ShoppingBag className="w-4 h-4 text-[#C87A38]" />
           <span>أوامر الشراء واستلام التوريدات</span>
         </button>
 
         <button
           onClick={() => setActiveSubView('transfers')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeSubView === 'transfers' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeSubView === 'transfers' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <ArrowLeftRight className="w-4 h-4 text-indigo-500" />
           <span>التحويلات والتسويات المخزنية</span>
           {pendingTransfersCount > 0 && (
-            <span className="bg-[#E06F28] text-white text-[10px] px-2 py-0.2 rounded-full">
+            <span className="bg-[#C87A38] text-white text-[10px] px-2 py-0.2 rounded-full">
               {pendingTransfersCount}
             </span>
           )}
@@ -157,7 +157,7 @@ export const InventoryPage: React.FC = () => {
         <button
           onClick={() => setActiveSubView('movements')}
           className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeSubView === 'movements' ? 'bg-[#1C352D] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            activeSubView === 'movements' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <History className="w-4 h-4 text-emerald-500" />
@@ -178,7 +178,7 @@ export const InventoryPage: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="بحث باسم الخامة أو المنتج أو الكود..."
-                className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+                className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
               />
             </div>
 
@@ -186,7 +186,7 @@ export const InventoryPage: React.FC = () => {
               <button
                 onClick={() => setItemTypeFilter('all')}
                 className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                  itemTypeFilter === 'all' ? 'bg-[#1C352D] text-white' : 'bg-slate-100 text-slate-700'
+                  itemTypeFilter === 'all' ? 'bg-[#361D13] text-white' : 'bg-slate-100 text-slate-700'
                 }`}
               >
                 الكل
@@ -194,7 +194,7 @@ export const InventoryPage: React.FC = () => {
               <button
                 onClick={() => setItemTypeFilter('materials')}
                 className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                  itemTypeFilter === 'materials' ? 'bg-[#1C352D] text-white' : 'bg-slate-100 text-slate-700'
+                  itemTypeFilter === 'materials' ? 'bg-[#361D13] text-white' : 'bg-slate-100 text-slate-700'
                 }`}
               >
                 خامات التصنيع ({materials.length})
@@ -202,7 +202,7 @@ export const InventoryPage: React.FC = () => {
               <button
                 onClick={() => setItemTypeFilter('products')}
                 className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                  itemTypeFilter === 'products' ? 'bg-[#1C352D] text-white' : 'bg-slate-100 text-slate-700'
+                  itemTypeFilter === 'products' ? 'bg-[#361D13] text-white' : 'bg-slate-100 text-slate-700'
                 }`}
               >
                 المنتجات الجاهزة ({products.length})
@@ -214,7 +214,7 @@ export const InventoryPage: React.FC = () => {
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-right text-xs">
-                <thead className="bg-[#1C352D] text-white font-bold border-b border-emerald-900/50">
+                <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
                   <tr>
                     <th className="p-4 min-w-[240px] text-right whitespace-nowrap">اسم الصنف والكود</th>
                     <th className="p-4 min-w-[130px] text-right whitespace-nowrap">النوع والتصنيف</th>
@@ -279,9 +279,9 @@ export const InventoryPage: React.FC = () => {
                             <td className="p-4 text-center whitespace-nowrap">
                               <button
                                 onClick={() => setSelectedMaterialId(m.id)}
-                                className="px-3 py-1.5 rounded-xl bg-[#1C352D] text-white font-bold text-xs hover:bg-[#142921] flex items-center gap-1 mx-auto"
+                                className="px-3 py-1.5 rounded-xl bg-[#361D13] text-white font-bold text-xs hover:bg-[#23120A] flex items-center gap-1 mx-auto"
                               >
-                                <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                                <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                                 <span>كشف 360</span>
                               </button>
                             </td>
@@ -348,9 +348,9 @@ export const InventoryPage: React.FC = () => {
                             <td className="p-4 text-center whitespace-nowrap">
                               <button
                                 onClick={() => setSelectedProductId(p.id)}
-                                className="px-3 py-1.5 rounded-xl bg-[#1C352D] text-white font-bold text-xs hover:bg-[#142921] flex items-center gap-1 mx-auto"
+                                className="px-3 py-1.5 rounded-xl bg-[#361D13] text-white font-bold text-xs hover:bg-[#23120A] flex items-center gap-1 mx-auto"
                               >
-                                <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                                <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                                 <span>كشف 360</span>
                               </button>
                             </td>

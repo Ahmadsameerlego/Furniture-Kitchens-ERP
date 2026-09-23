@@ -23,7 +23,7 @@ export class CustomProjectService {
       case 'quotation':
         return { label: 'عرض السعر قيد الدراسة', bgClass: 'bg-yellow-100 text-yellow-900 border-yellow-200', step: 6 };
       case 'customer_approval':
-        return { label: 'في انتظار موافقة العميل', bgClass: 'bg-[#E06F28]/20 text-[#E06F28] border-[#E06F28]/40', step: 7 };
+        return { label: 'في انتظار موافقة العميل', bgClass: 'bg-[#C87A38]/20 text-[#C87A38] border-[#C87A38]/40', step: 7 };
       case 'approved':
         return { label: 'موافق عليه ومفعل (Approved)', bgClass: 'bg-emerald-100 text-emerald-900 border-emerald-300 font-black', step: 8 };
       case 'ready_for_production':

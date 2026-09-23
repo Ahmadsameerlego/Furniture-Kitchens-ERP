@@ -113,7 +113,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="اسم الموظف الثلاثي"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all"
               />
             </div>
 
@@ -124,8 +124,8 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@furnimaker.eg"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all text-left"
+                placeholder="name@furnitureland.eg"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all text-left"
                 dir="ltr"
               />
             </div>
@@ -139,7 +139,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="010xxxxxxx"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all text-left"
                 dir="ltr"
               />
             </div>
@@ -151,7 +151,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="مثال: مشرف مبيعات المعرض الرئيسي"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           <div className="p-4 rounded-2xl bg-emerald-950 text-white space-y-3 shadow-inner">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#E06F28]" />
+                <Shield className="w-4 h-4 text-[#C87A38]" />
                 <span className="font-bold text-emerald-100 text-xs">1. الدور الوظيفي (WHAT) — ما المسموح له بتنفيذه؟</span>
               </div>
               <span className="text-[10px] text-emerald-300 bg-emerald-900/50 px-2 py-0.5 rounded border border-emerald-700">
@@ -174,7 +174,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                   key={role.id}
                   className={`p-2.5 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
                     roleId === role.id
-                      ? 'bg-[#E06F28] text-white border-[#E06F28] font-bold shadow-md'
+                      ? 'bg-[#C87A38] text-white border-[#C87A38] font-bold shadow-md'
                       : 'bg-white/5 border-white/10 hover:bg-white/10 text-emerald-100'
                   }`}
                 >
@@ -183,7 +183,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                     name="userRole"
                     checked={roleId === role.id}
                     onChange={() => setRoleId(role.id)}
-                    className="mt-1 accent-[#E06F28]"
+                    className="mt-1 accent-[#C87A38]"
                   />
                   <div className="flex-1 overflow-hidden">
                     <p className="font-bold text-xs truncate">{role.name}</p>
@@ -233,7 +233,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                       <div>
                         <span className="text-xs">{branch.name}</span>
                         {branch.isMain && (
-                          <span className="mr-1 text-[9px] bg-[#E06F28] px-1.5 py-0.2 rounded font-bold">
+                          <span className="mr-1 text-[9px] bg-[#C87A38] px-1.5 py-0.2 rounded font-bold">
                             رئيسي
                           </span>
                         )}
@@ -259,7 +259,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                 type="checkbox"
                 checked={status === 'active'}
                 onChange={(e) => setStatus(e.target.checked ? 'active' : 'inactive')}
-                className="w-4 h-4 accent-[#1C352D] rounded"
+                className="w-4 h-4 accent-[#361D13] rounded"
               />
               <span>حساب نشط (Active User)</span>
             </label>
@@ -275,9 +275,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
               <button
                 type="submit"
                 disabled={assignedBranchIds.length === 0}
-                className="px-6 py-2.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] disabled:opacity-50 text-white text-xs font-black shadow-lg transition-all flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] disabled:opacity-50 text-white text-xs font-black shadow-lg transition-all flex items-center gap-2"
               >
-                <CheckCircle className="w-4 h-4 text-[#E06F28]" />
+                <CheckCircle className="w-4 h-4 text-[#C87A38]" />
                 <span>{userToEdit ? 'حفظ البيانات المحدثة' : 'إنشاء الحساب والتكليف'}</span>
               </button>
             </div>

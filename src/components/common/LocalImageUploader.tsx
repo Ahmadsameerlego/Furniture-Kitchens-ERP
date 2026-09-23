@@ -120,7 +120,7 @@ export const LocalImageUploader: React.FC<LocalImageUploaderProps> = ({
           className="hidden"
         />
 
-        <div className="w-12 h-12 rounded-2xl bg-[#1C352D] text-[#E06F28] flex items-center justify-center shadow-md">
+        <div className="w-12 h-12 rounded-2xl bg-[#361D13] text-[#C87A38] flex items-center justify-center shadow-md">
           <Upload className="w-6 h-6" />
         </div>
 
@@ -165,7 +165,7 @@ export const LocalImageUploader: React.FC<LocalImageUploaderProps> = ({
                     className="p-2 rounded-xl bg-white/90 hover:bg-white text-slate-900 text-xs font-bold flex items-center gap-1 shadow-md"
                     title="معاينة وتكبير الصورة"
                   >
-                    <Eye className="w-3.5 h-3.5 text-[#E06F28]" />
+                    <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
                     <span>تكبير</span>
                   </button>
 
@@ -218,7 +218,7 @@ export const LocalImageUploader: React.FC<LocalImageUploaderProps> = ({
               onClick={() => handleAddPreset(preset.url)}
               className="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 text-slate-700 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1"
             >
-              <Plus className="w-3 h-3 text-[#E06F28]" />
+              <Plus className="w-3 h-3 text-[#C87A38]" />
               <span>{preset.name}</span>
             </button>
           ))}
@@ -237,7 +237,7 @@ export const LocalImageUploader: React.FC<LocalImageUploaderProps> = ({
             <button
               type="button"
               onClick={handleAddCustomUrl}
-              className="px-3 py-1.5 bg-[#1C352D] text-white text-xs font-bold rounded-xl"
+              className="px-3 py-1.5 bg-[#361D13] text-white text-xs font-bold rounded-xl"
             >
               إضافة
             </button>

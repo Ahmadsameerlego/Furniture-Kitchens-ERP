@@ -137,7 +137,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
       {/* Top Header Bar */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-slate-950/90 to-transparent dir-rtl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#E06F28]/20 border border-[#E06F28]/40 flex items-center justify-center text-[#E06F28]">
+          <div className="w-10 h-10 rounded-2xl bg-[#C87A38]/20 border border-[#C87A38]/40 flex items-center justify-center text-[#C87A38]">
             <ImageIcon className="w-5 h-5" />
           </div>
           <div>
@@ -200,7 +200,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
             }}
             disabled={currentIndex === 0}
             className={`absolute right-6 top-1/2 -translate-y-1/2 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white transition-all z-20 shadow-2xl ${
-              currentIndex === 0 ? 'opacity-20 cursor-not-allowed' : 'hover:bg-[#1C352D] hover:border-emerald-500'
+              currentIndex === 0 ? 'opacity-20 cursor-not-allowed' : 'hover:bg-[#361D13] hover:border-emerald-500'
             }`}
           >
             <ChevronRight className="w-6 h-6" />
@@ -215,7 +215,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
             }}
             disabled={currentIndex === images.length - 1}
             className={`absolute left-6 top-1/2 -translate-y-1/2 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white transition-all z-20 shadow-2xl ${
-              currentIndex === images.length - 1 ? 'opacity-20 cursor-not-allowed' : 'hover:bg-[#1C352D] hover:border-emerald-500'
+              currentIndex === images.length - 1 ? 'opacity-20 cursor-not-allowed' : 'hover:bg-[#361D13] hover:border-emerald-500'
             }`}
           >
             <ChevronLeft className="w-6 h-6" />
@@ -252,7 +252,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
           title="إعادة الضبط (R)"
           className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-all flex items-center gap-1.5"
         >
-          <Maximize2 className="w-3.5 h-3.5 text-[#E06F28]" />
+          <Maximize2 className="w-3.5 h-3.5 text-[#C87A38]" />
           <span>إعادة ضبط</span>
         </button>
 
@@ -276,7 +276,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
                     resetTransform();
                   }}
                   className={`w-2.5 h-2.5 rounded-full transition-all ${
-                    idx === currentIndex ? 'bg-[#E06F28] w-6' : 'bg-slate-700 hover:bg-slate-500'
+                    idx === currentIndex ? 'bg-[#C87A38] w-6' : 'bg-slate-700 hover:bg-slate-500'
                   }`}
                 />
               ))}

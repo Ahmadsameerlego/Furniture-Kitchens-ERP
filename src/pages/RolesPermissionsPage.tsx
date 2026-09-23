@@ -29,7 +29,7 @@ export const RolesPermissionsPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">الأدوار ومصفوفة الصلاحيات (Roles & Permissions Matrix)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               {roles.length} أدوار معرفة
             </span>
           </div>
@@ -44,9 +44,9 @@ export const RolesPermissionsPage: React.FC = () => {
               setRoleToEdit(null);
               setIsModalOpen(true);
             }}
-            className="px-5 py-2.5 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
           >
-            <Plus className="w-4 h-4 text-[#E06F28]" />
+            <Plus className="w-4 h-4 text-[#C87A38]" />
             <span>إنشاء دور مخصص جديد (Custom Role)</span>
           </button>
         )}
@@ -70,8 +70,8 @@ export const RolesPermissionsPage: React.FC = () => {
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1C352D] flex items-center justify-center font-bold">
-                    <ShieldCheck className="w-5 h-5 text-[#1C352D]" />
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#361D13] flex items-center justify-center font-bold">
+                    <ShieldCheck className="w-5 h-5 text-[#361D13]" />
                   </div>
                   <div>
                     <h3 className="text-base font-black text-slate-900">{role.name}</h3>
@@ -105,7 +105,7 @@ export const RolesPermissionsPage: React.FC = () => {
               {/* Module access statistics */}
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-500">الوحدات المصرح بها:</span>
-                <span className="text-[#1C352D] bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+                <span className="text-[#361D13] bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
                   {activeModulesCount} من 13 وحدة
                 </span>
               </div>
@@ -117,7 +117,7 @@ export const RolesPermissionsPage: React.FC = () => {
                     setRoleToEdit(role);
                     setIsModalOpen(true);
                   }}
-                  className="w-full py-2 bg-slate-50 hover:bg-[#1C352D] hover:text-white text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition-all text-center"
+                  className="w-full py-2 bg-slate-50 hover:bg-[#361D13] hover:text-white text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition-all text-center"
                 >
                   تعديل مصفوفة الصلاحيات
                 </button>

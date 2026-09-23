@@ -43,7 +43,7 @@ export const CompanySetupPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900">إعداد وتكوين نشاط الشركة (Company Setup)</h1>
-            <span className="bg-[#E06F28]/15 text-[#E06F28] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#E06F28]/30">
+            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
               تحديد مجال العمل
             </span>
           </div>
@@ -64,10 +64,10 @@ export const CompanySetupPage: React.FC = () => {
         {/* Section 1: Business Type (Primary Industry Scope) */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Building2 className="w-5 h-5 text-[#1C352D]" />
+            <Building2 className="w-5 h-5 text-[#361D13]" />
             <div>
               <h2 className="text-sm font-black text-slate-900">1. مجال النشاط التخصصي (Business Type)</h2>
-              <p className="text-[11px] text-slate-500">اختر مجال النشاط الأساسي لشركة فيرني ميكر</p>
+              <p className="text-[11px] text-slate-500">اختر مجال النشاط الأساسي لشركة فيرنتشر لاند</p>
             </div>
           </div>
 
@@ -79,12 +79,12 @@ export const CompanySetupPage: React.FC = () => {
               onClick={() => setBusinessType('furniture')}
               className={`p-5 rounded-2xl border text-right transition-all flex flex-col justify-between space-y-3 ${
                 businessType === 'furniture'
-                  ? 'bg-emerald-950 text-white border-[#1C352D] ring-2 ring-emerald-500/30 shadow-lg'
+                  ? 'bg-emerald-950 text-white border-[#361D13] ring-2 ring-emerald-500/30 shadow-lg'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center justify-between">
-                <Package className={`w-6 h-6 ${businessType === 'furniture' ? 'text-[#E06F28]' : 'text-slate-500'}`} />
+                <Package className={`w-6 h-6 ${businessType === 'furniture' ? 'text-[#C87A38]' : 'text-slate-500'}`} />
                 {businessType === 'furniture' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
               </div>
               <div>
@@ -100,12 +100,12 @@ export const CompanySetupPage: React.FC = () => {
               onClick={() => setBusinessType('kitchens')}
               className={`p-5 rounded-2xl border text-right transition-all flex flex-col justify-between space-y-3 ${
                 businessType === 'kitchens'
-                  ? 'bg-emerald-950 text-white border-[#1C352D] ring-2 ring-emerald-500/30 shadow-lg'
+                  ? 'bg-emerald-950 text-white border-[#361D13] ring-2 ring-emerald-500/30 shadow-lg'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center justify-between">
-                <Ruler className={`w-6 h-6 ${businessType === 'kitchens' ? 'text-[#E06F28]' : 'text-slate-500'}`} />
+                <Ruler className={`w-6 h-6 ${businessType === 'kitchens' ? 'text-[#C87A38]' : 'text-slate-500'}`} />
                 {businessType === 'kitchens' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
               </div>
               <div>
@@ -121,12 +121,12 @@ export const CompanySetupPage: React.FC = () => {
               onClick={() => setBusinessType('furniture_kitchens')}
               className={`p-5 rounded-2xl border text-right transition-all flex flex-col justify-between space-y-3 ${
                 businessType === 'furniture_kitchens'
-                  ? 'bg-emerald-950 text-white border-[#1C352D] ring-2 ring-emerald-500/30 shadow-lg'
+                  ? 'bg-emerald-950 text-white border-[#361D13] ring-2 ring-emerald-500/30 shadow-lg'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center justify-between">
-                <Layers className={`w-6 h-6 ${businessType === 'furniture_kitchens' ? 'text-[#E06F28]' : 'text-slate-500'}`} />
+                <Layers className={`w-6 h-6 ${businessType === 'furniture_kitchens' ? 'text-[#C87A38]' : 'text-slate-500'}`} />
                 {businessType === 'furniture_kitchens' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
               </div>
               <div>
@@ -140,7 +140,7 @@ export const CompanySetupPage: React.FC = () => {
         {/* Section 2: Business Model (Ready vs Custom) */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Sparkles className="w-5 h-5 text-[#E06F28]" />
+            <Sparkles className="w-5 h-5 text-[#C87A38]" />
             <div>
               <h2 className="text-sm font-black text-slate-900">2. نموذج التشغيل والتنفيذ (Business Model)</h2>
               <p className="text-[11px] text-slate-500">مستقل عن نوع النشاط ويتيح دعم بيع الجاهز أو التفصيل بالطلب</p>
@@ -154,13 +154,13 @@ export const CompanySetupPage: React.FC = () => {
               onClick={() => setBusinessModel('ready_made')}
               className={`p-4 rounded-2xl border text-right transition-all space-y-2 ${
                 businessModel === 'ready_made'
-                  ? 'bg-[#1C352D] text-white border-[#1C352D] font-bold shadow-md'
+                  ? 'bg-[#361D13] text-white border-[#361D13] font-bold shadow-md'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm">جاهز فقط (Ready-Made)</span>
-                {businessModel === 'ready_made' && <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />}
+                {businessModel === 'ready_made' && <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />}
               </div>
               <p className="text-xs opacity-75">منتجات معروضة ومجهزة بالكامل بالمعارض والمخازن</p>
             </button>
@@ -171,13 +171,13 @@ export const CompanySetupPage: React.FC = () => {
               onClick={() => setBusinessModel('custom_made')}
               className={`p-4 rounded-2xl border text-right transition-all space-y-2 ${
                 businessModel === 'custom_made'
-                  ? 'bg-[#1C352D] text-white border-[#1C352D] font-bold shadow-md'
+                  ? 'bg-[#361D13] text-white border-[#361D13] font-bold shadow-md'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm">تفصيل فقط (Custom-Made)</span>
-                {businessModel === 'custom_made' && <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />}
+                {businessModel === 'custom_made' && <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />}
               </div>
               <p className="text-xs opacity-75">حسب المقاسات والتصميمات الخاصة بكل عميل بالورش</p>
             </button>
@@ -188,13 +188,13 @@ export const CompanySetupPage: React.FC = () => {
               onClick={() => setBusinessModel('ready_custom')}
               className={`p-4 rounded-2xl border text-right transition-all space-y-2 ${
                 businessModel === 'ready_custom'
-                  ? 'bg-[#1C352D] text-white border-[#1C352D] font-bold shadow-md'
+                  ? 'bg-[#361D13] text-white border-[#361D13] font-bold shadow-md'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm">جاهز + تفصيل (Ready + Custom)</span>
-                {businessModel === 'ready_custom' && <CheckCircle2 className="w-4 h-4 text-[#E06F28]" />}
+                {businessModel === 'ready_custom' && <CheckCircle2 className="w-4 h-4 text-[#C87A38]" />}
               </div>
               <p className="text-xs opacity-75">بيع أطقم جاهزة + مشاريع تفصيل حسب الطلب</p>
             </button>
@@ -215,7 +215,7 @@ export const CompanySetupPage: React.FC = () => {
                 disabled={!canEdit}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
               />
             </div>
 
@@ -226,7 +226,7 @@ export const CompanySetupPage: React.FC = () => {
                 disabled={!canEdit}
                 value={nameEn}
                 onChange={(e) => setNameEn(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left"
                 dir="ltr"
               />
             </div>
@@ -238,7 +238,7 @@ export const CompanySetupPage: React.FC = () => {
                 disabled={!canEdit}
                 value={taxNumber}
                 onChange={(e) => setTaxNumber(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left"
                 dir="ltr"
               />
             </div>
@@ -250,7 +250,7 @@ export const CompanySetupPage: React.FC = () => {
                 disabled={!canEdit}
                 value={commercialReg}
                 onChange={(e) => setCommercialReg(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left"
                 dir="ltr"
               />
             </div>
@@ -262,7 +262,7 @@ export const CompanySetupPage: React.FC = () => {
                 disabled={!canEdit}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left"
                 dir="ltr"
               />
             </div>
@@ -274,7 +274,7 @@ export const CompanySetupPage: React.FC = () => {
                 disabled={!canEdit}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left"
                 dir="ltr"
               />
             </div>
@@ -287,7 +287,7 @@ export const CompanySetupPage: React.FC = () => {
               disabled={!canEdit}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 text-xs"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-xs"
             />
           </div>
         </div>
@@ -297,9 +297,9 @@ export const CompanySetupPage: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="px-8 py-3 bg-[#1C352D] hover:bg-[#142921] text-white font-black text-xs rounded-2xl shadow-xl transition-all flex items-center gap-2"
+              className="px-8 py-3 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-2xl shadow-xl transition-all flex items-center gap-2"
             >
-              <Save className="w-4 h-4 text-[#E06F28]" />
+              <Save className="w-4 h-4 text-[#C87A38]" />
               <span>حفظ التعديلات والتكوين</span>
             </button>
           </div>

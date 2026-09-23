@@ -13,7 +13,7 @@ export const ToastContainer: React.FC = () => {
     }`}>
       {toasts.map((toast) => {
         const bgColors = {
-          success: 'bg-[#1C352D] text-white border-emerald-500/50',
+          success: 'bg-[#361D13] text-white border-emerald-500/50',
           error: 'bg-rose-950 text-rose-100 border-rose-600/50',
           warning: 'bg-amber-950 text-amber-100 border-amber-500/50',
           info: 'bg-slate-900 text-slate-100 border-slate-700'

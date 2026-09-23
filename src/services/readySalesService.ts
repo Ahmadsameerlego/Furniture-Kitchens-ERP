@@ -83,9 +83,9 @@ export class ReadySalesService {
         return {
           label: 'جاهز للتسليم (Ready for Delivery)',
           labelEn: 'Ready for Delivery',
-          bgClass: 'bg-[#E06F28]/15',
-          textClass: 'text-[#E06F28]',
-          borderClass: 'border-[#E06F28]/30'
+          bgClass: 'bg-[#C87A38]/15',
+          textClass: 'text-[#C87A38]',
+          borderClass: 'border-[#C87A38]/30'
         };
       case 'delivered':
         return {
@@ -99,9 +99,9 @@ export class ReadySalesService {
         return {
           label: 'طلب مكتمل بالكامل (Completed)',
           labelEn: 'Completed',
-          bgClass: 'bg-[#1C352D]',
+          bgClass: 'bg-[#361D13]',
           textClass: 'text-white',
-          borderClass: 'border-[#1C352D]'
+          borderClass: 'border-[#361D13]'
         };
       case 'cancelled':
         return {

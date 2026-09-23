@@ -102,7 +102,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 onClick={() => setType('showroom')}
                 className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
                   type === 'showroom'
-                    ? 'bg-[#1C352D] text-white border-[#1C352D] shadow-md font-bold'
+                    ? 'bg-[#361D13] text-white border-[#361D13] shadow-md font-bold'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -116,7 +116,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 onClick={() => setType('warehouse')}
                 className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
                   type === 'warehouse'
-                    ? 'bg-[#1C352D] text-white border-[#1C352D] shadow-md font-bold'
+                    ? 'bg-[#361D13] text-white border-[#361D13] shadow-md font-bold'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -130,7 +130,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 onClick={() => setType('workshop')}
                 className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
                   type === 'workshop'
-                    ? 'bg-[#1C352D] text-white border-[#1C352D] shadow-md font-bold'
+                    ? 'bg-[#361D13] text-white border-[#361D13] shadow-md font-bold'
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -151,7 +151,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="مثال: معرض التجمع الرئيسي"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all"
               />
             </div>
 
@@ -162,7 +162,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 value={nameEn}
                 onChange={(e) => setNameEn(e.target.value)}
                 placeholder="e.g. Main Tagamoa Showroom"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all text-left"
                 dir="ltr"
               />
             </div>
@@ -178,7 +178,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="الشارع - المنطقة - المدينة"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all"
               />
             </div>
 
@@ -189,7 +189,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="010xxxxxxx"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all text-left"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all text-left"
                 dir="ltr"
               />
             </div>
@@ -204,7 +204,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 value={managerName}
                 onChange={(e) => setManagerName(e.target.value)}
                 placeholder="اسم مدير المقر"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all"
               />
             </div>
 
@@ -215,7 +215,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 value={capacity}
                 onChange={(e) => setCapacity(e.target.value)}
                 placeholder="مثال: مساحة 2500 م2 أو طاقة 50 مشروع"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1C352D]/30 focus:bg-white transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 focus:bg-white transition-all"
               />
             </div>
           </div>
@@ -231,7 +231,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                     name="status"
                     checked={status === 'active'}
                     onChange={() => setStatus('active')}
-                    className="accent-[#1C352D]"
+                    className="accent-[#361D13]"
                   />
                   <span>نشط (Active)</span>
                 </label>
@@ -241,7 +241,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                     name="status"
                     checked={status === 'inactive'}
                     onChange={() => setStatus('inactive')}
-                    className="accent-[#1C352D]"
+                    className="accent-[#361D13]"
                   />
                   <span>معطل (Inactive)</span>
                 </label>
@@ -260,9 +260,9 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#1C352D] hover:bg-[#142921] text-white text-xs font-black shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white text-xs font-black shadow-lg transition-all flex items-center gap-2"
             >
-              <CheckCircle className="w-4 h-4 text-[#E06F28]" />
+              <CheckCircle className="w-4 h-4 text-[#C87A38]" />
               <span>{branchToEdit ? 'حفظ التعديلات' : 'إضافة المقر الآن'}</span>
             </button>
           </div>

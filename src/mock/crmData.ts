@@ -80,7 +80,7 @@ export const initialCampaigns: MarketingCampaign[] = [
     customersCount: 8,
     purchasedCount: 3,
     revenueAttributed: 420000,
-    notes: 'نموذج طلب المعاينة المجانية المباشر بموقع فيرني ميكر'
+    notes: 'نموذج طلب المعاينة المجانية المباشر بموقع فيرنتشر لاند'
   }
 ];
 
@@ -310,7 +310,7 @@ export const initialCustomers: Customer[] = [
     campaignName: 'حملة المطابخ الصيفية 2026',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
-    responsibleUserId: 'user-[#E06F28]',
+    responsibleUserId: 'user-[#C87A38]',
     responsibleUserName: 'خالد توفيق',
     notes: 'تمت المعاينة الرسمية بالفيلا وأخذ المقاسات 3D بالليزر.',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',

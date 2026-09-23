@@ -20,12 +20,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(28, 53, 45, 0.2);
+  background: rgba(54, 29, 19, 0.25);
   border-radius: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(224, 111, 40, 0.5);
+  background: rgba(200, 122, 56, 0.6);
 }
 
 /* Glassmorphism & Micro-animations */
@@ -36,7 +36,34 @@
 }
 
 .glass-panel-dark {
-  background: rgba(20, 41, 33, 0.85);
+  background: rgba(35, 18, 10, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* Professional Print Stylesheet for PDF Generation */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+  
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  aside, header, nav, .print\\:hidden {
+    display: none !important;
+  }
+
+  .official-quotation-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 }

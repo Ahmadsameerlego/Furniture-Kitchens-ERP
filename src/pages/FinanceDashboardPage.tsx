@@ -232,8 +232,8 @@ export const FinanceDashboardPage: React.FC = () => {
       <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-2xl bg-[#1C352D] text-white flex items-center justify-center font-bold shadow-md">
-              <Landmark className="w-5 h-5 text-[#E06F28]" />
+            <div className="w-10 h-10 rounded-2xl bg-[#361D13] text-white flex items-center justify-center font-bold shadow-md">
+              <Landmark className="w-5 h-5 text-[#C87A38]" />
             </div>
             <div>
               <h1 className="text-xl font-black text-slate-900">المركز المالي والحسابات (Central Finance)</h1>
@@ -272,7 +272,7 @@ export const FinanceDashboardPage: React.FC = () => {
             onClick={() => setShowAddExpenseModal(true)}
             className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl shadow-md transition-all flex items-center gap-1.5 active:scale-95"
           >
-            <Receipt className="w-4 h-4 text-[#E06F28]" />
+            <Receipt className="w-4 h-4 text-[#C87A38]" />
             <span>إثبات مصروف</span>
           </button>
         </div>
@@ -352,17 +352,17 @@ export const FinanceDashboardPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-2xl transition-all flex items-center gap-1.5 ${
-            activeTab === 'overview' ? 'bg-[#1C352D] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'overview' ? 'bg-[#361D13] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <PieChart className="w-4 h-4 text-[#E06F28]" />
+          <PieChart className="w-4 h-4 text-[#C87A38]" />
           <span>المؤشرات المالية (Overview)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('receivables')}
           className={`px-4 py-2.5 rounded-2xl transition-all flex items-center gap-1.5 ${
-            activeTab === 'receivables' ? 'bg-[#1C352D] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'receivables' ? 'bg-[#361D13] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <ArrowUpRight className="w-4 h-4 text-emerald-400" />
@@ -372,7 +372,7 @@ export const FinanceDashboardPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('payables')}
           className={`px-4 py-2.5 rounded-2xl transition-all flex items-center gap-1.5 ${
-            activeTab === 'payables' ? 'bg-[#1C352D] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'payables' ? 'bg-[#361D13] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <ArrowDownLeft className="w-4 h-4 text-rose-400" />
@@ -382,7 +382,7 @@ export const FinanceDashboardPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('expenses')}
           className={`px-4 py-2.5 rounded-2xl transition-all flex items-center gap-1.5 ${
-            activeTab === 'expenses' ? 'bg-[#1C352D] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'expenses' ? 'bg-[#361D13] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <Receipt className="w-4 h-4 text-amber-400" />
@@ -392,7 +392,7 @@ export const FinanceDashboardPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('accounts')}
           className={`px-4 py-2.5 rounded-2xl transition-all flex items-center gap-1.5 ${
-            activeTab === 'accounts' ? 'bg-[#1C352D] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'accounts' ? 'bg-[#361D13] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <CreditCard className="w-4 h-4 text-blue-400" />
@@ -402,7 +402,7 @@ export const FinanceDashboardPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('profitability')}
           className={`px-4 py-2.5 rounded-2xl transition-all flex items-center gap-1.5 ${
-            activeTab === 'profitability' ? 'bg-[#1C352D] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'profitability' ? 'bg-[#361D13] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <Sparkles className="w-4 h-4 text-amber-300" />
@@ -412,7 +412,7 @@ export const FinanceDashboardPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('ledger')}
           className={`px-4 py-2.5 rounded-2xl transition-all flex items-center gap-1.5 ${
-            activeTab === 'ledger' ? 'bg-[#1C352D] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
+            activeTab === 'ledger' ? 'bg-[#361D13] text-white shadow-md font-black' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <FileText className="w-4 h-4 text-slate-300" />
@@ -425,7 +425,7 @@ export const FinanceDashboardPage: React.FC = () => {
         <div className="space-y-6">
 
           {/* Visual Financial Health Summary Bar */}
-          <div className="bg-gradient-to-r from-slate-900 via-[#1C352D] to-slate-900 text-white rounded-3xl p-6 shadow-md space-y-4 border border-emerald-900/60">
+          <div className="bg-gradient-to-r from-slate-900 via-[#361D13] to-slate-900 text-white rounded-3xl p-6 shadow-md space-y-4 border border-emerald-900/60">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-emerald-900/60 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-xl shrink-0">
@@ -540,7 +540,7 @@ export const FinanceDashboardPage: React.FC = () => {
             </div>
 
             {/* Net Operating Profit */}
-            <div className="p-5 rounded-3xl bg-[#1C352D] text-white border border-emerald-900 shadow-md space-y-2">
+            <div className="p-5 rounded-3xl bg-[#361D13] text-white border border-emerald-900 shadow-md space-y-2">
               <MetricTooltip
                 title="صافي الربح التشغيلي (Net Profit)"
                 explanation="المبلغ المالي المتبقي كربح صافي للشركة بعد خصم كلاً من تكلفة الخامات وكافة المصروفات التشغيلية والإيجارات والأجور."
@@ -596,7 +596,7 @@ export const FinanceDashboardPage: React.FC = () => {
           {/* Quick Recent Financial Ledger Audit Stream */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
             <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#E06F28]" />
+              <FileText className="w-4 h-4 text-[#C87A38]" />
               <span>آخر الحركات المالية الموثقة بالنظام (Recent Financial Transactions):</span>
             </h3>
 
@@ -776,7 +776,7 @@ export const FinanceDashboardPage: React.FC = () => {
               onClick={() => setShowAddExpenseModal(true)}
               className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl shadow-md flex items-center gap-1.5 shrink-0"
             >
-              <Plus className="w-4 h-4 text-[#E06F28]" />
+              <Plus className="w-4 h-4 text-[#C87A38]" />
               <span>إضافة مصروف تشغيلي جديد</span>
             </button>
           </div>
@@ -888,7 +888,7 @@ export const FinanceDashboardPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-5 rounded-3xl bg-[#1C352D] text-white border border-emerald-900 shadow-md space-y-2">
+            <div className="p-5 rounded-3xl bg-[#361D13] text-white border border-emerald-900 shadow-md space-y-2">
               <div className="flex items-center justify-between text-amber-300 font-bold">
                 <span>أفضل منتج ربحية</span>
                 <Sparkles className="w-4 h-4 text-amber-300" />
@@ -907,7 +907,7 @@ export const FinanceDashboardPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#E06F28]" />
+                  <Sparkles className="w-4 h-4 text-[#C87A38]" />
                   <span>ربحية مشاريع المطابخ والتفصيل (Custom Project Profitability Engine)</span>
                 </h3>
                 <p className="text-xs text-slate-500 font-bold mt-0.5">
@@ -1135,7 +1135,7 @@ export const FinanceDashboardPage: React.FC = () => {
                   });
                   setShowAddExpenseModal(false);
                 }}
-                className="px-5 py-2 bg-[#1C352D] text-white font-black rounded-xl shadow-md"
+                className="px-5 py-2 bg-[#361D13] text-white font-black rounded-xl shadow-md"
               >
                 حفظ وإصدار المصروف
               </button>
@@ -1195,7 +1195,7 @@ export const FinanceDashboardPage: React.FC = () => {
                   transferBetweenFinancialAccounts(fromAccId, toAccId, transferAmt, transferNotes);
                   setShowTransferModal(false);
                 }}
-                className="px-5 py-2 bg-[#E06F28] text-white font-black rounded-xl shadow-md"
+                className="px-5 py-2 bg-[#C87A38] text-white font-black rounded-xl shadow-md"
               >
                 تأكيد التحويل المالي
               </button>
