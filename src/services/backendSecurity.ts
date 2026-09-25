@@ -46,7 +46,7 @@ export class BackendSecurityService {
       return { isAllowed: true, reason: 'صلاحيات المدير الفائق (Super Admin).' };
     }
 
-    const modulePerms = role.permissions[module];
+    const modulePerms = role.permissions[module] || (module.startsWith('acc_') ? role.permissions['finance'] : undefined);
     if (!modulePerms) {
       return {
         isAllowed: false,

@@ -26,6 +26,16 @@ import { SecurityTestPage } from '../../pages/SecurityTestPage';
 import { NotificationsPage } from '../../pages/NotificationsPage';
 import { CustomerPortalPage } from '../../pages/CustomerPortalPage';
 import { FinanceDashboardPage } from '../../pages/FinanceDashboardPage';
+import { AccountingDashboardView } from '../../pages/accounting/AccountingDashboardView';
+import { ChartOfAccountsView } from '../../pages/accounting/ChartOfAccountsView';
+import { JournalEntriesView } from '../../pages/accounting/JournalEntriesView';
+import { CustomerInvoicesAdvancesView } from '../../pages/accounting/CustomerInvoicesAdvancesView';
+import { VendorBillsPurchasesView } from '../../pages/accounting/VendorBillsPurchasesView';
+import { PartnerStatementsView } from '../../pages/accounting/PartnerStatementsView';
+import { PdcChecksView } from '../../pages/accounting/PdcChecksView';
+import { CostCentersView } from '../../pages/accounting/CostCentersView';
+import { FinancialReportsView } from '../../pages/accounting/FinancialReportsView';
+import { FiscalPeriodsView } from '../../pages/accounting/FiscalPeriodsView';
 import { PlaceholderModulePage } from '../../pages/PlaceholderModulePage';
 
 import { Building2, MapPin, Users as UsersIcon, ShieldCheck, History, Terminal } from 'lucide-react';
@@ -88,7 +98,35 @@ export const ApplicationShell: React.FC = () => {
         return <SuppliersListPage />;
 
       case 'finance':
-        return <FinanceDashboardPage />;
+      case 'acc_dashboard':
+        return <AccountingDashboardView />;
+
+      case 'acc_coa':
+        return <ChartOfAccountsView />;
+
+      case 'acc_entries':
+        return <JournalEntriesView />;
+
+      case 'acc_invoices':
+        return <CustomerInvoicesAdvancesView />;
+
+      case 'acc_bills':
+        return <VendorBillsPurchasesView />;
+
+      case 'acc_partners':
+        return <PartnerStatementsView />;
+
+      case 'acc_checks':
+        return <PdcChecksView />;
+
+      case 'acc_cost_centers':
+        return <CostCentersView />;
+
+      case 'acc_reports':
+        return <FinancialReportsView />;
+
+      case 'acc_periods':
+        return <FiscalPeriodsView />;
 
       case 'notifications':
         return <NotificationsPage />;

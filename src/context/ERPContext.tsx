@@ -112,6 +112,29 @@ import {
   initialCompanyExpenses,
   initialFinancialTransactions
 } from '../mock/financeData';
+import {
+  Account,
+  Journal,
+  JournalEntry,
+  FiscalPeriod,
+  CostCenter,
+  SalesInvoice,
+  VendorBill,
+  CustomerAdvance,
+  PDCRecord
+} from '../types/accounting';
+import {
+  initialChartOfAccounts,
+  initialJournals,
+  initialFiscalPeriods,
+  initialCostCenters,
+  initialPDCRecords,
+  initialCustomerAdvances,
+  initialSalesInvoices,
+  initialVendorBills,
+  initialJournalEntries
+} from '../mock/accountingData';
+import { AccountingService } from '../services/accountingService';
 import { BackendSecurityService } from '../services/backendSecurity';
 import { CrmService } from '../services/crmService';
 import { ReadySalesService } from '../services/readySalesService';
@@ -192,6 +215,60 @@ interface ERPContextType {
   expenses: CompanyExpense[];
   financialAccounts: FinancialAccount[];
   financialTransactions: FinancialTransaction[];
+
+  // Production-Ready Accounting Module State
+  chartOfAccounts: Account[];
+  journals: Journal[];
+  journalEntries: JournalEntry[];
+  fiscalPeriods: FiscalPeriod[];
+  costCenters: CostCenter[];
+  salesInvoices: SalesInvoice[];
+  vendorBills: VendorBill[];
+  customerAdvances: CustomerAdvance[];
+  pdcRecords: PDCRecord[];
+
+  // Production-Ready Accounting Module Actions
+  createManualJournalEntry: (entryData: {
+    journalId: string;
+    date: string;
+    periodId: string;
+    reference: string;
+    description: string;
+    lines: {
+      accountId: string;
+      accountCode: string;
+      accountName: string;
+      partnerId?: string;
+      partnerType?: 'customer' | 'supplier';
+      partnerName?: string;
+      debit: number;
+      credit: number;
+      description: string;
+      costCenterId?: string;
+      costCenterName?: string;
+    }[];
+  }) => { success: boolean; entry?: JournalEntry; error?: string };
+  reverseJournalEntry: (entryId: string, reason: string) => boolean;
+  createSalesInvoice: (invoiceData: any) => SalesInvoice;
+  recordCustomerAdvancePayment: (data: {
+    customerId: string;
+    amount: number;
+    paymentMethod: 'cash' | 'bank_transfer' | 'check' | 'card';
+    accountId: string;
+    orderId?: string;
+    projectId?: string;
+    notes?: string;
+  }) => CustomerAdvance;
+  applyCustomerAdvanceToInvoice: (invoiceId: string, advanceId: string, amountToApply: number) => boolean;
+  createVendorBill: (billData: any) => VendorBill;
+  recordVendorBillPayment: (billId: string, amount: number, paymentMethod: string, accountId: string, withholdingTaxRate?: number, notes?: string) => boolean;
+  updatePdcStatus: (checkId: string, newStatus: PDCRecord['status'], clearanceAccountId?: string) => void;
+  toggleFiscalPeriodLock: (periodId: string) => void;
+  addAccountToCoA: (accountData: Omit<Account, 'id'>) => void;
+  recordInventoryWipMovement: (productionOrderId: string, totalMaterialCost: number, notes?: string) => void;
+  recordProductionCompletionToFinishedGoods: (productionOrderId: string, finalTotalCost: number, notes?: string) => void;
+  recordDeliveryCogsAccounting: (orderId: string, cogsAmount: number, notes?: string) => void;
+  recordScrapWasteAccounting: (reason: string, scrapAmount: number, notes?: string) => void;
 
   // Global Navigation & Actions
   setActiveModule: (module: ModuleId) => void;
@@ -354,14 +431,149 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>(initialFinancialAccounts);
   const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>(initialFinancialTransactions);
 
+  // Production-Ready Accounting Module State
+  const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>(initialChartOfAccounts);
+  const [journals, setJournals] = useState<Journal[]>(initialJournals);
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(initialJournalEntries);
+  const [fiscalPeriods, setFiscalPeriods] = useState<FiscalPeriod[]>(initialFiscalPeriods);
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(initialCostCenters);
+  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(initialSalesInvoices);
+  const [vendorBills, setVendorBills] = useState<VendorBill[]>(initialVendorBills);
+  const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(initialCustomerAdvances);
+  const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(initialPDCRecords);
+
+  // URL Hash to ModuleId Mapping
+  const moduleToRouteMap: Record<ModuleId, string> = {
+    dashboard: '/dashboard',
+    customers: '/crm/customers',
+    campaigns: '/crm/campaigns',
+    sales: '/sales/ready-orders',
+    custom_projects: '/sales/custom-projects',
+    products: '/catalog/products',
+    materials: '/catalog/materials',
+    inventory: '/operations/inventory',
+    production: '/operations/production',
+    installation: '/operations/installation',
+    suppliers: '/operations/suppliers',
+    finance: '/accounting/dashboard',
+    acc_dashboard: '/accounting/dashboard',
+    acc_coa: '/accounting/chart-of-accounts',
+    acc_entries: '/accounting/journal-entries',
+    acc_invoices: '/accounting/invoices',
+    acc_bills: '/accounting/bills',
+    acc_partners: '/accounting/partners',
+    acc_checks: '/accounting/checks',
+    acc_cost_centers: '/accounting/cost-centers',
+    acc_reports: '/accounting/reports',
+    acc_periods: '/accounting/periods',
+    reports: '/reports',
+    notifications: '/notifications',
+    settings: '/settings',
+    portal: '/portal'
+  };
+
+  const routeToModuleMap: Record<string, ModuleId> = {
+    '/dashboard': 'dashboard',
+    '/crm/customers': 'customers',
+    '/customers': 'customers',
+    '/crm/campaigns': 'campaigns',
+    '/campaigns': 'campaigns',
+    '/sales/ready-orders': 'sales',
+    '/sales': 'sales',
+    '/sales/custom-projects': 'custom_projects',
+    '/custom_projects': 'custom_projects',
+    '/catalog/products': 'products',
+    '/products': 'products',
+    '/catalog/materials': 'materials',
+    '/materials': 'materials',
+    '/operations/inventory': 'inventory',
+    '/inventory': 'inventory',
+    '/operations/production': 'production',
+    '/production': 'production',
+    '/operations/installation': 'installation',
+    '/installation': 'installation',
+    '/operations/suppliers': 'suppliers',
+    '/suppliers': 'suppliers',
+    '/accounting/dashboard': 'acc_dashboard',
+    '/accounting/chart-of-accounts': 'acc_coa',
+    '/accounting/coa': 'acc_coa',
+    '/accounting/journal-entries': 'acc_entries',
+    '/accounting/entries': 'acc_entries',
+    '/accounting/invoices': 'acc_invoices',
+    '/accounting/invoices-advances': 'acc_invoices',
+    '/accounting/bills': 'acc_bills',
+    '/accounting/vendor-bills': 'acc_bills',
+    '/accounting/partners': 'acc_partners',
+    '/accounting/partner-statements': 'acc_partners',
+    '/accounting/checks': 'acc_checks',
+    '/accounting/pdc-checks': 'acc_checks',
+    '/accounting/cost-centers': 'acc_cost_centers',
+    '/accounting/reports': 'acc_reports',
+    '/accounting/financial-statements': 'acc_reports',
+    '/accounting/periods': 'acc_periods',
+    '/accounting/fiscal-periods': 'acc_periods',
+    '/finance': 'acc_dashboard',
+    '/reports': 'reports',
+    '/notifications': 'notifications',
+    '/settings': 'settings',
+    '/portal': 'portal'
+  };
+
+  const getModuleFromHash = (): ModuleId => {
+    if (typeof window === 'undefined') return 'dashboard';
+    const hash = window.location.hash.replace(/^#/, '');
+    if (!hash) return 'dashboard';
+    const cleanPath = hash.startsWith('/') ? hash : '/' + hash;
+    if (routeToModuleMap[cleanPath]) {
+      return routeToModuleMap[cleanPath];
+    }
+    const rawId = cleanPath.replace(/^\//, '') as ModuleId;
+    if (moduleToRouteMap[rawId]) {
+      return rawId;
+    }
+    return 'dashboard';
+  };
+
   // Session state
   const [currentUserId, setCurrentUserId] = useState<string>('user-1');
   const [currentBranchId, setCurrentBranchId] = useState<string>('branch-1');
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
-  const [activeModule, setActiveModule] = useState<ModuleId>('dashboard');
+  const [activeModule, setActiveModuleState] = useState<ModuleId>(() => getModuleFromHash());
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [activePersonaId, setActivePersonaId] = useState<DemoPersonaId>('ahmed_owner');
   const [toasts, setToasts] = useState<ToastState[]>([]);
+
+  const setActiveModule = (moduleId: ModuleId) => {
+    setActiveModuleState(moduleId);
+    if (typeof window !== 'undefined') {
+      const targetPath = moduleToRouteMap[moduleId] || ('/' + moduleId);
+      const currentHash = window.location.hash.replace(/^#/, '');
+      if (currentHash !== targetPath) {
+        window.location.hash = targetPath;
+      }
+    }
+  };
+
+  // Synchronize browser history / URL hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const detected = getModuleFromHash();
+      if (detected) {
+        setActiveModuleState(detected);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Initial hash sync
+    if (!window.location.hash) {
+      window.location.hash = moduleToRouteMap[activeModule] || ('/' + activeModule);
+    }
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   // Sync document direction
   useEffect(() => {
@@ -1998,6 +2210,926 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setFinancialTransactions(prev => [newTx, ...prev]);
   };
 
+  // ----------------------------------------------------
+  // REWAQ ACCOUNTING MODULE ENGINE ACTIONS
+  // ----------------------------------------------------
+
+  const createManualJournalEntry = (entryData: {
+    journalId: string;
+    date: string;
+    periodId: string;
+    reference: string;
+    description: string;
+    lines: {
+      accountId: string;
+      accountCode: string;
+      accountName: string;
+      partnerId?: string;
+      partnerType?: 'customer' | 'supplier';
+      partnerName?: string;
+      debit: number;
+      credit: number;
+      description: string;
+      costCenterId?: string;
+      costCenterName?: string;
+    }[];
+  }) => {
+    const journal = journals.find(j => j.id === entryData.journalId) || journals[4];
+    const result = AccountingService.createPostedEntry({
+      journal,
+      date: entryData.date,
+      periodId: entryData.periodId,
+      reference: entryData.reference,
+      description: entryData.description,
+      sourceType: 'manual',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: entryData.lines,
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    if (result.error || !result.entry) {
+      showToast(result.error || 'فشل في حفظ وترحيل القيد', 'error');
+      return { success: false, error: result.error };
+    }
+
+    setJournalEntries(prev => [result.entry!, ...prev]);
+
+    addAuditLog({
+      category: 'finance',
+      action: 'ترحيل قيد يومية يدوي',
+      actionEn: 'Manual Journal Entry Posted',
+      target: result.entry.entryNumber,
+      details: `البيان: ${result.entry.description} | إجمالي القيد: ${result.entry.totalDebit.toLocaleString('ar-EG')} ج.م`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم ترحيل القيد المحاسبي (${result.entry.entryNumber}) بنجاح`, 'success');
+    return { success: true, entry: result.entry };
+  };
+
+  const reverseJournalEntry = (entryId: string, reason: string): boolean => {
+    const targetEntry = journalEntries.find(e => e.id === entryId);
+    if (!targetEntry) return false;
+
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const result = AccountingService.reverseEntry(targetEntry, reason, currentUser.fullName, currentPeriod.id, fiscalPeriods);
+
+    if (result.error) {
+      showToast(result.error, 'error');
+      return false;
+    }
+
+    setJournalEntries(prev => [
+      result.reversalEntry,
+      ...prev.map(e => e.id === entryId ? result.reversedOriginal : e)
+    ]);
+
+    addAuditLog({
+      category: 'finance',
+      action: 'عكس قيد محاسبي مرحل',
+      actionEn: 'Journal Entry Reversed',
+      target: targetEntry.entryNumber,
+      details: `تم إنشاء القيد العكسي: ${result.reversalEntry.entryNumber} | السبب: ${reason}`,
+      status: 'warning'
+    });
+
+    showToast(`✓ تم إنشاء القيد العكسي (${result.reversalEntry.entryNumber}) وعكس القيد الأصلي`, 'success');
+    return true;
+  };
+
+  // Helper to safely get account from Chart of Accounts
+  const getSafeAccount = (codePrefix: string, fallbackType?: string): Account => {
+    const found = chartOfAccounts.find(a => a.code === codePrefix) ||
+      chartOfAccounts.find(a => a.code.startsWith(codePrefix)) ||
+      (fallbackType ? chartOfAccounts.find(a => a.type === fallbackType) : undefined) ||
+      chartOfAccounts[0];
+    return found;
+  };
+
+  const recordCustomerAdvancePayment = (data: {
+    customerId: string;
+    amount: number;
+    paymentMethod: 'cash' | 'bank_transfer' | 'check' | 'card';
+    accountId: string;
+    orderId?: string;
+    projectId?: string;
+    notes?: string;
+  }): CustomerAdvance => {
+    const targetCust = customers.find(c => c.id === data.customerId);
+    const custName = targetCust?.fullName || 'عميل تعاقد';
+    const advanceNumber = `ADV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const today = new Date().toISOString().substring(0, 10);
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const cashOrBankJournal = data.paymentMethod === 'cash' 
+      ? (journals.find(j => j.type === 'cash') || journals[2])
+      : (journals.find(j => j.type === 'bank') || journals[3]);
+
+    const targetAcc = chartOfAccounts.find(a => a.id === data.accountId) || 
+      (data.paymentMethod === 'cash' ? getSafeAccount('11111', 'asset') : getSafeAccount('11121', 'asset'));
+    const advanceAcc = getSafeAccount('212', 'liability');
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: cashOrBankJournal || journals[2],
+      date: today,
+      periodId: currentPeriod.id,
+      reference: `عربون تعاقد العميل ${custName}`,
+      description: `استلام عربون/دفعة مقدمة لعقد الأثاث والمطبخ (${advanceNumber})`,
+      sourceDocument: advanceNumber,
+      sourceType: 'customer_advance',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        {
+          accountId: targetAcc.id,
+          accountCode: targetAcc.code,
+          accountName: targetAcc.nameAr,
+          debit: data.amount,
+          credit: 0,
+          description: `تحصيل نقدي/بنكي لعربون العقد (${custName})`
+        },
+        {
+          accountId: advanceAcc.id,
+          accountCode: advanceAcc.code,
+          accountName: advanceAcc.nameAr,
+          partnerId: data.customerId,
+          partnerType: 'customer',
+          partnerName: custName,
+          debit: 0,
+          credit: data.amount,
+          description: `دفعة مقدمة معلقة لحساب العقد حتى إصدار الفاتورة`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    const advanceRecord: CustomerAdvance = {
+      id: `adv-${Date.now()}`,
+      advanceNumber,
+      customerId: data.customerId,
+      customerName: custName,
+      orderId: data.orderId,
+      projectId: data.projectId,
+      amount: data.amount,
+      appliedAmount: 0,
+      remainingAmount: data.amount,
+      paymentMethod: data.paymentMethod,
+      accountId: targetAcc.id,
+      date: today,
+      journalEntryId: postResult.entry?.id || '',
+      status: 'active',
+      notes: data.notes,
+      receivedByUserName: currentUser.fullName
+    };
+
+    setCustomerAdvances(prev => [advanceRecord, ...prev]);
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+
+    addAuditLog({
+      category: 'finance',
+      action: 'إثبات دفعة مقدمة من عميل (عربون)',
+      actionEn: 'Customer Advance Deposit Recorded',
+      target: advanceNumber,
+      details: `العميل: ${custName} | المبلغ: ${data.amount.toLocaleString('ar-EG')} ج.م (التزام حتى إصدار الفاتورة)`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم تسجيل الدفعة المقدمة (${advanceNumber}) بمبلغ ${data.amount.toLocaleString('ar-EG')} ج.م كالتزام دائن`, 'success');
+    return advanceRecord;
+  };
+
+  const createSalesInvoice = (invoiceData: any): SalesInvoice => {
+    const today = new Date().toISOString().substring(0, 10);
+    const invoiceNumber = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const targetCust = customers.find(c => c.id === invoiceData.customerId);
+    const custName = targetCust?.fullName || invoiceData.customerName || 'عميل';
+
+    const subtotal = Number(invoiceData.subtotal || 0);
+    const taxAmount = Number(invoiceData.taxAmount !== undefined ? invoiceData.taxAmount : Math.round(subtotal * 0.14));
+    const discountAmount = Number(invoiceData.discountAmount || 0);
+    const totalAmount = subtotal + taxAmount - discountAmount;
+    const advanceApplied = Number(invoiceData.advanceAppliedAmount || 0);
+    const netReceivable = Math.max(0, totalAmount - advanceApplied);
+
+    const salesJournal = journals.find(j => j.type === 'sales') || journals[0];
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+
+    const arAcc = getSafeAccount('1121', 'asset');
+    const revAcc = getSafeAccount('411', 'revenue');
+    const vatAcc = getSafeAccount('2141', 'liability');
+    const advAcc = getSafeAccount('212', 'liability');
+
+    const lines: any[] = [];
+
+    // If advance applied, debit advance account
+    if (advanceApplied > 0) {
+      lines.push({
+        accountId: advAcc.id,
+        accountCode: advAcc.code,
+        accountName: advAcc.nameAr,
+        partnerId: invoiceData.customerId,
+        partnerType: 'customer',
+        partnerName: custName,
+        debit: advanceApplied,
+        credit: 0,
+        description: `تسوية العربون والدفعة المقدمة المسددة مسبقاً`
+      });
+    }
+
+    // Debit AR for the remaining balance
+    if (netReceivable > 0) {
+      lines.push({
+        accountId: arAcc.id,
+        accountCode: arAcc.code,
+        accountName: arAcc.nameAr,
+        partnerId: invoiceData.customerId,
+        partnerType: 'customer',
+        partnerName: custName,
+        debit: netReceivable,
+        credit: 0,
+        description: `استحقاق مديونية فاتورة مبيعات على العميل ${custName}`
+      });
+    }
+
+    // Credit Revenue
+    lines.push({
+      accountId: revAcc.id,
+      accountCode: revAcc.code,
+      accountName: revAcc.nameAr,
+      debit: 0,
+      credit: subtotal - discountAmount,
+      description: `إيراد مبيعات تصنيع وتوريد أثاث/مطبخ (${invoiceNumber})`
+    });
+
+    // Credit VAT Payable if any
+    if (taxAmount > 0) {
+      lines.push({
+        accountId: vatAcc.id,
+        accountCode: vatAcc.code,
+        accountName: vatAcc.nameAr,
+        debit: 0,
+        credit: taxAmount,
+        description: `ضريبة القيمة المضافة المستحقة (14%)`
+      });
+    }
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: salesJournal,
+      date: invoiceData.date || today,
+      periodId: currentPeriod.id,
+      reference: `فاتورة مبيعات ${invoiceNumber}`,
+      description: `فاتورة مبيعات للعميل (${custName}) - ${invoiceData.notes || 'توريد وتركيبات'}`,
+      sourceDocument: invoiceNumber,
+      sourceType: 'sales_invoice',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines,
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    const newInvoice: SalesInvoice = {
+      id: `inv-${Date.now()}`,
+      invoiceNumber,
+      customerId: invoiceData.customerId,
+      customerName: custName,
+      orderId: invoiceData.orderId,
+      orderNumber: invoiceData.orderNumber,
+      projectId: invoiceData.projectId,
+      projectNumber: invoiceData.projectNumber,
+      date: invoiceData.date || today,
+      dueDate: invoiceData.dueDate || today,
+      items: invoiceData.items || [
+        { id: `it-1`, description: 'توريد وتركيب مطبخ / أثاث حسب المواصفات الفنية', itemType: 'custom_kitchen', quantity: 1, unitPrice: subtotal, discount: discountAmount, subtotal, taxRate: 14, taxAmount, total: totalAmount }
+      ],
+      subtotal,
+      taxAmount,
+      discountAmount,
+      totalAmount,
+      advanceAppliedAmount: advanceApplied,
+      netReceivableAmount: netReceivable,
+      paidAmount: advanceApplied,
+      balanceDue: netReceivable,
+      status: netReceivable === 0 ? 'paid' : (advanceApplied > 0 ? 'partially_paid' : 'posted'),
+      journalEntryId: postResult.entry?.id,
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      notes: invoiceData.notes,
+      createdDate: today
+    };
+
+    setSalesInvoices(prev => [newInvoice, ...prev]);
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+
+    // Deduct advance remaining if applied
+    if (advanceApplied > 0 && invoiceData.advanceId) {
+      setCustomerAdvances(prev => prev.map(a => {
+        if (a.id === invoiceData.advanceId) {
+          const newApplied = a.appliedAmount + advanceApplied;
+          const newRemaining = Math.max(0, a.amount - newApplied);
+          return {
+            ...a,
+            appliedAmount: newApplied,
+            remainingAmount: newRemaining,
+            status: newRemaining === 0 ? 'fully_applied' : 'partially_applied'
+          };
+        }
+        return a;
+      }));
+    }
+
+    addAuditLog({
+      category: 'finance',
+      action: 'إصدار وترحيل فاتورة مبيعات',
+      actionEn: 'Sales Invoice Posted',
+      target: invoiceNumber,
+      details: `العميل: ${custName} | الإجمالي: ${totalAmount.toLocaleString('ar-EG')} ج.م | المسوى من العربون: ${advanceApplied.toLocaleString('ar-EG')} ج.م`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم إصدار الفاتورة (${invoiceNumber}) وترحيل القيد المحاسبي بنجاح`, 'success');
+    return newInvoice;
+  };
+
+  const applyCustomerAdvanceToInvoice = (invoiceId: string, advanceId: string, amountToApply: number): boolean => {
+    const inv = salesInvoices.find(i => i.id === invoiceId);
+    const adv = customerAdvances.find(a => a.id === advanceId);
+    if (!inv || !adv || amountToApply <= 0) return false;
+
+    if (amountToApply > adv.remainingAmount) {
+      showToast(`المبلغ المطلوب تسويته أكبر من الرصيد المتبقي في العربون (${adv.remainingAmount.toLocaleString('ar-EG')} ج.م)`, 'warning');
+      return false;
+    }
+
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const advAcc = getSafeAccount('212', 'liability');
+    const arAcc = getSafeAccount('1121', 'asset');
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: new Date().toISOString().substring(0, 10),
+      periodId: currentPeriod.id,
+      reference: `تسوية عربون ${adv.advanceNumber} مع فاتورة ${inv.invoiceNumber}`,
+      description: `تسوية دفعة مقدمة بمبلغ ${amountToApply.toLocaleString('ar-EG')} ج.م للعميل ${inv.customerName}`,
+      sourceDocument: inv.invoiceNumber,
+      sourceType: 'customer_advance',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        {
+          accountId: advAcc.id,
+          accountCode: advAcc.code,
+          accountName: advAcc.nameAr,
+          partnerId: inv.customerId,
+          partnerType: 'customer',
+          partnerName: inv.customerName,
+          debit: amountToApply,
+          credit: 0,
+          description: `تسوية رصيد الدفعة المقدمة`
+        },
+        {
+          accountId: arAcc.id,
+          accountCode: arAcc.code,
+          accountName: arAcc.nameAr,
+          partnerId: inv.customerId,
+          partnerType: 'customer',
+          partnerName: inv.customerName,
+          debit: 0,
+          credit: amountToApply,
+          description: `تخفيض مديونية العميل بعد تطبيق العربون`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+
+    setSalesInvoices(prev => prev.map(i => {
+      if (i.id === invoiceId) {
+        const newPaid = i.paidAmount + amountToApply;
+        const newBalance = Math.max(0, i.totalAmount - newPaid);
+        return {
+          ...i,
+          advanceAppliedAmount: i.advanceAppliedAmount + amountToApply,
+          paidAmount: newPaid,
+          balanceDue: newBalance,
+          status: newBalance === 0 ? 'paid' : 'partially_paid'
+        };
+      }
+      return i;
+    }));
+
+    setCustomerAdvances(prev => prev.map(a => {
+      if (a.id === advanceId) {
+        const newApplied = a.appliedAmount + amountToApply;
+        const newRemaining = Math.max(0, a.amount - newApplied);
+        return {
+          ...a,
+          appliedAmount: newApplied,
+          remainingAmount: newRemaining,
+          status: newRemaining === 0 ? 'fully_applied' : 'partially_applied'
+        };
+      }
+      return a;
+    }));
+
+    showToast(`✓ تم تطبيق ${amountToApply.toLocaleString('ar-EG')} ج.م من العربون على الفاتورة (${inv.invoiceNumber})`, 'success');
+    return true;
+  };
+
+  const createVendorBill = (billData: any): VendorBill => {
+    const today = new Date().toISOString().substring(0, 10);
+    const billNumber = `BILL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const targetSup = suppliers.find(s => s.id === billData.supplierId);
+    const supName = targetSup?.name || billData.supplierName || 'مورد';
+
+    const subtotal = Number(billData.subtotal || 0);
+    const taxAmount = Number(billData.taxAmount !== undefined ? billData.taxAmount : Math.round(subtotal * 0.14));
+    const withholdingTaxRate = Number(billData.withholdingTaxRate || 1);
+    const withholdingTaxAmount = Number(billData.withholdingTaxAmount !== undefined ? billData.withholdingTaxAmount : Math.round(subtotal * (withholdingTaxRate / 100)));
+    const totalAmount = subtotal + taxAmount;
+    const netPayable = Math.max(0, totalAmount - withholdingTaxAmount);
+
+    const purJournal = journals.find(j => j.type === 'purchase') || journals[1];
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+
+    const grIrAcc = getSafeAccount('213', 'liability');
+    const apAcc = getSafeAccount('2111', 'liability');
+    const inputVatAcc = getSafeAccount('1141', 'asset');
+
+    const debitAccId = billData.billType === 'direct_expense' && billData.expenseAccountId
+      ? (chartOfAccounts.find(a => a.id === billData.expenseAccountId) || grIrAcc)
+      : grIrAcc;
+
+    const lines: any[] = [
+      {
+        accountId: debitAccId.id,
+        accountCode: debitAccId.code,
+        accountName: debitAccId.nameAr,
+        debit: subtotal,
+        credit: 0,
+        description: billData.billType === 'stock_purchase'
+          ? `إقفال حساب وسيط الاستلام المخزني GR/IR مقابل فاتورة المورد`
+          : `إثبات مشتريات / مصروف مباشر من المورد ${supName}`
+      },
+      {
+        accountId: inputVatAcc.id,
+        accountCode: inputVatAcc.code,
+        accountName: inputVatAcc.nameAr,
+        debit: taxAmount,
+        credit: 0,
+        description: `ضريبة مدخلات قابلة للخصم (14% VAT)`
+      },
+      {
+        accountId: apAcc.id,
+        accountCode: apAcc.code,
+        accountName: apAcc.nameAr,
+        partnerId: billData.supplierId,
+        partnerType: 'supplier',
+        partnerName: supName,
+        debit: 0,
+        credit: totalAmount,
+        description: `استحقاق مالي للمورد ${supName}`
+      }
+    ];
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: purJournal,
+      date: billData.date || today,
+      periodId: currentPeriod.id,
+      reference: `فاتورة مورد ${billNumber}`,
+      description: `فاتورة توريد خامات/مشتريات من المورد (${supName}) - ${billData.vendorInvoiceNumber || ''}`,
+      sourceDocument: billNumber,
+      sourceType: 'vendor_bill',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines,
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    const newBill: VendorBill = {
+      id: `bill-${Date.now()}`,
+      billNumber,
+      vendorInvoiceNumber: billData.vendorInvoiceNumber,
+      supplierId: billData.supplierId,
+      supplierName: supName,
+      purchaseOrderId: billData.purchaseOrderId,
+      poNumber: billData.poNumber,
+      billType: billData.billType || 'stock_purchase',
+      date: billData.date || today,
+      dueDate: billData.dueDate || today,
+      items: billData.items || [
+        { id: `bi-1`, description: 'توريد خامات ومستلزمات إنتاج', itemType: 'stock_material', quantity: 1, unitPrice: subtotal, subtotal, taxRate: 14, taxAmount, total: totalAmount }
+      ],
+      subtotal,
+      taxAmount,
+      withholdingTaxRate,
+      withholdingTaxAmount,
+      totalAmount,
+      netPayableAmount: netPayable,
+      paidAmount: 0,
+      balanceDue: totalAmount,
+      status: 'posted',
+      journalEntryId: postResult.entry?.id,
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      notes: billData.notes,
+      createdDate: today
+    };
+
+    setVendorBills(prev => [newBill, ...prev]);
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+
+    addAuditLog({
+      category: 'finance',
+      action: 'إثبات وترحيل فاتورة مورد',
+      actionEn: 'Vendor Bill Posted',
+      target: billNumber,
+      details: `المورد: ${supName} | الإجمالي: ${totalAmount.toLocaleString('ar-EG')} ج.م | ضريبة الخصم 1%: ${withholdingTaxAmount.toLocaleString('ar-EG')} ج.م`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم تسجيل فاتورة المورد (${billNumber}) ومطابقتها محاسبياً بنجاح`, 'success');
+    return newBill;
+  };
+
+  const recordVendorBillPayment = (
+    billId: string,
+    amount: number,
+    paymentMethod: string,
+    accountId: string,
+    withholdingTaxRate = 1,
+    notes?: string
+  ): boolean => {
+    const bill = vendorBills.find(b => b.id === billId);
+    if (!bill || amount <= 0) return false;
+
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const journal = paymentMethod === 'cash' 
+      ? (journals.find(j => j.type === 'cash') || journals[2])
+      : (journals.find(j => j.type === 'bank') || journals[3]);
+    const apAcc = getSafeAccount('2111', 'liability');
+    const targetAcc = chartOfAccounts.find(a => a.id === accountId) || 
+      (paymentMethod === 'cash' ? getSafeAccount('11111', 'asset') : getSafeAccount('11121', 'asset'));
+    const whtAcc = getSafeAccount('2142', 'liability');
+
+    const whtAmount = Math.round(amount * (withholdingTaxRate / 100));
+    const netCashOut = amount - whtAmount;
+
+    const lines: any[] = [
+      {
+        accountId: apAcc.id,
+        accountCode: apAcc.code,
+        accountName: apAcc.nameAr,
+        partnerId: bill.supplierId,
+        partnerType: 'supplier',
+        partnerName: bill.supplierName,
+        debit: amount,
+        credit: 0,
+        description: `سداد مستحقات فاتورة المورد ${bill.billNumber}`
+      },
+      {
+        accountId: targetAcc.id,
+        accountCode: targetAcc.code,
+        accountName: targetAcc.nameAr,
+        debit: 0,
+        credit: netCashOut,
+        description: `صرف نقدي/بنكي مسدد للمورد (${bill.supplierName})`
+      }
+    ];
+
+    if (whtAmount > 0) {
+      lines.push({
+        accountId: whtAcc.id,
+        accountCode: whtAcc.code,
+        accountName: whtAcc.nameAr,
+        debit: 0,
+        credit: whtAmount,
+        description: `خصم ضريبة أرباح تجارية 1% لحساب مصلحة الضرائب`
+      });
+    }
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: journal || journals[3],
+      date: new Date().toISOString().substring(0, 10),
+      periodId: currentPeriod.id,
+      reference: `سداد فاتورة مورد ${bill.billNumber}`,
+      description: `سداد مبلغ ${amount.toLocaleString('ar-EG')} ج.م للمورد (${bill.supplierName}) مع خصم ضريبي ${whtAmount} ج.م`,
+      sourceDocument: bill.billNumber,
+      sourceType: 'vendor_payment',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines,
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+
+    setVendorBills(prev => prev.map(b => {
+      if (b.id === billId) {
+        const newPaid = b.paidAmount + amount;
+        const newBal = Math.max(0, b.totalAmount - newPaid);
+        return {
+          ...b,
+          paidAmount: newPaid,
+          balanceDue: newBal,
+          status: newBal === 0 ? 'paid' : 'partially_paid'
+        };
+      }
+      return b;
+    }));
+
+    showToast(`✓ تم سداد ${amount.toLocaleString('ar-EG')} ج.م لفاتورة المورد (${bill.billNumber}) وتوريد ضريبة الخصم`, 'success');
+    return true;
+  };
+
+  const updatePdcStatus = (checkId: string, newStatus: PDCRecord['status'], clearanceAccountId?: string) => {
+    const targetCheck = pdcRecords.find(c => c.id === checkId);
+    if (!targetCheck) return;
+
+    if (newStatus === 'cleared') {
+      const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+      const bankJournal = journals.find(j => j.type === 'bank') || journals[3];
+      const bankAcc = chartOfAccounts.find(a => a.id === clearanceAccountId) || getSafeAccount('11121', 'asset');
+      const pdcReceivableAcc = getSafeAccount('1113', 'asset');
+      const notesPayableAcc = getSafeAccount('2112', 'liability');
+
+      const lines = targetCheck.type === 'receivable'
+        ? [
+            {
+              accountId: bankAcc.id,
+              accountCode: bankAcc.code,
+              accountName: bankAcc.nameAr,
+              debit: targetCheck.amount,
+              credit: 0,
+              description: `تحصيل وإيداع الشيك البنكي رقم ${targetCheck.checkNumber}`
+            },
+            {
+              accountId: pdcReceivableAcc.id,
+              accountCode: pdcReceivableAcc.code,
+              accountName: pdcReceivableAcc.nameAr,
+              partnerId: targetCheck.partnerId,
+              partnerType: 'customer' as const,
+              partnerName: targetCheck.partnerName,
+              debit: 0,
+              credit: targetCheck.amount,
+              description: `إقفال شيك تحت التحصيل بعد وروده في كشف حساب البنك`
+            }
+          ]
+        : [
+            {
+              accountId: notesPayableAcc.id,
+              accountCode: notesPayableAcc.code,
+              accountName: notesPayableAcc.nameAr,
+              partnerId: targetCheck.partnerId,
+              partnerType: 'supplier' as const,
+              partnerName: targetCheck.partnerName,
+              debit: targetCheck.amount,
+              credit: 0,
+              description: `خصم الشيك الصادر للمورد ${targetCheck.partnerName} بعد الصرف`
+            },
+            {
+              accountId: bankAcc.id,
+              accountCode: bankAcc.code,
+              accountName: bankAcc.nameAr,
+              debit: 0,
+              credit: targetCheck.amount,
+              description: `خصم من رصيد البنك لسداد الشيك رقم ${targetCheck.checkNumber}`
+            }
+          ];
+
+      const postResult = AccountingService.createPostedEntry({
+        journal: bankJournal,
+        date: new Date().toISOString().substring(0, 10),
+        periodId: currentPeriod.id,
+        reference: `مقاصة شيك ${targetCheck.checkNumber}`,
+        description: `مقاصة وتحصيل الشيك رقم (${targetCheck.checkNumber}) للطرف (${targetCheck.partnerName})`,
+        sourceDocument: targetCheck.checkNumber,
+        sourceType: 'check_clearing',
+        branchId: currentBranch.id,
+        branchName: currentBranch.name,
+        lines,
+        userName: currentUser.fullName
+      }, fiscalPeriods);
+
+      if (postResult.entry) {
+        setJournalEntries(prev => [postResult.entry!, ...prev]);
+      }
+    }
+
+    setPdcRecords(prev => prev.map(c => c.id === checkId ? { ...c, status: newStatus } : c));
+    showToast(`✓ تم تحديث حالة الشيك (${targetCheck.checkNumber}) إلى: ${newStatus}`, 'success');
+  };
+
+  const toggleFiscalPeriodLock = (periodId: string) => {
+    setFiscalPeriods(prev => prev.map(p => {
+      if (p.id === periodId) {
+        const nextState = !p.isClosed;
+        return {
+          ...p,
+          isClosed: nextState,
+          closedAt: nextState ? new Date().toISOString().replace('T', ' ').substring(0, 19) : undefined,
+          closedByUserName: nextState ? currentUser.fullName : undefined
+        };
+      }
+      return p;
+    }));
+    showToast(`✓ تم تحديث حالة إقفال الفترة المحاسبية بنجاح`, 'info');
+  };
+
+  const addAccountToCoA = (accountData: Omit<Account, 'id'>) => {
+    const newAccount: Account = {
+      ...accountData,
+      id: `acc-${Date.now()}`
+    };
+    setChartOfAccounts(prev => [...prev, newAccount]);
+    showToast(`✓ تم إضافة الحساب (${newAccount.code} - ${newAccount.nameAr}) إلى دليل الحسابات`, 'success');
+  };
+
+  // ----------------------------------------------------
+  // MANUFACTURING & INVENTORY FINANCIAL INTEGRATION HOOKS
+  // ----------------------------------------------------
+
+  const recordInventoryWipMovement = (productionOrderId: string, totalMaterialCost: number, notes?: string) => {
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const rawAcc = getSafeAccount('1131', 'asset');
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: new Date().toISOString().substring(0, 10),
+      periodId: currentPeriod.id,
+      reference: `صرف خامات لأمر الشغل ${productionOrderId}`,
+      description: `صرف ألواح وخامات للورشة لأمر الشغل (${productionOrderId}) - ${notes || 'صرف وتصنيع'}`,
+      sourceDocument: productionOrderId,
+      sourceType: 'material_issue_wip',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        {
+          accountId: wipAcc.id,
+          accountCode: wipAcc.code,
+          accountName: wipAcc.nameAr,
+          costCenterId: 'cc-1',
+          costCenterName: 'قسم تقطيع الـ CNC وشريط الشاط',
+          debit: totalMaterialCost,
+          credit: 0,
+          description: `تحميل تكلفة خامات منصرفة على الإنتاج تحت التشغيل WIP`
+        },
+        {
+          accountId: rawAcc.id,
+          accountCode: rawAcc.code,
+          accountName: rawAcc.nameAr,
+          debit: 0,
+          credit: totalMaterialCost,
+          description: `خصم من رصيد مخزون الخامات بالمستودع`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+  };
+
+  const recordProductionCompletionToFinishedGoods = (productionOrderId: string, finalTotalCost: number, notes?: string) => {
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const finAcc = getSafeAccount('1134', 'asset');
+    const wipAcc = getSafeAccount('1133', 'asset');
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: new Date().toISOString().substring(0, 10),
+      periodId: currentPeriod.id,
+      reference: `إتمام تصنيع ${productionOrderId}`,
+      description: `استلام منتج تام الصنع (مطبخ / أثاث جاهز) من الورشة (${productionOrderId}) - ${notes || ''}`,
+      sourceDocument: productionOrderId,
+      sourceType: 'production_completion',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        {
+          accountId: finAcc.id,
+          accountCode: finAcc.code,
+          accountName: finAcc.nameAr,
+          debit: finalTotalCost,
+          credit: 0,
+          description: `إضافة منتج تام جاهز للتسليم إلى مخزون الإنتاج التام`
+        },
+        {
+          accountId: wipAcc.id,
+          accountCode: wipAcc.code,
+          accountName: wipAcc.nameAr,
+          debit: 0,
+          credit: finalTotalCost,
+          description: `إقفال حساب الإنتاج تحت التشغيل WIP بعد انتهاء التصنيع`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+  };
+
+  const recordDeliveryCogsAccounting = (orderId: string, cogsAmount: number, notes?: string) => {
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const cogsAcc = getSafeAccount('514', 'cogs');
+    const finAcc = getSafeAccount('1134', 'asset');
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: new Date().toISOString().substring(0, 10),
+      periodId: currentPeriod.id,
+      reference: `تسليم طلب العميل ${orderId}`,
+      description: `إثبات تكلفة البضاعة المباعة COGS عند تسليم المنتج النهائي للعميل (${orderId}) - ${notes || ''}`,
+      sourceDocument: orderId,
+      sourceType: 'delivery_cogs',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        {
+          accountId: cogsAcc.id,
+          accountCode: cogsAcc.code,
+          accountName: cogsAcc.nameAr,
+          debit: cogsAmount,
+          credit: 0,
+          description: `تحميل تكلفة البضاعة المباعة (COGS) في قائمة الدخل`
+        },
+        {
+          accountId: finAcc.id,
+          accountCode: finAcc.code,
+          accountName: finAcc.nameAr,
+          debit: 0,
+          credit: cogsAmount,
+          description: `خصم البضاعة المسلمة من رصيد مخزون الإنتاج التام`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+  };
+
+  const recordScrapWasteAccounting = (reason: string, scrapAmount: number, notes?: string) => {
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const scrapAcc = getSafeAccount('1135', 'expense');
+    const rawAcc = getSafeAccount('1131', 'asset');
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: new Date().toISOString().substring(0, 10),
+      periodId: currentPeriod.id,
+      reference: `تسوية هالك وخامات تالفة`,
+      description: `إثبات هالك أخشاب/خامات بالورشة: ${reason} - ${notes || ''}`,
+      sourceDocument: 'SCRAP-ADJ',
+      sourceType: 'stock_scrap',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        {
+          accountId: scrapAcc.id,
+          accountCode: scrapAcc.code,
+          accountName: scrapAcc.nameAr,
+          debit: scrapAmount,
+          credit: 0,
+          description: `إثبات خسارة هالك وتوالف خامات في الحسابات`
+        },
+        {
+          accountId: rawAcc.id,
+          accountCode: rawAcc.code,
+          accountName: rawAcc.nameAr,
+          debit: 0,
+          credit: scrapAmount,
+          description: `تسوية وتخفيض رصيد مخزون الخامات الفعلي`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+  };
+
   return (
     <ERPContext.Provider
       value={{
@@ -2056,6 +3188,29 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         expenses,
         financialAccounts,
         financialTransactions,
+        chartOfAccounts,
+        journals,
+        journalEntries,
+        fiscalPeriods,
+        costCenters,
+        salesInvoices,
+        vendorBills,
+        customerAdvances,
+        pdcRecords,
+        createManualJournalEntry,
+        reverseJournalEntry,
+        createSalesInvoice,
+        recordCustomerAdvancePayment,
+        applyCustomerAdvanceToInvoice,
+        createVendorBill,
+        recordVendorBillPayment,
+        updatePdcStatus,
+        toggleFiscalPeriodLock,
+        addAccountToCoA,
+        recordInventoryWipMovement,
+        recordProductionCompletionToFinishedGoods,
+        recordDeliveryCogsAccounting,
+        recordScrapWasteAccounting,
         setActiveModule,
         setIsSidebarCollapsed,
         toggleLanguage,

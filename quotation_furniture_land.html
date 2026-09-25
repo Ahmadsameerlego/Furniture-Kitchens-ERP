@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض سعر - نظام Rewaq ERP - شركة Furniture Land</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm 15mm 15mm 15mm;
+        }
+
+        :root {
+            --primary: #0f2744;
+            --primary-light: #1e3a8a;
+            --primary-soft: #f0f4f8;
+            --accent: #d97706;
+            --accent-light: #fef3c7;
+            --accent-dark: #b45309;
+            --secondary: #0d9488;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--white);
+            color: var(--text-dark);
+            line-height: 1.6;
+            font-size: 13px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .document-container {
+            width: 100%;
+            background: var(--white);
+            margin: 0 auto;
+        }
+
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        .no-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* Header / Cover Section */
+        .doc-header {
+            background: linear-gradient(135deg, #09192f 0%, #0f2744 55%, #1e3a8a 100%);
+            color: var(--white);
+            padding: 30px 35px 25px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .doc-header::after {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -15%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.22) 0%, rgba(217, 119, 6, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 15px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #d97706, #fbbf24);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 22px;
+            color: #0f2744;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+        }
+
+        .brand-text h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .brand-text span {
+            font-size: 11.5px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .doc-badge {
+            background: rgba(217, 119, 6, 0.25);
+            border: 1px solid rgba(217, 119, 6, 0.6);
+            color: #fef3c7;
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+
+        .header-main h2 {
+            font-size: 23px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .header-main .subtitle {
+            font-size: 13.5px;
+            color: #cbd5e1;
+            margin-bottom: 18px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 14px 18px;
+        }
+
+        .info-card {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .info-card .label {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .info-card .value {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .info-card .value.highlight {
+            color: #fbbf24;
+        }
+
+        /* Content Body */
+        .content-body {
+            padding: 0;
+        }
+
+        .section-block {
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--border-color);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: 0;
+            width: 55px;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .section-title .number-badge {
+            background: var(--primary);
+            color: var(--white);
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        /* Intro Box */
+        .intro-box {
+            background: #f8fafc;
+            border-right: 4px solid var(--primary-light);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 16px;
+            color: #334155;
+            font-size: 12.8px;
+            line-height: 1.7;
+        }
+
+        .intro-box p {
+            margin-bottom: 6px;
+        }
+
+        .intro-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Objectives Grid */
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .goal-item {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .goal-item .bullet {
+            color: var(--secondary);
+            font-size: 14px;
+            line-height: 1.2;
+            flex-shrink: 0;
+            font-weight: 900;
+        }
+
+        /* Scope Modules Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .module-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .module-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .module-card-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .module-badge {
+            font-size: 10px;
+            font-weight: 700;
+            background: var(--primary-soft);
+            color: var(--primary-light);
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+
+        .module-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .module-features li {
+            font-size: 11.5px;
+            color: #475569;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            line-height: 1.45;
+        }
+
+        .module-features li::before {
+            content: "✓";
+            color: var(--success);
+            font-weight: 800;
+            font-size: 10.5px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .module-note {
+            margin-top: 6px;
+            font-size: 10.5px;
+            color: var(--accent-dark);
+            background: var(--accent-light);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Integration Flowchart */
+        .workflow-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 10px 0;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 6px 8px;
+            direction: rtl;
+        }
+
+        .flow-step {
+            background: var(--white);
+            border: 1px solid #cbd5e1;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .flow-step.highlight {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .flow-arrow {
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        /* Timeline / Phases */
+        .phases-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .phase-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            border-top: 3px solid var(--primary-light);
+        }
+
+        .phase-card.p1 { border-top-color: #0284c7; }
+        .phase-card.p2 { border-top-color: var(--accent); }
+        .phase-card.p3 { border-top-color: var(--secondary); }
+
+        .phase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .phase-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .phase-tag {
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .phase-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .phase-list li {
+            font-size: 11px;
+            color: #475569;
+            position: relative;
+            padding-right: 10px;
+            line-height: 1.4;
+        }
+
+        .phase-list li::before {
+            content: "•";
+            position: absolute;
+            right: 0;
+            color: var(--primary-light);
+            font-size: 13px;
+        }
+
+        /* Pricing Table */
+        .pricing-table-wrap {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .custom-table th {
+            background: #0f2744;
+            color: var(--white);
+            padding: 8px 12px;
+            font-weight: 700;
+            text-align: right;
+            font-size: 11.5px;
+        }
+
+        .custom-table th:last-child {
+            text-align: left;
+        }
+
+        .custom-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #edf2f7;
+            color: #334155;
+        }
+
+        .custom-table td:last-child {
+            text-align: left;
+            font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .custom-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .custom-table tr.total-row {
+            background: #f0fdf4;
+            font-weight: 800;
+            font-size: 13px;
+            color: #166534;
+            border-top: 2px solid #86efac;
+        }
+
+        .custom-table tr.total-row td {
+            padding: 10px 12px;
+            color: #166534;
+        }
+
+        /* Payment Milestones */
+        .milestones-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .milestone-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 8px;
+            text-align: center;
+        }
+
+        .milestone-pct {
+            font-size: 17px;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 3px;
+        }
+
+        .milestone-amount {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--accent-dark);
+            margin-bottom: 4px;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .milestone-desc {
+            font-size: 10.5px;
+            color: #64748b;
+            line-height: 1.35;
+            font-weight: 600;
+        }
+
+        /* Support & Terms */
+        .info-bullets-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+        }
+
+        .info-bullets-card h4 {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .terms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* Summary Matrix */
+        .summary-matrix {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .matrix-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 12px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 11.5px;
+            background: #ffffff;
+        }
+
+        .matrix-row:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .matrix-row .k {
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .matrix-row .v {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Signatures Section */
+        .signatures-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 2px dashed var(--border-color);
+        }
+
+        .signature-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            text-align: center;
+        }
+
+        .sig-title {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 2px;
+        }
+
+        .sig-name {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+            font-weight: 600;
+        }
+
+        .sig-line {
+            border-bottom: 1px dashed #94a3b8;
+            margin-bottom: 6px;
+        }
+
+        .sig-meta {
+            font-size: 10.5px;
+            color: #94a3b8;
+        }
+
+        /* Footer */
+        .doc-footer {
+            background: #0f2744;
+            color: #94a3b8;
+            padding: 10px 20px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10.5px;
+            font-weight: 600;
+            margin-top: 20px;
+            border-top: 3px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="document-container">
+
+    <!-- Document Header / Cover -->
+    <header class="doc-header">
+        <div class="header-top">
+            <div class="brand-logo">
+                <div class="brand-icon">R</div>
+                <div class="brand-text">
+                    <h1>Rewaq ERP</h1>
+                    <span>حلول إدارة وتطوير الأعمال المتكاملة</span>
+                </div>
+            </div>
+            <div class="doc-badge">
+                وثيقة عرض فني ومالي رسمي
+            </div>
+        </div>
+
+        <div class="header-main">
+            <h2>عرض سعر وتطوير نظام الإدارة المتكامل (Rewaq ERP)</h2>
+            <div class="subtitle">حل برمجي سحابي شامل مصمم خصيصاً لتنظيم عمليات وإدارة التصنيع والمبيعات والمخازن والمالية</div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <span class="label">مقدم إلى العميل الكريم:</span>
+                <span class="value">شركة Furniture Land</span>
+                <span class="label" style="margin-top:2px;">عناية الأستاذ: <strong style="color:#ffffff; font-size:13px;">عمرو عباس</strong> (صاحب الشركة)</span>
+            </div>
+            <div class="info-card">
+                <span class="label">مقدم من الجهة المطورة:</span>
+                <span class="value highlight">فريق ومؤسسة Rewaq للحلول الرقمية</span>
+                <span class="label" style="margin-top:2px;">تاريخ إصدار العرض: <span style="color:#ffffff;">25 سبتمبر 2026</span></span>
+            </div>
+            <div class="info-card">
+                <span class="label">مدة التنفيذ والتسليم:</span>
+                <span class="value">3 أشهر شاملة الإطلاق والتدريب</span>
+            </div>
+            <div class="info-card">
+                <span class="label">قيمة الاستثمار الإجمالية:</span>
+                <span class="value highlight" style="font-size: 15px;">150,000 جنيه مصري فقط لا غير</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Body -->
+    <main class="content-body">
+
+        <!-- 1. Introduction -->
+        <section class="section-block">
+            <h3 class="section-title">
+                <span class="number-badge">1</span>
+                المقدمة والخطاب الافتتاحي
+            </h3>
+            <div class="intro-box">
+                <p><strong>السادة / إدارة شركة Furniture Land المحترمين،</strong></p>
+                <p><strong>عناية الفاضل الأستاذ / عمرو عباس المحترم (صاحب الشركة)،</strong></p>
+                <p>تحية طيبة وبعد،،،</p>
+                <p>
+                    يسر فريق عمل <strong>Rewaq</strong> أن يتقدم إليكم بهذا العرض الفني والمالي المتكامل لتنفيذ وتطوير نظام الإدارة الشامل <strong>(Rewaq ERP)</strong>، والذي تم تصميمه بعناية هندسية فائقة ليتماشى تماماً مع طبيعة نشاط وتصنيع وتجارة الأثاث والمطابخ ومتطلبات دورة العمل داخل شركة <strong>Furniture Land</strong>.
+                </p>
+                <p>
+                    يهدف النظام إلى توحيد كافة البيانات والعمليات في منصة سحابية واحدة آمنة وسريعة، لربط إدارات المبيعات، التعاقدات، المكتب الفني، المخازن، المشتريات، خطوط الإنتاج والتصنيع، والحسابات العامة ببعضها بدقة متناهية، وتقليل الإجراءات اليدوية والورقية والتكرار التشغيلي، مع توفير لوحات متابعة (Dashboards) وتقارير لحظية تدعم اتخاذ القرارات الإدارية السليمة وفي الوقت المناسب.
+                </p>
+            </div>
+        </section>
+
+        <!-- 2. Project Goals -->
+        <section class="section-block">
+            <h3 class="section-title">
+                <span class="number-badge">2</span>
+                الأهداف الاستراتيجية والتشغيلية للمشروع
+            </h3>
+            <div class="goals-grid">
+                <div class="goal-item"><span class="bullet">✦</span> إدارة مركزية موحدة لبيانات العملاء ومتابعة مراحل دورة البيع (CRM).</div>
+                <div class="goal-item"><span class="bullet">✦</span> إدارة دقيقة لعروض الأسعار وتحويلها لتعاقدات مع متابعة العربون والمدفوعات.</div>
+                <div class="goal-item"><span class="bullet">✦</span> رقابة محكمة على المخازن، حركات المواد الخام، والمنتجات التامة والحد الأدنى.</div>
+                <div class="goal-item"><span class="bullet">✦</span> تنظيم المشتريات والموردين ومتابعة أوامر التوريد ومستحقات الموردين.</div>
+                <div class="goal-item"><span class="bullet">✦</span> نظام مالي ومحاسبي متكامل (دليل حسابات، قيود يومية، سندات، خزائن وبنوك).</div>
+                <div class="goal-item"><span class="bullet">✦</span> إدارة الموارد البشرية والرواتب والبدلات والخصومات ومتابعة الحضور.</div>
+                <div class="goal-item"><span class="bullet">✦</span> تخطيط ومتابعة عمليات الإنتاج والتصنيع وصرف الخامات بموجب أوامر التصنيع.</div>
+                <div class="goal-item"><span class="bullet">✦</span> إدارة أعمال المكتب الفني والرسومات الهندسية وربطها بالمشروعات والتعاقدات.</div>
+                <div class="goal-item"><span class="bullet">✦</span> لوحات تحكم (Dashboards) تفاعلية للإدارة العامة ولكل قسم على حدة.</div>
+                <div class="goal-item"><span class="bullet">✦</span> نظام متقدم للصلاحيات وسجل رقابي تاريخي وتفصيلي للعمليات (Audit Log).</div>
+            </div>
+        </section>
+
+        <!-- Page Break -->
+        <div class="page-break"></div>
+
+        <!-- 3. Scope of Work -->
+        <section class="section-block">
+            <h3 class="section-title">
+                <span class="number-badge">3</span>
+                نطاق العمل والوحدات البرمجية المعتمدة (Scope of Work)
+            </h3>
+
+            <div class="modules-grid">
+                <!-- 3.1 CRM -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">👥 3.1 العملاء والمبيعات (CRM & Sales)</span>
+                        <span class="module-badge">الوحدة الأساسية</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>إدارة وتسجيل وتصنيف بيانات العملاء والشركات.</li>
+                        <li>تسجيل ومتابعة العملاء المحتملين (Leads).</li>
+                        <li>إدارة مراحل البيع (Sales Pipeline) والفرص البيعية.</li>
+                        <li>تسجيل الملاحظات، سجل الاتصالات وجدول المتابعات.</li>
+                        <li>إصدار وإدارة عروض الأسعار بصيغ احترافية.</li>
+                        <li>تحويل عرض السعر تلقائياً إلى تعاقد أو أمر بيع.</li>
+                        <li>لوحة تحكم للمبيعات وتقارير معدلات التحويل.</li>
+                    </ul>
+                </div>
+
+                <!-- 3.2 Contracts -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">📝 3.2 التعاقدات والاتفاقيات (Contracts)</span>
+                        <span class="module-badge">إدارة التعاقد</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>إنشاء التعاقدات وربطها التلقائي بالعميل والمنتجات.</li>
+                        <li>تسجيل بنود العقد، الشروط، والقيمة الإجمالية.</li>
+                        <li>تسجيل دفعات العربون وجدولة المبالغ المتبقية.</li>
+                        <li>إدارة بيانات الشحن، مواعيد التوريد والتركيب.</li>
+                        <li>متابعة حالة التعاقد من خلال مسار عمل واضح (Workflow).</li>
+                        <li>إصدار وتوليد وثيقة العقد الرسمية للطباعة.</li>
+                        <li>تقارير تفصيلية عن التعاقدات والتحصيلات.</li>
+                    </ul>
+                </div>
+
+                <!-- 3.3 Inventory -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">📦 3.3 المخزون والمنتجات (Inventory)</span>
+                        <span class="module-badge">الرقابة المخزنية</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>إدارة شجرة المنتجات، التصنيفات، ووحدات القياس.</li>
+                        <li>إدارة المخازن المتعددة ومواقع التخزين.</li>
+                        <li>أرصدة المخزون اللحظية ومتابعة كميات المواد الخام.</li>
+                        <li>حركات المخزن: إضافة، صرف، تحويل، وتسوية جردية.</li>
+                        <li>تنبيهات الحد الأدنى وإعادة الطلب (Reorder Points).</li>
+                        <li>ربط المخزون التلقائي بالمبيعات والمشتريات وخطوط الإنتاج.</li>
+                        <li>تقارير حركة الصنف وتقييم المخزون الدوري.</li>
+                    </ul>
+                </div>
+
+                <!-- 3.4 Purchasing -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">🛒 3.4 المشتريات والموردين (Purchasing)</span>
+                        <span class="module-badge">سلسلة الإمداد</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>قاعدة بيانات متكاملة للموردين وبيانات الاتصال والتقييم.</li>
+                        <li>تسجيل طلبات الشراء الداخلية والموافقة عليها.</li>
+                        <li>إصدار أوامر الشراء الرسمية (Purchase Orders).</li>
+                        <li>متابعة فواتير الشراء وربطها بدخول المخازن.</li>
+                        <li>متابعة مستحقات الموردين وجداول السداد.</li>
+                        <li>تقارير أداء المشتريات ومقارنة أسعار الموردين.</li>
+                    </ul>
+                </div>
+
+                <!-- 3.5 Accounting -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">💰 3.5 الحسابات والمالية (Accounting)</span>
+                        <span class="module-badge">النظام المالي</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>دليل الحسابات الشجري (Chart of Accounts) المخصص.</li>
+                        <li>القيود اليومية الآلية واليدوية وميزان المراجعة.</li>
+                        <li>سندات القبض والصرف وإدارة الخزائن والحسابات البنكية.</li>
+                        <li>حسابات العملاء والمديونيات وحسابات الموردين.</li>
+                        <li>متابعة وتسجيل المصروفات التشغيلية والإيرادات.</li>
+                        <li>قائمة الدخل والتقارير المالية الأساسية.</li>
+                        <li>Dashboard مالية تحليلية للإدارة العليا.</li>
+                    </ul>
+                    <div class="module-note">
+                        * مراعاة المعايير المحاسبية والممارسات المتبعة في السوق المصري.
+                    </div>
+                </div>
+
+                <!-- 3.6 HR -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">👔 3.6 الموارد البشرية (HR & Payroll)</span>
+                        <span class="module-badge">شؤون العاملين</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>ملفات الموظفين، العقود، والبيانات الشخصية والوظيفية.</li>
+                        <li>الهيكل التنظيمي، الأقسام، والمسميات الوظيفية.</li>
+                        <li>سجل الحضور والانصراف وإدارة الإجازات والأذونات.</li>
+                        <li>حساب المرتبات والبدلات والمكافآت والخصومات.</li>
+                        <li>إصدار كشوف الرواتب الشهرية وطباعة قسائم القبض.</li>
+                        <li>تقارير الموارد البشرية وتكاليف العمالة.</li>
+                    </ul>
+                </div>
+
+                <!-- 3.7 Production -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">⚙️ 3.7 الإنتاج والتصنيع (Production)</span>
+                        <span class="module-badge">خطوط التصنيع</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>تعريف بطاقة الصنف المصنع وقائمة المكونات (BOM).</li>
+                        <li>تحديد المواد الخام ومراحل وخطوات التصنيع.</li>
+                        <li>إصدار أوامر الإنتاج ومتابعة حالتها ومراحل تنفيذها.</li>
+                        <li>أذون صرف الخامات المباشرة للتشغيل والإنتاج.</li>
+                        <li>تسجيل استلام المنتج التام وإيداعه في مخزن المنتجات.</li>
+                        <li>تقارير الإنتاج، نسب الهالك، ومعدلات الإنجاز.</li>
+                    </ul>
+                </div>
+
+                <!-- 3.8 Technical Office -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">📐 3.8 المكتب الفني (Technical Office)</span>
+                        <span class="module-badge">إدارة المشروعات</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>إدارة ملفات المشروعات وطلبات المطابخ والأثاث المخصص.</li>
+                        <li>أرشفة ومتابعة الرسومات الهندسية ومقايسات الأعمال.</li>
+                        <li>متابعة واعتماد التعديلات الفنية وملاحظات العميل.</li>
+                        <li>ربط بيانات المكتب الفني بالتعاقدات وأوامر الإنتاج.</li>
+                        <li>تقارير متابعة المشروعات والجاهزية الفنية.</li>
+                    </ul>
+                </div>
+
+                <!-- 3.9 Dashboards -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">📊 3.9 لوحات المعلومات (Dashboards)</span>
+                        <span class="module-badge">ذكاء الأعمال</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>Dashboard الإدارة العليا (نظرة شاملة لحظية على الشركة).</li>
+                        <li>لوحات تحكم متخصصة لكل قسم: مبيعات، مخازن، إنتاج، مالية، مشتريات، و HR.</li>
+                        <li>مؤشرات الأداء الرئيسية (KPIs) ونسب التحصيل والمبيعات.</li>
+                        <li>تصدير التقارير بصيغ متعددة (PDF, Excel).</li>
+                    </ul>
+                </div>
+
+                <!-- 3.10 Security & Users -->
+                <div class="module-card no-break">
+                    <div class="module-card-header">
+                        <span class="module-card-title">🔒 3.10 الصلاحيات والأمان (Security & Users)</span>
+                        <span class="module-badge">الأمان والحماية</span>
+                    </div>
+                    <ul class="module-features">
+                        <li>إدارة حسابات المستخدمين وربط كل مستخدم بدوره الوظيفي.</li>
+                        <li>مصفوفة صلاحيات تفصيلية (عرض، إضافة، تعديل، حذف، اعتماد).</li>
+                        <li>التحكم في وصول الفروع والأقسام لكل مستخدم.</li>
+                        <li>سجل رقابي تفصيلي لكافة الحركات والتعديلات (Audit Log).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page Break -->
+        <div class="page-break"></div>
+
+        <!-- 4. Integration Workflow -->
+        <section class="section-block no-break">
+            <h3 class="section-title">
+                <span class="number-badge">4</span>
+                دورة العمل المتكاملة والتكامل بين الأقسام
+            </h3>
+            <p style="font-size: 12px; color: #475569; margin-bottom: 8px;">
+                يعمل نظام <strong>Rewaq ERP</strong> وفق ترابط حي ومباشر بين كافة الأقسام لضمان تدفق سلس للبيانات ومنع أي جزر معلوماتية منعزلة:
+            </p>
+            <div class="workflow-box">
+                <div class="workflow-steps">
+                    <div class="flow-step">عميل جديد (Lead)</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step">فرصة بيع ومتابعة</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step">عرض سعر ومقايسة</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step highlight">تعاقد رسمي معتمد</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step">تحصيل العربون (سند قبض)</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step">مكتب فني ورسومات</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step">أمر تصنيع وصرف خامات</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step">جاهزية المخزن وشحن</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step">تسليم وتحصيل المتبقي</div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-step highlight">تقارير الإدارة اللحظية</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Implementation Phases -->
+        <section class="section-block no-break">
+            <h3 class="section-title">
+                <span class="number-badge">5</span>
+                مراحل وخطة تنفيذ المشروع (المدة الإجمالية: 3 أشهر)
+            </h3>
+            <div class="phases-container">
+                <div class="phase-card p1">
+                    <div class="phase-header">
+                        <span class="phase-title">المرحلة 1: التحليل والتأسيس</span>
+                        <span class="phase-tag">الشهر الأول</span>
+                    </div>
+                    <ul class="phase-list">
+                        <li>جلسات تحليل متعمقة لدورة العمل.</li>
+                        <li>اعتماد المتطلبات وتحديد شجرة الصلاحيات.</li>
+                        <li>بناء هيكل قواعد البيانات وتصميم النظام.</li>
+                        <li>تجهيز البيئة السحابية وتثبيت البنية التحتية.</li>
+                    </ul>
+                </div>
+
+                <div class="phase-card p2">
+                    <div class="phase-header">
+                        <span class="phase-title">المرحلة 2: التطوير والتكامل</span>
+                        <span class="phase-tag">الشهر الثاني</span>
+                    </div>
+                    <ul class="phase-list">
+                        <li>برمجة وتطوير الوحدات الـ 10 بالكامل.</li>
+                        <li>ربط تدفق العمليات (Workflow Integration).</li>
+                        <li>بناء وتطوير التقارير ولوحات التحكم.</li>
+                        <li>تجهيز شاشات إدخال البيانات المعتمدة.</li>
+                    </ul>
+                </div>
+
+                <div class="phase-card p3">
+                    <div class="phase-header">
+                        <span class="phase-title">المرحلة 3: الاختبار والتشغيل</span>
+                        <span class="phase-tag">الشهر الثالث</span>
+                    </div>
+                    <ul class="phase-list">
+                        <li>اختبارات الأداء وضمان الجودة (QA).</li>
+                        <li>إدخال البيانات الافتتاحية والأرصدة.</li>
+                        <li>تدريب الموظفين والمسؤولين على النظام.</li>
+                        <li>الإطلاق التجريبي ثم التشغيل الفعلي الكامل.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6 & 7. Deployment, Training & Support -->
+        <div class="terms-grid no-break" style="margin-bottom: 20px;">
+            <div class="info-bullets-card">
+                <h4>🚀 6. التسليم والتدريب الميداني</h4>
+                <ul class="module-features">
+                    <li>تسليم النسخة الكاملة جاهزة للعمل على السحابة.</li>
+                    <li>تدريب شامل ومباشر للمستخدمين ومسؤولي الأقسام.</li>
+                    <li>تقديم أدلة الاستخدام وشرح خطوات العمليات.</li>
+                    <li>تسليم كافة حسابات الدخول وكلمات المرور الإدارية.</li>
+                    <li>معالجة الملاحظات البرمجية قبل الاعتماد النهائي.</li>
+                </ul>
+            </div>
+            <div class="info-bullets-card">
+                <h4>🛡️ 7. الضمان والدعم الفني المجاني</h4>
+                <ul class="module-features">
+                    <li><strong>شهر كامل دعم فني مجاني</strong> يبدأ بعد التسليم النهائي.</li>
+                    <li>معالجة أي أخطاء أو ثغرات برمجية تظهر فوراً.</li>
+                    <li>المساعدة اليومية في الاستخدام والإجابة عن الاستفسارات.</li>
+                    <li>متابعة استقرار السيرفر وقواعد البيانات.</li>
+                    <li>إمكانية تجديد عقد الدعم السنوي بعد انتهاء الشهر.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Page Break -->
+        <div class="page-break"></div>
+
+        <!-- 8. Financial Breakdown -->
+        <section class="section-block no-break">
+            <h3 class="section-title">
+                <span class="number-badge">8</span>
+                العرض المالي التفصيلي (Financial Quotation)
+            </h3>
+            <div class="pricing-table-wrap">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; text-align:center;">#</th>
+                            <th>الوصف / الوحدة البرمجية المعتمدة</th>
+                            <th>القيمة التقديرية</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align:center;">1</td>
+                            <td>تحليل الإجراءات وتأسيس هيكل وقواعد بيانات النظام</td>
+                            <td>15,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">2</td>
+                            <td>وحدة إدارة العملاء والمبيعات (CRM & Sales Pipeline)</td>
+                            <td>15,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">3</td>
+                            <td>وحدة إدارة التعاقدات ومسار العمل (Contracts & Workflow)</td>
+                            <td>15,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">4</td>
+                            <td>وحدة إدارة المخازن والمستودعات والمنتجات والخامات (Inventory)</td>
+                            <td>20,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">5</td>
+                            <td>وحدة المشتريات ومتابعة الموردين وأوامر الشراء (Purchasing)</td>
+                            <td>10,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">6</td>
+                            <td>وحدة الحسابات والمالية والقيود والتقارير المالية (Accounting)</td>
+                            <td>25,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">7</td>
+                            <td>وحدة الموارد البشرية وشؤون الموظفين والرواتب (HR & Payroll)</td>
+                            <td>12,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">8</td>
+                            <td>وحدة تخطيط وإدارة الإنتاج والتصنيع (Production / Manufacturing)</td>
+                            <td>18,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">9</td>
+                            <td>وحدة إدارة مشروعات المكتب الفني والرسومات (Technical Office)</td>
+                            <td>8,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">10</td>
+                            <td>لوحات التحكم الذكية والتقارير الإدارية (Dashboards & Reports)</td>
+                            <td>7,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">11</td>
+                            <td>نظام الصلاحيات والأدوار وسجل الرقابة (Users, Roles & Audit Log)</td>
+                            <td>5,000 ج.م</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">12</td>
+                            <td>الاختبارات الشاملة وضبط الجودة وتدريب الموظفين (Testing & Training)</td>
+                            <td style="color: var(--success);">مشمول مجاناً (0 ج.م)</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="2" style="font-size: 13.5px;"><strong>إجمالي الاستثمار لتنفيذ المشروع بالكامل (حزمة متكاملة)</strong></td>
+                            <td style="font-size: 15px;"><strong>150,000 جنيه مصري</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size: 11px; color: #64748b; margin-top: 3px;">
+                * يُعامل المشروع تجارياً كحزمة تنفيذ متكاملة بقيمة إجمالية قدرها <strong>150,000 ج.م</strong>، والتسعير الموضح بالجدول يمثل التوزيع النسبي للوحدات.
+            </p>
+        </section>
+
+        <!-- 9. Payment Milestones -->
+        <section class="section-block no-break">
+            <h3 class="section-title">
+                <span class="number-badge">9</span>
+                جدول ومراحل سداد الدفعات (Payment Milestones)
+            </h3>
+            <div class="milestones-grid">
+                <div class="milestone-card">
+                    <div class="milestone-pct">30%</div>
+                    <div class="milestone-amount">45,000 ج.م</div>
+                    <div class="milestone-desc"><strong>الدفعة الأولى:</strong> دفعة مقدمة عند توقيع العقد وبدء مرحلة التحليل والتأسيس.</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-pct">30%</div>
+                    <div class="milestone-amount">45,000 ج.م</div>
+                    <div class="milestone-desc"><strong>الدفعة الثانية:</strong> عند اكتمال التطوير الأساسي وتجهيز الشاشات الرئيسية للمعاينة.</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-pct">25%</div>
+                    <div class="milestone-amount">37,500 ج.م</div>
+                    <div class="milestone-desc"><strong>الدفعة الثالثة:</strong> عند تسليم النسخة التجريبية المتكاملة وبدء التدريب والاختبارات.</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-pct">15%</div>
+                    <div class="milestone-amount">22,500 ج.م</div>
+                    <div class="milestone-desc"><strong>الدفعة الرابعة:</strong> عند التسليم النهائي للنظام وإتمام الإطلاق الفعلي للتشغيل.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Terms and Conditions -->
+        <section class="section-block no-break">
+            <h3 class="section-title">
+                <span class="number-badge">10</span>
+                الشروط العامة والأحكام الفنية
+            </h3>
+            <div class="terms-grid">
+                <div class="info-bullets-card">
+                    <h4>⏱️ مدة التنفيذ والتعديلات</h4>
+                    <p style="font-size:11px; color:#475569; margin-bottom:5px;">
+                        • مدة التنفيذ <strong>3 أشهر</strong> تبدأ من تاريخ توقيع الاتفاق واستلام الدفعة الأولى والمتطلبات الأساسية.
+                    </p>
+                    <p style="font-size:11px; color:#475569;">
+                        • أي طلبات أو إضافات خارج نطاق العمل الحالي (مثل وحدات إضافية، ربط خارجي جديد) تخضع لدراسة تسعير منفصلة بعد موافقة العميل.
+                    </p>
+                </div>
+
+                <div class="info-bullets-card">
+                    <h4>☁️ الاستضافة والبنية التحتية</h4>
+                    <p style="font-size:11px; color:#475569; margin-bottom:5px;">
+                        • لا يشمل العرض التكاليف الخارجية الخاصة بحجز الخوادم (Hosting/Servers) أو النطاقات (Domains) أو بوابات الدفع والرسائل النصية.
+                    </p>
+                    <p style="font-size:11px; color:#475569;">
+                        • يقدم فريق Rewaq الاستشارة الفنية والمساعدة الكاملة في اختيار وتجهيز أفضل استضافة مناسبة للشركة.
+                    </p>
+                </div>
+
+                <div class="info-bullets-card">
+                    <h4>🔒 السرية وأمان البيانات</h4>
+                    <p style="font-size:11px; color:#475569;">
+                        • يلتزم الطرفان التزاماً تاماً بالسرية المهنية لجميع البيانات والمعلومات والعمليات التشغيلية الخاصة بشركة Furniture Land مع تطبيق أحدث معايير التشفير والحماية.
+                    </p>
+                </div>
+
+                <div class="info-bullets-card">
+                    <h4>✅ التسليم والاعتماد النهائي</h4>
+                    <p style="font-size:11px; color:#475569;">
+                        • يعتبر النظام معتمداً وجاهزاً للتسليم عند اكتمال كافة الوظائف المتفق عليها واجتياز اختبارات التكامل واستقرار العمليات التشغيلية وتدريب فريق العمل.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary & Signatures -->
+        <section class="section-block no-break" style="margin-bottom:0;">
+            <h3 class="section-title">
+                <span class="number-badge">11</span>
+                ملخص العرض والاعتماد الرسمي
+            </h3>
+
+            <div class="summary-matrix">
+                <div class="matrix-row"><span class="k">اسم الشركة العميل:</span><span class="v">شركة Furniture Land</span></div>
+                <div class="matrix-row"><span class="k">عناية المسؤول:</span><span class="v">الأستاذ / عمرو عباس (صاحب الشركة)</span></div>
+                <div class="matrix-row"><span class="k">الجهة المنفذة:</span><span class="v">مؤسسة Rewaq للحلول الرقمية</span></div>
+                <div class="matrix-row"><span class="k">نوع النظام:</span><span class="v">نظام ERP سحابي متكامل مخصص</span></div>
+                <div class="matrix-row"><span class="k">مدة التنفيذ:</span><span class="v">3 أشهر</span></div>
+                <div class="matrix-row"><span class="k">فترة الدعم الفني:</span><span class="v">شهر كامل مجاني بعد التسليم</span></div>
+                <div class="matrix-row"><span class="k">إجمالي قيمة العرض:</span><span class="v" style="color:var(--accent-dark); font-size:13px;">150,000 جنيه مصري</span></div>
+                <div class="matrix-row"><span class="k">نظام الدفع:</span><span class="v">30% / 30% / 25% / 15%</span></div>
+            </div>
+
+            <div class="signatures-container">
+                <div class="signature-box">
+                    <div class="sig-title">الطرف الأول (الجهة المطورة)</div>
+                    <div class="sig-name">عن مؤسسة Rewaq للحلول الرقمية</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-meta">التوقيع والختم: .......................................</div>
+                </div>
+                <div class="signature-box">
+                    <div class="sig-title">الطرف الثاني (العميل المعتمِد)</div>
+                    <div class="sig-name">عن شركة Furniture Land — الأستاذ / عمرو عباس</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-meta">التوقيع والاعتماد: .......................................</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Document Footer -->
+    <footer class="doc-footer">
+        <div>عرض سعر رقم: <strong>RWQ-FL-2026-0925</strong></div>
+        <div>نظام Rewaq ERP المتكامل | شركة Furniture Land - أ. عمرو عباس</div>
+        <div>تاريخ الإصدار: 25 سبتمبر 2026</div>
+    </footer>
+
+</div>
+
+</body>
+</html>
