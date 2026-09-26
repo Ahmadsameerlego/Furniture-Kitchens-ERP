@@ -54,8 +54,29 @@ import {
   CompanyExpense,
   ExpenseCategory,
   FinancialAccount,
-  FinancialTransaction
+  FinancialTransaction,
+  WarehouseLocation,
+  ItemMasterCard,
+  GoodsReceiptNote,
+  GRNType,
+  GRNLineItem,
+  GoodsIssueNote,
+  GINType,
+  GINLineItem,
+  MaterialRequisition,
+  StocktakeSession,
+  StocktakeLine,
+  StockLedgerEntry
 } from '../types/erp';
+import {
+  initialWarehouses,
+  initialItemMasterCards,
+  initialGoodsReceiptNotes,
+  initialGoodsIssueNotes,
+  initialMaterialRequisitions,
+  initialStocktakeSessions,
+  initialStockLedgerEntries
+} from '../mock/inventoryData';
 import { 
   initialCompany, 
   initialBranches, 
@@ -263,7 +284,7 @@ interface ERPContextType {
   createVendorBill: (billData: any) => VendorBill;
   recordVendorBillPayment: (billId: string, amount: number, paymentMethod: string, accountId: string, withholdingTaxRate?: number, notes?: string) => boolean;
   updatePdcStatus: (checkId: string, newStatus: PDCRecord['status'], clearanceAccountId?: string) => void;
-  toggleFiscalPeriodLock: (periodId: string) => void;
+  toggleFiscalPeriodLock: (periodId: string, reopenReason?: string) => void;
   addAccountToCoA: (accountData: Omit<Account, 'id'>) => void;
   recordInventoryWipMovement: (productionOrderId: string, totalMaterialCost: number, notes?: string) => void;
   recordProductionCompletionToFinishedGoods: (productionOrderId: string, finalTotalCost: number, notes?: string) => void;
@@ -367,6 +388,30 @@ interface ERPContextType {
   addCompanyExpense: (expenseData: any) => CompanyExpense;
   transferBetweenFinancialAccounts: (fromAccountId: string, toAccountId: string, amount: number, notes?: string) => void;
   recordSupplierPaymentFromFinance: (supplierId: string, amount: number, method: 'cash' | 'bank_transfer' | 'check', accountId: string, notes?: string) => void;
+
+  // Enterprise Warehouses & Inventory State
+  warehouses: WarehouseLocation[];
+  itemMasterCards: ItemMasterCard[];
+  goodsReceiptNotes: GoodsReceiptNote[];
+  goodsIssueNotes: GoodsIssueNote[];
+  materialRequisitions: MaterialRequisition[];
+  stocktakeSessions: StocktakeSession[];
+  stockLedgerEntries: StockLedgerEntry[];
+  selectedItemCardId: string | null;
+  setSelectedItemCardId: (id: string | null) => void;
+
+  // Enterprise Warehouses & Inventory Actions
+  createGoodsReceiptNote: (data: any) => GoodsReceiptNote;
+  createGoodsIssueNote: (data: any) => GoodsIssueNote;
+  createItemMasterCard: (data: any) => ItemMasterCard;
+  updateItemMasterCard: (id: string, data: any) => void;
+  createWarehouse: (data: any) => WarehouseLocation;
+  createStocktakeSession: (data: any) => StocktakeSession;
+  postStocktakeAdjustment: (sessionId: string) => boolean;
+  createMaterialRequisition: (data: any) => MaterialRequisition;
+  approveMaterialRequisition: (requisitionId: string) => void;
+  rejectMaterialRequisition: (requisitionId: string, reason?: string) => void;
+  confirmWarehouseTransfer: (transferId: string) => void;
 }
 
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
@@ -442,6 +487,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(initialCustomerAdvances);
   const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(initialPDCRecords);
 
+  // Enterprise Warehouses & Inventory State
+  const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(initialWarehouses);
+  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(initialItemMasterCards);
+  const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(initialGoodsReceiptNotes);
+  const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(initialGoodsIssueNotes);
+  const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(initialMaterialRequisitions);
+  const [stocktakeSessions, setStocktakeSessions] = useState<StocktakeSession[]>(initialStocktakeSessions);
+  const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(initialStockLedgerEntries);
+  const [selectedItemCardId, setSelectedItemCardId] = useState<string | null>(null);
+
   // URL Hash to ModuleId Mapping
   const moduleToRouteMap: Record<ModuleId, string> = {
     dashboard: '/dashboard',
@@ -451,7 +506,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     custom_projects: '/sales/custom-projects',
     products: '/catalog/products',
     materials: '/catalog/materials',
-    inventory: '/operations/inventory',
+    inventory: '/inventory/dashboard',
+    inv_dashboard: '/inventory/dashboard',
+    inv_items: '/inventory/items',
+    inv_grn: '/inventory/grn',
+    inv_gin: '/inventory/gin',
+    inv_stock_card: '/inventory/stock-card',
+    inv_transfers: '/inventory/transfers',
+    inv_stocktaking: '/inventory/stocktaking',
+    inv_warehouses: '/inventory/warehouses',
     production: '/operations/production',
     installation: '/operations/installation',
     suppliers: '/operations/suppliers',
@@ -486,8 +549,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     '/products': 'products',
     '/catalog/materials': 'materials',
     '/materials': 'materials',
-    '/operations/inventory': 'inventory',
-    '/inventory': 'inventory',
+    '/operations/inventory': 'inv_dashboard',
+    '/inventory': 'inv_dashboard',
+    '/inventory/dashboard': 'inv_dashboard',
+    '/inventory/items': 'inv_items',
+    '/inventory/grn': 'inv_grn',
+    '/inventory/gin': 'inv_gin',
+    '/inventory/stock-card': 'inv_stock_card',
+    '/inventory/transfers': 'inv_transfers',
+    '/inventory/stocktaking': 'inv_stocktaking',
+    '/inventory/warehouses': 'inv_warehouses',
     '/operations/production': 'production',
     '/production': 'production',
     '/operations/installation': 'installation',
@@ -2931,10 +3002,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`✓ تم تحديث حالة الشيك (${targetCheck.checkNumber}) إلى: ${newStatus}`, 'success');
   };
 
-  const toggleFiscalPeriodLock = (periodId: string) => {
+  const toggleFiscalPeriodLock = (periodId: string, reopenReason?: string) => {
+    let targetName = '';
+    let isReopening = false;
+
     setFiscalPeriods(prev => prev.map(p => {
       if (p.id === periodId) {
         const nextState = !p.isClosed;
+        targetName = p.name;
+        isReopening = !nextState; // if nextState is false, we are reopening
         return {
           ...p,
           isClosed: nextState,
@@ -2944,7 +3020,28 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return p;
     }));
-    showToast(`✓ تم تحديث حالة إقفال الفترة المحاسبية بنجاح`, 'info');
+
+    if (isReopening) {
+      addAuditLog({
+        category: 'finance',
+        action: 'إعادة فتح فترة محاسبية',
+        actionEn: 'reopen_fiscal_period',
+        target: targetName,
+        status: 'warning',
+        details: `⚠️ قرار مدير مالي رقابي: إعادة فتح الفترة المحاسبية (${targetName}) بأثر رجعي. مبرر الإجراء: ${reopenReason || 'إعادة فتح استثنائية معتمدة من الإدارة المالية'}`
+      });
+      showToast(`⚠️ تم إعادة فتح الفترة (${targetName}) وتوثيق المسؤولية في سجل الرقابة المالي`, 'warning');
+    } else {
+      addAuditLog({
+        category: 'finance',
+        action: 'إقفال فترة محاسبية',
+        actionEn: 'close_fiscal_period',
+        target: targetName,
+        status: 'success',
+        details: `🔒 تم إقفال واعتماد الفترة المحاسبية (${targetName}) بواسطة ${currentUser.fullName}`
+      });
+      showToast(`✓ تم إقفال الفترة (${targetName}) بنجاح ومنع الترحيل الرجعي`, 'success');
+    }
   };
 
   const addAccountToCoA = (accountData: Omit<Account, 'id'>) => {
@@ -3130,6 +3227,667 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // ====================================================
+  // ENTERPRISE WAREHOUSE & INVENTORY ACTION HANDLERS
+  // ====================================================
+
+  const createGoodsReceiptNote = (data: {
+    type: GRNType;
+    supplierId?: string;
+    purchaseOrderId?: string;
+    productionOrderId?: string;
+    warehouseId: string;
+    items: {
+      itemId: string;
+      itemCode: string;
+      itemName: string;
+      unit: string;
+      orderedQty: number;
+      receivedQty: number;
+      unitCost: number;
+      locationBin?: string;
+      notes?: string;
+    }[];
+    notes?: string;
+  }): GoodsReceiptNote => {
+    const today = new Date().toISOString().substring(0, 10);
+    const grnNumber = `GRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
+    const targetSup = suppliers.find(s => s.id === data.supplierId);
+    const supName = targetSup?.name || (data.type === 'purchase_receipt' ? 'مورد خامات' : undefined);
+
+    const lineItems: GRNLineItem[] = data.items.map((it, idx) => ({
+      id: `grn-line-${Date.now()}-${idx}`,
+      itemId: it.itemId,
+      itemCode: it.itemCode,
+      itemName: it.itemName,
+      unit: it.unit,
+      orderedQty: it.orderedQty,
+      receivedQty: it.receivedQty,
+      unitCost: it.unitCost,
+      totalCost: it.receivedQty * it.unitCost,
+      locationBin: it.locationBin || 'ممر 1 - رف A',
+      notes: it.notes
+    }));
+
+    const totalAmount = lineItems.reduce((s, it) => s + it.totalCost, 0);
+
+    // 1. Accounting Impact: Debit Inventory / Credit GR-IR Clearing or WIP
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const rawInvAcc = getSafeAccount('1131', 'asset');
+    const fgInvAcc = getSafeAccount('1134', 'asset');
+    const grIrAcc = getSafeAccount('213', 'liability');
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const otherIncomeAcc = getSafeAccount('42', 'revenue');
+
+    const debitAcc = data.type === 'production_receipt' ? fgInvAcc : rawInvAcc;
+    const creditAcc = data.type === 'purchase_receipt' 
+      ? grIrAcc 
+      : (data.type === 'production_receipt' || data.type === 'order_return' ? wipAcc : otherIncomeAcc);
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: today,
+      periodId: currentPeriod.id,
+      reference: `إذن إضافة مخزني ${grnNumber}`,
+      description: `إثبات استلام وتوريد بضاعة بالمستودع (${targetWh.name}): ${data.notes || ''}`,
+      sourceDocument: grnNumber,
+      sourceType: 'stock_receipt',
+      branchId: targetWh.branchId,
+      branchName: targetWh.branchName,
+      lines: [
+        {
+          accountId: debitAcc.id,
+          accountCode: debitAcc.code,
+          accountName: debitAcc.nameAr,
+          debit: totalAmount,
+          credit: 0,
+          description: `إضافة خامات/منتجات لرصيد المخزن الفعلي (${targetWh.name})`
+        },
+        {
+          accountId: creditAcc.id,
+          accountCode: creditAcc.code,
+          accountName: creditAcc.nameAr,
+          debit: 0,
+          credit: totalAmount,
+          description: `إثبات وسيط استلام خامات غير مفوترة أو إنتاج تام من الورشة`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    const newGRN: GoodsReceiptNote = {
+      id: `grn-${Date.now()}`,
+      grnNumber,
+      type: data.type,
+      supplierId: data.supplierId,
+      supplierName: supName,
+      purchaseOrderId: data.purchaseOrderId,
+      productionOrderId: data.productionOrderId,
+      warehouseId: targetWh.id,
+      warehouseName: targetWh.name,
+      date: today,
+      items: lineItems,
+      totalAmount,
+      status: 'posted',
+      journalEntryId: postResult.entry?.id,
+      createdByUserName: currentUser.fullName,
+      approvedByUserName: 'أحمد محمود (المالية)',
+      notes: data.notes
+    };
+
+    setGoodsReceiptNotes(prev => [newGRN, ...prev]);
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+
+    // 2. Update stock in itemMasterCards
+    setItemMasterCards(prev => prev.map(item => {
+      const receiptLine = lineItems.find(l => l.itemId === item.id || l.itemCode === item.code);
+      if (receiptLine) {
+        const oldStock = item.currentStock;
+        const addQty = receiptLine.receivedQty;
+        const newStock = oldStock + addQty;
+        const newAvgCost = oldStock + addQty > 0
+          ? Math.round(((oldStock * item.weightedAvgCost) + (addQty * receiptLine.unitCost)) / newStock)
+          : receiptLine.unitCost;
+        
+        return {
+          ...item,
+          currentStock: newStock,
+          availableStock: item.availableStock + addQty,
+          weightedAvgCost: newAvgCost,
+          lastPurchasePrice: receiptLine.unitCost,
+          status: newStock <= 0 ? 'out_of_stock' : (newStock < item.minStockLevel ? 'low_stock' : 'active')
+        };
+      }
+      return item;
+    }));
+
+    // 3. Add to Stock Ledger History
+    const ledgerEntries: StockLedgerEntry[] = lineItems.map((line, idx) => {
+      const targetItem = itemMasterCards.find(i => i.id === line.itemId || i.code === line.itemCode);
+      const newBal = (targetItem?.currentStock || 0) + line.receivedQty;
+      return {
+        id: `sle-${Date.now()}-${idx}`,
+        itemId: line.itemId,
+        itemCode: line.itemCode,
+        itemName: line.itemName,
+        date: today,
+        documentType: 'GRN',
+        documentNumber: grnNumber,
+        warehouseId: targetWh.id,
+        warehouseName: targetWh.name,
+        qtyIn: line.receivedQty,
+        qtyOut: 0,
+        balanceAfter: newBal,
+        unitCost: line.unitCost,
+        totalCost: line.totalCost,
+        userName: currentUser.fullName,
+        notes: `إذن إضافة ${grnNumber} - ${data.notes || ''}`
+      };
+    });
+
+    setStockLedgerEntries(prev => [...ledgerEntries, ...prev]);
+
+    addAuditLog({
+      category: 'inventory',
+      action: 'إثبات وترحيل إذن إضافة مخزني (GRN)',
+      actionEn: 'Goods Receipt Note Posted',
+      target: grnNumber,
+      details: `المستودع: ${targetWh.name} | القيمة: ${totalAmount.toLocaleString('ar-EG')} ج.م | عدد الأصناف: ${lineItems.length}`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم إنشاء وترحيل إذن الإضافة المخزني (${grnNumber}) بنجاح`, 'success');
+    return newGRN;
+  };
+
+  const createGoodsIssueNote = (data: {
+    type: GINType;
+    productionOrderId?: string;
+    productionOrderNumber?: string;
+    costCenterId?: string;
+    costCenterName?: string;
+    machineName?: string;
+    warehouseId: string;
+    items: {
+      itemId: string;
+      itemCode: string;
+      itemName: string;
+      unit: string;
+      requestedQty: number;
+      issuedQty: number;
+      unitCost: number;
+      locationBin?: string;
+      notes?: string;
+    }[];
+    notes?: string;
+  }): GoodsIssueNote => {
+    const today = new Date().toISOString().substring(0, 10);
+    const ginNumber = `GIN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
+
+    // 0. Strict Negative Stock Prevention Check
+    for (const item of data.items) {
+      const card = itemMasterCards.find(c => c.id === item.itemId || c.code === item.itemCode);
+      const available = card ? card.availableStock : 0;
+      if (item.issuedQty > available) {
+        const errorMsg = `عفواً: الكمية المتاحة للصنف [${card?.nameAr || item.itemName}] في المستودع هي (${available} ${card?.unitNameAr || item.unit}) فقط، ولا يمكن صرف (${item.issuedQty}).`;
+        showToast(errorMsg, 'error');
+        throw new Error(errorMsg);
+      }
+    }
+
+    const lineItems: GINLineItem[] = data.items.map((it, idx) => ({
+      id: `gin-line-${Date.now()}-${idx}`,
+      itemId: it.itemId,
+      itemCode: it.itemCode,
+      itemName: it.itemName,
+      unit: it.unit,
+      requestedQty: it.requestedQty,
+      issuedQty: it.issuedQty,
+      unitCost: it.unitCost,
+      totalCost: it.issuedQty * it.unitCost,
+      locationBin: it.locationBin || 'ممر 1',
+      notes: it.notes
+    }));
+
+    const totalAmount = lineItems.reduce((s, it) => s + it.totalCost, 0);
+
+    // 1. Accounting Impact: Credit Raw Materials / Debit WIP, Maintenance, or Scrap
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const rawInvAcc = getSafeAccount('1131', 'asset');
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const maintAcc = getSafeAccount('534', 'expense');
+    const scrapAcc = getSafeAccount('1135', 'expense');
+    const genExpAcc = getSafeAccount('536', 'expense');
+
+    let debitAcc = wipAcc;
+    let desc = `صرف خامات لأمر تصنيع (${data.productionOrderNumber || 'إنتاج'})`;
+
+    if (data.type === 'maintenance_workshop') {
+      debitAcc = maintAcc;
+      desc = `صرف مهمات وقطع غيار لصيانة ماكينات الورشة (${data.machineName || 'ماكينات CNC'})`;
+    } else if (data.type === 'scrap_waste') {
+      debitAcc = scrapAcc;
+      desc = `إثبات وصرف هالك وتوالف خامات أثناء التصنيع`;
+    } else if (data.type === 'general_issue' || data.type === 'showroom_sample') {
+      debitAcc = genExpAcc;
+      desc = `صرف عينات ومهمات تشغيل عامة`;
+    }
+
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: today,
+      periodId: currentPeriod.id,
+      reference: `إذن صرف مخزني ${ginNumber}`,
+      description: desc,
+      sourceDocument: ginNumber,
+      sourceType: 'material_issue_wip',
+      branchId: targetWh.branchId,
+      branchName: targetWh.branchName,
+      lines: [
+        {
+          accountId: debitAcc.id,
+          accountCode: debitAcc.code,
+          accountName: debitAcc.nameAr,
+          costCenterId: data.costCenterId,
+          costCenterName: data.costCenterName,
+          debit: totalAmount,
+          credit: 0,
+          description: desc
+        },
+        {
+          accountId: rawInvAcc.id,
+          accountCode: rawInvAcc.code,
+          accountName: rawInvAcc.nameAr,
+          debit: 0,
+          credit: totalAmount,
+          description: `خصم خامات منصرفة من رصيد المستودع (${targetWh.name})`
+        }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+
+    const newGIN: GoodsIssueNote = {
+      id: `gin-${Date.now()}`,
+      ginNumber,
+      type: data.type,
+      productionOrderId: data.productionOrderId,
+      productionOrderNumber: data.productionOrderNumber,
+      costCenterId: data.costCenterId,
+      costCenterName: data.costCenterName,
+      machineName: data.machineName,
+      warehouseId: targetWh.id,
+      warehouseName: targetWh.name,
+      date: today,
+      items: lineItems,
+      totalAmount,
+      status: 'posted',
+      journalEntryId: postResult.entry?.id,
+      requestedByUserName: currentUser.fullName,
+      issuedByUserName: targetWh.managerName || currentUser.fullName,
+      notes: data.notes
+    };
+
+    setGoodsIssueNotes(prev => [newGIN, ...prev]);
+    if (postResult.entry) {
+      setJournalEntries(prev => [postResult.entry!, ...prev]);
+    }
+
+    // 2. Decrease Stock in itemMasterCards
+    setItemMasterCards(prev => prev.map(item => {
+      const issueLine = lineItems.find(l => l.itemId === item.id || l.itemCode === item.code);
+      if (issueLine) {
+        const newStock = Math.max(0, item.currentStock - issueLine.issuedQty);
+        const newAvail = Math.max(0, item.availableStock - issueLine.issuedQty);
+        return {
+          ...item,
+          currentStock: newStock,
+          availableStock: newAvail,
+          status: newStock <= 0 ? 'out_of_stock' : (newStock < item.minStockLevel ? 'low_stock' : 'active')
+        };
+      }
+      return item;
+    }));
+
+    // 3. Add to Stock Ledger History
+    const ledgerEntries: StockLedgerEntry[] = lineItems.map((line, idx) => {
+      const targetItem = itemMasterCards.find(i => i.id === line.itemId || i.code === line.itemCode);
+      const newBal = Math.max(0, (targetItem?.currentStock || 0) - line.issuedQty);
+      return {
+        id: `sle-${Date.now()}-${idx}`,
+        itemId: line.itemId,
+        itemCode: line.itemCode,
+        itemName: line.itemName,
+        date: today,
+        documentType: 'GIN',
+        documentNumber: ginNumber,
+        warehouseId: targetWh.id,
+        warehouseName: targetWh.name,
+        qtyIn: 0,
+        qtyOut: line.issuedQty,
+        balanceAfter: newBal,
+        unitCost: line.unitCost,
+        totalCost: line.totalCost,
+        userName: currentUser.fullName,
+        notes: `إذن صرف ${ginNumber} - ${desc}`
+      };
+    });
+
+    setStockLedgerEntries(prev => [...ledgerEntries, ...prev]);
+
+    addAuditLog({
+      category: 'inventory',
+      action: 'إثبات وترحيل إذن صرف مخزني (GIN)',
+      actionEn: 'Goods Issue Note Posted',
+      target: ginNumber,
+      details: `المستودع: ${targetWh.name} | القيمة: ${totalAmount.toLocaleString('ar-EG')} ج.م | الغرض: ${desc}`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم إنشاء وترحيل إذن الصرف المخزني (${ginNumber}) بنجاح`, 'success');
+    return newGIN;
+  };
+
+  const createItemMasterCard = (itemData: any): ItemMasterCard => {
+    const defaultWh = warehouses.find(w => w.id === itemData.defaultWarehouseId) || warehouses[0];
+    const newCard: ItemMasterCard = {
+      id: `item-${Date.now()}`,
+      code: itemData.code || `RAW-${Math.floor(100 + Math.random() * 900)}`,
+      barcode: itemData.barcode || `622100${Math.floor(100000 + Math.random() * 900000)}`,
+      nameAr: itemData.nameAr,
+      nameEn: itemData.nameEn || itemData.nameAr,
+      category: itemData.category || 'wood_panels',
+      categoryNameAr: itemData.categoryNameAr || 'خامات تصنيع',
+      unit: itemData.unit || 'sheet',
+      unitNameAr: itemData.unitNameAr || 'لوح',
+      currentStock: Number(itemData.currentStock || 0),
+      reservedStock: 0,
+      availableStock: Number(itemData.currentStock || 0),
+      minStockLevel: Number(itemData.minStockLevel || 10),
+      reorderPoint: Number(itemData.reorderPoint || 20),
+      maxStockLevel: Number(itemData.maxStockLevel || 100),
+      weightedAvgCost: Number(itemData.weightedAvgCost || itemData.lastPurchasePrice || 0),
+      lastPurchasePrice: Number(itemData.lastPurchasePrice || 0),
+      sellingPrice: Number(itemData.sellingPrice || 0),
+      defaultWarehouseId: defaultWh.id,
+      defaultWarehouseName: defaultWh.name,
+      locationBin: itemData.locationBin || 'ممر 1 - رف A',
+      specifications: itemData.specifications || [],
+      supplierId: itemData.supplierId,
+      supplierName: itemData.supplierName,
+      status: Number(itemData.currentStock || 0) <= 0 ? 'out_of_stock' : 'active'
+    };
+
+    setItemMasterCards(prev => [newCard, ...prev]);
+    showToast(`✓ تم إضافة كارت الصنف (${newCard.nameAr}) بنجاح`, 'success');
+    return newCard;
+  };
+
+  const updateItemMasterCard = (id: string, data: any) => {
+    setItemMasterCards(prev => prev.map(item => {
+      if (item.id === id) {
+        return { ...item, ...data };
+      }
+      return item;
+    }));
+    showToast('✓ تم تحديث بيانات كارت الصنف بنجاح', 'success');
+  };
+
+  const createWarehouse = (data: any): WarehouseLocation => {
+    const newWh: WarehouseLocation = {
+      id: `wh-${Date.now()}`,
+      code: data.code || `WH-${Math.floor(10 + Math.random() * 90)}`,
+      name: data.name,
+      nameEn: data.nameEn || data.name,
+      branchId: data.branchId || currentBranch.id,
+      branchName: data.branchName || currentBranch.name,
+      type: data.type || 'raw_materials',
+      managerName: data.managerName || currentUser.fullName,
+      phone: data.phone || '01000000000',
+      address: data.address || 'مجمع المصانع',
+      capacityPercentage: data.capacityPercentage || 50,
+      totalItemsCount: 0,
+      totalValuation: 0,
+      aisles: data.aisles || ['ممر A1', 'ممر A2'],
+      isActive: true
+    };
+
+    setWarehouses(prev => [...prev, newWh]);
+    showToast(`✓ تم تعريف المستودع (${newWh.name}) بنجاح`, 'success');
+    return newWh;
+  };
+
+  const createStocktakeSession = (data: any): StocktakeSession => {
+    const sessionNumber = `STK-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const today = new Date().toISOString().substring(0, 10);
+    const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
+
+    const lines: StocktakeLine[] = (data.lines || []).map((l: any, idx: number) => ({
+      id: `stk-line-${Date.now()}-${idx}`,
+      itemId: l.itemId,
+      itemCode: l.itemCode,
+      itemName: l.itemName,
+      category: l.category || 'wood_panels',
+      unit: l.unit || 'لوح',
+      locationBin: l.locationBin || 'ممر 1',
+      systemQty: Number(l.systemQty || 0),
+      countedQty: Number(l.countedQty || 0),
+      varianceQty: Number(l.countedQty || 0) - Number(l.systemQty || 0),
+      unitCost: Number(l.unitCost || 0),
+      varianceAmount: (Number(l.countedQty || 0) - Number(l.systemQty || 0)) * Number(l.unitCost || 0),
+      notes: l.notes
+    }));
+
+    const totalSystemValue = lines.reduce((s, l) => s + (l.systemQty * l.unitCost), 0);
+    const totalCountedValue = lines.reduce((s, l) => s + (l.countedQty * l.unitCost), 0);
+    const totalVarianceAmount = totalCountedValue - totalSystemValue;
+
+    const newSession: StocktakeSession = {
+      id: `stk-${Date.now()}`,
+      sessionNumber,
+      warehouseId: targetWh.id,
+      warehouseName: targetWh.name,
+      categoryFilter: data.categoryFilter,
+      startDate: today,
+      completionDate: today,
+      status: 'completed',
+      lines,
+      totalSystemValue,
+      totalCountedValue,
+      totalVarianceAmount,
+      conductedByUserName: currentUser.fullName,
+      notes: data.notes
+    };
+
+    setStocktakeSessions(prev => [newSession, ...prev]);
+    showToast(`✓ تم تسجيل جلسة الجرد المخزني (${sessionNumber}) بنجاح`, 'success');
+    return newSession;
+  };
+
+  const postStocktakeAdjustment = (sessionId: string): boolean => {
+    const session = stocktakeSessions.find(s => s.id === sessionId);
+    if (!session || session.status === 'posted') return false;
+
+    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const rawInvAcc = getSafeAccount('1131', 'asset');
+    const varianceLossAcc = getSafeAccount('1135', 'expense');
+    const otherIncomeAcc = getSafeAccount('42', 'revenue');
+
+    const netVariance = session.totalVarianceAmount;
+    const absVariance = Math.abs(netVariance);
+
+    if (absVariance > 0) {
+      const lines = netVariance > 0
+        ? [
+            {
+              accountId: rawInvAcc.id,
+              accountCode: rawInvAcc.code,
+              accountName: rawInvAcc.nameAr,
+              debit: absVariance,
+              credit: 0,
+              description: `تسوية زيادة جردية فعلية بمستودع (${session.warehouseName})`
+            },
+            {
+              accountId: otherIncomeAcc.id,
+              accountCode: otherIncomeAcc.code,
+              accountName: otherIncomeAcc.nameAr,
+              debit: 0,
+              credit: absVariance,
+              description: `إثبات أرباح فروق جرد مخزني زائد`
+            }
+          ]
+        : [
+            {
+              accountId: varianceLossAcc.id,
+              accountCode: varianceLossAcc.code,
+              accountName: varianceLossAcc.nameAr,
+              debit: absVariance,
+              credit: 0,
+              description: `إثبات خسائر عجز جرد مخزني بمستودع (${session.warehouseName})`
+            },
+            {
+              accountId: rawInvAcc.id,
+              accountCode: rawInvAcc.code,
+              accountName: rawInvAcc.nameAr,
+              debit: 0,
+              credit: absVariance,
+              description: `تخفيض رصيد المخزون الفعلي بعد الجرد`
+            }
+          ];
+
+      const postResult = AccountingService.createPostedEntry({
+        journal: genJournal,
+        date: new Date().toISOString().substring(0, 10),
+        periodId: currentPeriod.id,
+        reference: `تسوية جرد ${session.sessionNumber}`,
+        description: `تسوية فروق الجرد الفعلي لجلسة (${session.sessionNumber}) بالمستودع (${session.warehouseName})`,
+        sourceDocument: session.sessionNumber,
+        sourceType: 'stock_adjustment',
+        branchId: currentBranch.id,
+        branchName: currentBranch.name,
+        lines,
+        userName: currentUser.fullName
+      }, fiscalPeriods);
+
+      if (postResult.entry) {
+        setJournalEntries(prev => [postResult.entry!, ...prev]);
+      }
+    }
+
+    // Update item stocks to match countedQty
+    setItemMasterCards(prev => prev.map(item => {
+      const stkLine = session.lines.find(l => l.itemId === item.id || l.itemCode === item.code);
+      if (stkLine) {
+        return {
+          ...item,
+          currentStock: stkLine.countedQty,
+          availableStock: Math.max(0, stkLine.countedQty - item.reservedStock),
+          status: stkLine.countedQty <= 0 ? 'out_of_stock' : (stkLine.countedQty < item.minStockLevel ? 'low_stock' : 'active')
+        };
+      }
+      return item;
+    }));
+
+    setStocktakeSessions(prev => prev.map(s => {
+      if (s.id === sessionId) {
+        return {
+          ...s,
+          status: 'posted',
+          approvedByUserName: currentUser.fullName
+        };
+      }
+      return s;
+    }));
+
+    showToast(`✓ تم اعتماد وترحيل التسوية الجردية (${session.sessionNumber}) وتعديل الأرصدة والقيود المحاسبية بنجاح`, 'success');
+    return true;
+  };
+
+  const createMaterialRequisition = (data: any): MaterialRequisition => {
+    const requisitionNumber = `MRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const today = new Date().toISOString().substring(0, 10);
+    const newMRN: MaterialRequisition = {
+      id: `mrn-${Date.now()}`,
+      requisitionNumber,
+      purpose: data.purpose || 'production',
+      productionOrderId: data.productionOrderId,
+      productionOrderNumber: data.productionOrderNumber,
+      department: data.department || 'ورشة التصنيع',
+      requestedByUserName: currentUser.fullName,
+      date: today,
+      requiredDate: data.requiredDate || today,
+      items: data.items || [],
+      status: 'pending',
+      notes: data.notes
+    };
+
+    setMaterialRequisitions(prev => [newMRN, ...prev]);
+    showToast(`✓ تم تقديم طلب صرف الخامات (${requisitionNumber}) بنجاح`, 'success');
+    return newMRN;
+  };
+
+  const approveMaterialRequisition = (requisitionId: string) => {
+    const today = new Date().toISOString().substring(0, 10);
+    setMaterialRequisitions(prev => prev.map(m => {
+      if (m.id === requisitionId) {
+        return {
+          ...m,
+          status: 'approved',
+          approvedByUserName: currentUser.fullName,
+          approvedDate: today
+        };
+      }
+      return m;
+    }));
+
+    addAuditLog({
+      category: 'inventory',
+      action: 'اعتماد طلب صرف خامات (MRN)',
+      actionEn: 'Material Requisition Approved',
+      target: requisitionId,
+      details: `تم اعتماد طلب الصرف من قِبل (${currentUser.fullName}) وأصبح جاهزاً للتسليم المخزني`,
+      status: 'success'
+    });
+
+    showToast('✓ تم اعتماد طلب صرف الخامات بنجاح، وأصبح جاهزاً للصرف بالمستودع', 'success');
+  };
+
+  const rejectMaterialRequisition = (requisitionId: string, reason?: string) => {
+    setMaterialRequisitions(prev => prev.map(m => {
+      if (m.id === requisitionId) {
+        return {
+          ...m,
+          status: 'rejected',
+          notes: `${m.notes || ''} [سبب الرفض: ${reason || 'غير مطابق للمقايسة'}]`
+        };
+      }
+      return m;
+    }));
+
+    showToast('تم رفض طلب صرف الخامات وإعادته للتعديل', 'info');
+  };
+
+  const confirmWarehouseTransfer = (transferId: string) => {
+    setStockTransfers(prev => prev.map(t => {
+      if (t.id === transferId) {
+        return {
+          ...t,
+          status: 'received',
+          receivedDate: new Date().toISOString().substring(0, 10),
+          receivedByUserName: currentUser.fullName
+        };
+      }
+      return t;
+    }));
+    showToast('✓ تم تأكيد استلام الشحنة والتحويل المخزني بنجاح', 'success');
+  };
+
   return (
     <ERPContext.Provider
       value={{
@@ -3288,7 +4046,27 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         completeHandover,
         addCompanyExpense,
         transferBetweenFinancialAccounts,
-        recordSupplierPaymentFromFinance
+        recordSupplierPaymentFromFinance,
+        warehouses,
+        itemMasterCards,
+        goodsReceiptNotes,
+        goodsIssueNotes,
+        materialRequisitions,
+        stocktakeSessions,
+        stockLedgerEntries,
+        selectedItemCardId,
+        setSelectedItemCardId,
+        createGoodsReceiptNote,
+        createGoodsIssueNote,
+        createItemMasterCard,
+        updateItemMasterCard,
+        createWarehouse,
+        createStocktakeSession,
+        postStocktakeAdjustment,
+        createMaterialRequisition,
+        approveMaterialRequisition,
+        rejectMaterialRequisition,
+        confirmWarehouseTransfer
       }}
     >
       {children}

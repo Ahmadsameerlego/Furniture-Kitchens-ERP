@@ -36,6 +36,17 @@ import { PdcChecksView } from '../../pages/accounting/PdcChecksView';
 import { CostCentersView } from '../../pages/accounting/CostCentersView';
 import { FinancialReportsView } from '../../pages/accounting/FinancialReportsView';
 import { FiscalPeriodsView } from '../../pages/accounting/FiscalPeriodsView';
+
+// Inventory Pages
+import { InventoryDashboardView } from '../../pages/inventory/InventoryDashboardView';
+import { ItemMasterCardsView } from '../../pages/inventory/ItemMasterCardsView';
+import { GoodsReceiptNotesView } from '../../pages/inventory/GoodsReceiptNotesView';
+import { GoodsIssueNotesView } from '../../pages/inventory/GoodsIssueNotesView';
+import { StockCardLedgerView } from '../../pages/inventory/StockCardLedgerView';
+import { StockTransfersView } from '../../pages/inventory/StockTransfersView';
+import { StocktakingView } from '../../pages/inventory/StocktakingView';
+import { WarehousesLocationsView } from '../../pages/inventory/WarehousesLocationsView';
+
 import { PlaceholderModulePage } from '../../pages/PlaceholderModulePage';
 
 import { Building2, MapPin, Users as UsersIcon, ShieldCheck, History, Terminal } from 'lucide-react';
@@ -92,7 +103,29 @@ export const ApplicationShell: React.FC = () => {
         return <MaterialsListPage />;
 
       case 'inventory':
-        return <InventoryPage />;
+      case 'inv_dashboard':
+        return <InventoryDashboardView />;
+
+      case 'inv_items':
+        return <ItemMasterCardsView />;
+
+      case 'inv_grn':
+        return <GoodsReceiptNotesView />;
+
+      case 'inv_gin':
+        return <GoodsIssueNotesView />;
+
+      case 'inv_stock_card':
+        return <StockCardLedgerView />;
+
+      case 'inv_transfers':
+        return <StockTransfersView />;
+
+      case 'inv_stocktaking':
+        return <StocktakingView />;
+
+      case 'inv_warehouses':
+        return <WarehousesLocationsView />;
 
       case 'suppliers':
         return <SuppliersListPage />;

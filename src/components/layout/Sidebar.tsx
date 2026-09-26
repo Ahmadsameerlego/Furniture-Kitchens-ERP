@@ -31,7 +31,13 @@ import {
   Receipt,
   CreditCard,
   Calendar,
-  PieChart
+  PieChart,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  ArrowLeftRight,
+  ClipboardCheck,
+  History,
+  Warehouse
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -65,6 +71,24 @@ const accountingSubPages: AccountingSubItem[] = [
   { id: 'acc_cost_centers', label: 'مراكز التكلفة والورش', labelEn: 'Cost Centers & Workshops', icon: Building2 },
   { id: 'acc_reports', label: 'القوائم والتقارير الختامية', labelEn: 'Financial Statements', icon: BarChart3 },
   { id: 'acc_periods', label: 'الفترات المحاسبية وإقفال الشهر', labelEn: 'Fiscal Periods & Closing', icon: Calendar }
+];
+
+interface InventorySubItem {
+  id: ModuleId;
+  label: string;
+  labelEn: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const inventorySubPages: InventorySubItem[] = [
+  { id: 'inv_dashboard', label: 'لوحة تحكم وتقييم المخزون', labelEn: 'Inventory Dashboard', icon: LayoutDashboard },
+  { id: 'inv_items', label: 'كروت ودليل الأصناف والخامات', labelEn: 'Item Master Catalog', icon: Package },
+  { id: 'inv_grn', label: 'أذونات الإضافة المخزنية (GRN)', labelEn: 'Goods Receipt Notes', icon: ArrowDownToLine },
+  { id: 'inv_gin', label: 'أذونات وطلبات الصرف (GIN/MRN)', labelEn: 'Goods Issue & Requisitions', icon: ArrowUpFromLine },
+  { id: 'inv_stock_card', label: 'كارت الصنف وسجل الحركات', labelEn: 'Stock Card & Ledger', icon: History },
+  { id: 'inv_transfers', label: 'التحويلات بين المخازن', labelEn: 'Inter-Warehouse Transfers', icon: ArrowLeftRight },
+  { id: 'inv_stocktaking', label: 'الجرد الدوري والتسويات الجردية', labelEn: 'Stocktaking & Adjustments', icon: ClipboardCheck },
+  { id: 'inv_warehouses', label: 'إدارة المستودعات والأرفف', labelEn: 'Warehouses & Locations', icon: Warehouse }
 ];
 
 const sidebarSections: SidebarSection[] = [
@@ -101,14 +125,18 @@ const sidebarSections: SidebarSection[] = [
     ]
   },
   {
-    title: 'التشغيل والورش والمخازن',
+    title: 'التشغيل والورش',
     titleEn: 'OPERATIONS',
     items: [
       { id: 'production', label: 'الإنتاج والورش', labelEn: 'Production & Workshop', icon: Factory },
-      { id: 'inventory', label: 'المخزون والحركات', labelEn: 'Inventory & Stock', icon: Boxes },
       { id: 'installation', label: 'التركيبات والتسليم', labelEn: 'Installation & Handover', icon: Truck },
       { id: 'suppliers', label: 'الموردين والشركات', labelEn: 'Suppliers', icon: Building2 }
     ]
+  },
+  {
+    title: 'إدارة المخازن والمستودعات والمخزون',
+    titleEn: 'INVENTORY',
+    items: []
   },
   {
     title: 'الحسابات العامة والمالية',
@@ -148,6 +176,9 @@ export const Sidebar: React.FC = () => {
   const isAccountingModuleActive = activeModule === 'finance' || activeModule.startsWith('acc_');
   const [isAccountingOpen, setIsAccountingOpen] = useState<boolean>(true);
 
+  const isInventoryModuleActive = activeModule === 'inventory' || activeModule.startsWith('inv_');
+  const [isInventoryOpen, setIsInventoryOpen] = useState<boolean>(true);
+
   // Keep open when entering an accounting sub-page
   useEffect(() => {
     if (isAccountingModuleActive) {
@@ -155,14 +186,25 @@ export const Sidebar: React.FC = () => {
     }
   }, [isAccountingModuleActive]);
 
+  // Keep open when entering an inventory sub-page
+  useEffect(() => {
+    if (isInventoryModuleActive) {
+      setIsInventoryOpen(true);
+    }
+  }, [isInventoryModuleActive]);
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const isFinanceAllowed = checkPermission('finance', 'view');
+  const isInventoryAllowed = checkPermission('inventory', 'view');
 
   // Filter visible modules: Visible = Business Configuration + Role Permissions + Branch Access
   const accessibleSections = sidebarSections.map(section => {
     if (section.titleEn === 'ACCOUNTING') {
       return isFinanceAllowed ? section : null;
+    }
+    if (section.titleEn === 'INVENTORY') {
+      return isInventoryAllowed ? section : null;
     }
 
     const visibleItems = section.items.filter(item => {
@@ -230,14 +272,99 @@ export const Sidebar: React.FC = () => {
         
         {/* Sections loop */}
         {accessibleSections.map((section, idx) => {
-          // Check if this is the dedicated Accounting section
+          // Check if this is dedicated Inventory or Accounting section
           const isAccountingSection = section.titleEn === 'ACCOUNTING';
+          const isInventorySection = section.titleEn === 'INVENTORY';
 
           return (
             <div key={idx} className="space-y-1">
               {!isSidebarCollapsed && (
                 <div className="px-3 pt-2 pb-1 text-[10px] font-black tracking-wider text-amber-200/50 uppercase">
                   {language === 'ar' ? section.title : section.titleEn}
+                </div>
+              )}
+
+              {/* DEDICATED COLLAPSIBLE INVENTORY ACCORDION */}
+              {isInventorySection && isInventoryAllowed && (
+                <div className="space-y-1">
+                  {/* Master Dropdown Toggle Button */}
+                  <button
+                    onClick={() => {
+                      if (isSidebarCollapsed) {
+                        setActiveModule('inv_dashboard');
+                        setIsSidebarCollapsed(false);
+                      } else {
+                        setIsInventoryOpen(!isInventoryOpen);
+                      }
+                    }}
+                    className={`w-full group relative flex items-center justify-between transition-all duration-200 rounded-2xl px-3.5 py-2.5 text-xs font-bold ${
+                      isInventoryModuleActive
+                        ? 'bg-[#4A2818] text-white border border-[#C87A38]/50 shadow-md'
+                        : 'text-amber-100/90 hover:bg-white/10 hover:text-white'
+                    } ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3'}`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Boxes
+                        className={`transition-transform duration-200 shrink-0 ${
+                          isInventoryModuleActive ? 'scale-110 text-amber-300' : 'group-hover:scale-105 text-[#C87A38]'
+                        } ${isSidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`}
+                      />
+
+                      {!isSidebarCollapsed && (
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="text-xs font-black tracking-wide truncate">
+                            {language === 'ar' ? 'المخازن والمستودعات' : 'Inventory & Warehouse'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {!isSidebarCollapsed && (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#C87A38]/30 text-amber-200">
+                          8
+                        </span>
+                        {isInventoryOpen ? (
+                          <ChevronDown className="w-4 h-4 text-amber-300 transition-transform" />
+                        ) : (
+                          <ChevronLeft className="w-4 h-4 text-amber-300 transition-transform" />
+                        )}
+                      </div>
+                    )}
+
+                    {isSidebarCollapsed && (
+                      <div className="absolute right-full mr-3 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl shadow-2xl whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                        {language === 'ar' ? 'المخازن والمستودعات' : 'Inventory & Warehouse'}
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Accordion Sub-pages Tree */}
+                  {isInventoryOpen && !isSidebarCollapsed && (
+                    <div className="mt-1 mr-3 pr-2.5 border-r-2 border-[#C87A38]/40 space-y-1 animate-in fade-in duration-200">
+                      {inventorySubPages.map(sub => {
+                        const SubIcon = sub.icon;
+                        const isSubActive = activeModule === sub.id || (sub.id === 'inv_dashboard' && activeModule === 'inventory');
+
+                        return (
+                          <button
+                            key={sub.id}
+                            onClick={() => setActiveModule(sub.id)}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all text-right ${
+                              isSubActive
+                                ? 'bg-[#C87A38] text-white shadow-md font-black'
+                                : 'text-amber-100/70 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            <SubIcon className={`w-4 h-4 shrink-0 ${isSubActive ? 'text-white' : 'text-amber-300/80'}`} />
+                            <span className="truncate flex-1 text-[11px] leading-tight">
+                              {language === 'ar' ? sub.label : sub.labelEn}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 

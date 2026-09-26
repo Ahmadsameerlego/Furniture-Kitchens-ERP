@@ -56,6 +56,7 @@ export type EntrySourceType =
   | 'production_completion'
   | 'delivery_cogs'
   | 'stock_scrap'
+  | 'stock_adjustment'
   | 'check_clearing'
   | 'depreciation'
   | 'manual'

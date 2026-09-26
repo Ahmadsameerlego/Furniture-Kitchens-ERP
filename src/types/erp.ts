@@ -11,6 +11,14 @@ export type ModuleId =
   | 'products'
   | 'materials'
   | 'inventory'
+  | 'inv_dashboard'
+  | 'inv_items'
+  | 'inv_grn'
+  | 'inv_gin'
+  | 'inv_stock_card'
+  | 'inv_transfers'
+  | 'inv_stocktaking'
+  | 'inv_warehouses'
   | 'suppliers'
   | 'production'
   | 'installation'
@@ -1239,4 +1247,240 @@ export interface ApiSecurityTestResult {
   reason: string;
   reasonEn: string;
   statusCode: number;
+}
+
+// ====================================================
+// ENTERPRISE WAREHOUSES & INVENTORY MODULE INTERFACES
+// ====================================================
+
+export type WarehouseCategoryType =
+  | 'raw_materials'
+  | 'finished_goods'
+  | 'wip_workshop'
+  | 'hardware_accessories'
+  | 'spare_parts_tools'
+  | 'scrap_waste'
+  | 'showroom_floor';
+
+export interface WarehouseLocation {
+  id: string;
+  code: string; // e.g. "WH-OBR-01"
+  name: string; // e.g. "مستودع الخامات الرئيسي - مجمع العبور"
+  nameEn: string;
+  branchId: string;
+  branchName: string;
+  type: WarehouseCategoryType;
+  managerName: string;
+  phone: string;
+  address: string;
+  capacityPercentage: number;
+  totalItemsCount: number;
+  totalValuation: number;
+  aisles: string[]; // e.g. ["A1", "A2", "B1", "B2"]
+  isActive: boolean;
+}
+
+export type ItemCardCategory =
+  | 'wood_panels'           // ألواح خشب (MDF, HDF, كاونتر, زان)
+  | 'veneers_hpl'            // تجاليد وبولي لاك وHPL وقواطع
+  | 'hardware_hinges'        // مفصلات ومجاري أدراج ومقابض
+  | 'hardware_accessories'   // إكسسوارات ومفصلات ومقابض
+  | 'paints_adhesives'       // دهانات، غراء، وسيليكون
+  | 'glass_marble'           // زجاج ورخام وكوارتز
+  | 'spare_parts_tools'      // قطع غيار وشفرات CNC وزيوت
+  | 'finished_kitchen'       // مطابخ تامة الصنع
+  | 'finished_furniture'     // غرف وأثاث تام الصنع
+  | 'semi_finished';         // هياكل نصف مصنعة
+
+export interface ItemMasterCard {
+  id: string;
+  code: string; // SKU: "RAW-MDF-18"
+  barcode: string; // "622100492811"
+  nameAr: string;
+  nameEn: string;
+  category: ItemCardCategory;
+  categoryNameAr: string;
+  unit: 'sheet' | 'm_linear' | 'm2' | 'kg' | 'set' | 'pcs' | 'can';
+  unitNameAr: string;
+  currentStock: number;
+  reservedStock: number;
+  availableStock: number;
+  minStockLevel: number; // Safety stock
+  reorderPoint: number;  // Reorder trigger level
+  maxStockLevel: number;
+  weightedAvgCost: number; // EGP
+  lastPurchasePrice: number; // EGP
+  sellingPrice: number;    // EGP
+  defaultWarehouseId: string;
+  defaultWarehouseName: string;
+  locationBin: string;     // e.g. "ممر 2 - رف B - خانة 04"
+  specifications: { key: string; value: string }[];
+  supplierId?: string;
+  supplierName?: string;
+  status: 'active' | 'low_stock' | 'out_of_stock' | 'discontinued';
+  image?: string;
+}
+
+export type GRNType =
+  | 'purchase_receipt'           // استلام مشتريات خامات من مورد
+  | 'production_receipt'         // استلام إنتاج تام من الورشة
+  | 'order_return'               // إرجاع خامات متبقية من أمر إنتاج
+  | 'stock_adjustment_surplus';  // تسوية زيادة جردية
+
+export interface GRNLineItem {
+  id: string;
+  itemId: string;
+  itemCode: string;
+  itemName: string;
+  unit: string;
+  orderedQty: number;
+  receivedQty: number;
+  unitCost: number;
+  totalCost: number;
+  locationBin: string;
+  notes?: string;
+}
+
+export interface GoodsReceiptNote {
+  id: string;
+  grnNumber: string; // e.g. "GRN-2026-0089"
+  type: GRNType;
+  supplierId?: string;
+  supplierName?: string;
+  purchaseOrderId?: string;
+  poNumber?: string;
+  productionOrderId?: string;
+  productionOrderNumber?: string;
+  warehouseId: string;
+  warehouseName: string;
+  date: string;
+  items: GRNLineItem[];
+  totalAmount: number;
+  status: 'draft' | 'posted' | 'cancelled';
+  journalEntryId?: string;
+  createdByUserName: string;
+  approvedByUserName?: string;
+  notes?: string;
+}
+
+export type GINType =
+  | 'production_mo'              // صرف خامات لأمر تصنيع
+  | 'maintenance_workshop'       // صرف مهمات وصيانة للماكينات
+  | 'scrap_waste'                // صرف وتكهين هالك وتوالف
+  | 'showroom_sample'            // صرف عينات وتجهيز معارض
+  | 'general_issue';             // صرف عام
+
+export interface GINLineItem {
+  id: string;
+  itemId: string;
+  itemCode: string;
+  itemName: string;
+  unit: string;
+  requestedQty: number;
+  issuedQty: number;
+  unitCost: number;
+  totalCost: number;
+  locationBin: string;
+  notes?: string;
+}
+
+export interface GoodsIssueNote {
+  id: string;
+  ginNumber: string; // e.g. "GIN-2026-0045"
+  type: GINType;
+  productionOrderId?: string;
+  productionOrderNumber?: string;
+  costCenterId?: string;
+  costCenterName?: string;
+  machineName?: string; // e.g. "ماكينة CNC روتر 3D"
+  warehouseId: string;
+  warehouseName: string;
+  date: string;
+  items: GINLineItem[];
+  totalAmount: number;
+  status: 'draft' | 'posted' | 'cancelled';
+  journalEntryId?: string;
+  requestedByUserName: string;
+  approvedByUserName?: string;
+  issuedByUserName: string;
+  notes?: string;
+}
+
+export interface MaterialRequisition {
+  id: string;
+  requisitionNumber: string; // e.g. "MRN-2026-0033"
+  purpose: 'production' | 'maintenance' | 'sample';
+  productionOrderId?: string;
+  productionOrderNumber?: string;
+  department: string;
+  requestedByUserName: string;
+  approvedByUserName?: string;
+  approvedDate?: string;
+  date: string;
+  requiredDate: string;
+  items: {
+    itemId: string;
+    itemCode: string;
+    itemName: string;
+    unit: string;
+    requestedQty: number;
+    notes?: string;
+  }[];
+  status: 'pending' | 'approved' | 'partially_issued' | 'fully_issued' | 'rejected';
+  ginId?: string;
+  notes?: string;
+}
+
+export interface StocktakeLine {
+  id: string;
+  itemId: string;
+  itemCode: string;
+  itemName: string;
+  category: ItemCardCategory;
+  unit: string;
+  locationBin: string;
+  systemQty: number;
+  countedQty: number;
+  varianceQty: number;
+  unitCost: number;
+  varianceAmount: number; // positive = surplus, negative = deficit
+  notes?: string;
+}
+
+export interface StocktakeSession {
+  id: string;
+  sessionNumber: string; // e.g. "STK-2026-0004"
+  warehouseId: string;
+  warehouseName: string;
+  categoryFilter?: string;
+  startDate: string;
+  completionDate?: string;
+  status: 'in_progress' | 'completed' | 'posted' | 'cancelled';
+  lines: StocktakeLine[];
+  totalSystemValue: number;
+  totalCountedValue: number;
+  totalVarianceAmount: number;
+  postedJournalEntryId?: string;
+  conductedByUserName: string;
+  approvedByUserName?: string;
+  notes?: string;
+}
+
+export interface StockLedgerEntry {
+  id: string;
+  itemId: string;
+  itemCode: string;
+  itemName: string;
+  date: string;
+  documentType: 'GRN' | 'GIN' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT' | 'RETURN';
+  documentNumber: string;
+  warehouseId: string;
+  warehouseName: string;
+  qtyIn: number;
+  qtyOut: number;
+  balanceAfter: number;
+  unitCost: number;
+  totalCost: number;
+  userName: string;
+  notes?: string;
 }

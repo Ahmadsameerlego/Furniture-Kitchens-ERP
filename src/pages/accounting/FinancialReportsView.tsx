@@ -20,11 +20,14 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 
+import { exportTrialBalanceToExcel, exportIncomeStatementToExcel, exportToExcel } from '../../utils/excelExport';
+
 export const FinancialReportsView: React.FC = () => {
   const {
     chartOfAccounts,
     journalEntries,
-    fiscalPeriods
+    fiscalPeriods,
+    showToast
   } = useERP();
 
   const [activeReportTab, setActiveReportTab] = useState<'trial_balance' | 'pnl' | 'balance_sheet'>('trial_balance');
@@ -34,6 +37,41 @@ export const FinancialReportsView: React.FC = () => {
   const trialBalanceData = AccountingService.calculateTrialBalance(chartOfAccounts, journalEntries, selectedPeriodId);
   const pnlData = AccountingService.calculateProfitAndLoss(chartOfAccounts, journalEntries, selectedPeriodId);
   const balanceSheetData = AccountingService.calculateBalanceSheet(chartOfAccounts, journalEntries, selectedPeriodId);
+
+  const selectedPeriod = fiscalPeriods.find(p => p.id === selectedPeriodId);
+  const periodName = selectedPeriod?.name || 'الفترة المالية';
+
+  const handleExportExcel = () => {
+    if (activeReportTab === 'trial_balance') {
+      exportTrialBalanceToExcel(trialBalanceData.items, periodName);
+      showToast(`✓ تم تصدير ميزان المراجعة (${periodName}) إلى Excel بنجاح`, 'success');
+    } else if (activeReportTab === 'pnl') {
+      const pnlRows = [
+        { category: 'إجمالي إيرادات المبيعات (Revenue)', amount: pnlData.totalRevenue, notes: 'مبيعات الأثاث والمطابخ' },
+        { category: 'تكلفة البضاعة والمواد المباعة (COGS)', amount: pnlData.totalCOGS, notes: 'خامات وأجور وتصنيع' },
+        { category: 'مجمل الربح الإجمالي (Gross Profit)', amount: pnlData.grossProfit, notes: 'المبيعات - تكلفة الإنتاج' },
+        { category: 'المصروفات التشغيلية والإدارية (Expenses)', amount: pnlData.totalExpenses, notes: 'إيجار، كهرباء، رواتب، تسويق' },
+        { category: 'صافي الربح / الخسارة النهائي (Net Profit)', amount: pnlData.netProfit, notes: 'صافي أرباح الفترة' }
+      ];
+      exportIncomeStatementToExcel(pnlRows, periodName);
+      showToast(`✓ تم تصدير قائمة الدخل (${periodName}) إلى Excel بنجاح`, 'success');
+    } else {
+      const bsRows: { category: string; amount: number; type: string }[] = [
+        ...balanceSheetData.currentAssets.map(a => ({ category: `أصول متداولة: ${a.name} (${a.code})`, amount: a.amount, type: 'أصول' })),
+        ...balanceSheetData.nonCurrentAssets.map(a => ({ category: `أصول غير متداولة: ${a.name} (${a.code})`, amount: a.amount, type: 'أصول' })),
+        ...balanceSheetData.currentLiabilities.map(l => ({ category: `التزامات متداولة: ${l.name} (${l.code})`, amount: l.amount, type: 'خصوم' })),
+        ...balanceSheetData.longTermLiabilities.map(l => ({ category: `التزامات طويلة الأجل: ${l.name} (${l.code})`, amount: l.amount, type: 'خصوم' })),
+        ...balanceSheetData.equityAccounts.map(e => ({ category: `حقوق ملكية: ${e.name} (${e.code})`, amount: e.amount, type: 'حقوق ملكية' })),
+        { category: 'أرباح الفترة الحالية (Current Earnings)', amount: balanceSheetData.currentYearEarnings, type: 'حقوق ملكية' }
+      ];
+      exportToExcel(`الميزانية_العمومية_${periodName}`, [
+        { header: 'التبويب الرئيسي', render: (r: any) => r.type },
+        { header: 'البند المالي', render: (r: any) => r.category },
+        { header: 'الرصيد النهائي (EGP)', render: (r: any) => Number(r.amount || 0).toLocaleString('ar-EG') }
+      ], bsRows);
+      showToast(`✓ تم تصدير الميزانية العمومية (${periodName}) إلى Excel بنجاح`, 'success');
+    }
+  };
 
   const totalInitialDebit = trialBalanceData.items.reduce((s, i) => s + (i.initialDebit || 0), 0);
   const totalInitialCredit = trialBalanceData.items.reduce((s, i) => s + (i.initialCredit || 0), 0);
@@ -60,7 +98,7 @@ export const FinancialReportsView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Period Selector */}
           <select
             value={selectedPeriodId}
@@ -73,6 +111,15 @@ export const FinancialReportsView: React.FC = () => {
               </option>
             ))}
           </select>
+
+          <button
+            onClick={handleExportExcel}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs rounded-2xl shadow-lg transition-all"
+            title="تصدير القائمة الحالية إلى ملف Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+            <span>تصدير Excel</span>
+          </button>
 
           <button
             onClick={() => window.print()}

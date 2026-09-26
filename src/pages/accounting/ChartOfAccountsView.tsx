@@ -29,8 +29,10 @@ import {
   Copy,
   Edit3,
   ExternalLink,
-  ShieldAlert
+  ShieldAlert,
+  FileSpreadsheet
 } from 'lucide-react';
+import { exportChartOfAccountsToExcel } from '../../utils/excelExport';
 
 interface TreeNodeProps {
   account: Account;
@@ -490,6 +492,18 @@ export const ChartOfAccountsView: React.FC = () => {
           >
             <Plus className="w-4 h-4" />
             <span>إضافة حساب جديد</span>
+          </button>
+
+          <button
+            onClick={() => {
+              exportChartOfAccountsToExcel(chartOfAccounts);
+              showToast('✓ تم تصدير شجرة الحسابات بالكامل إلى ملف Excel بنجاح', 'success');
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs rounded-2xl shadow-lg transition-all"
+            title="تصدير شجرة الحسابات إلى ملف Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+            <span>تصدير Excel</span>
           </button>
 
           <button

@@ -23,8 +23,10 @@ import {
   Users,
   Eye,
   Trash2,
-  FolderTree
+  FolderTree,
+  FileSpreadsheet
 } from 'lucide-react';
+import { exportJournalEntriesToExcel } from '../../utils/excelExport';
 
 export const JournalEntriesView: React.FC = () => {
   const {
@@ -195,6 +197,18 @@ export const JournalEntriesView: React.FC = () => {
           >
             <Plus className="w-4 h-4" />
             <span>إنشاء قيد يدوي جديد</span>
+          </button>
+
+          <button
+            onClick={() => {
+              exportJournalEntriesToExcel(filteredEntries);
+              showToast('✓ تم تصدير قيود اليومية المعروضة إلى ملف Excel بنجاح', 'success');
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs rounded-2xl shadow-lg transition-all"
+            title="تصدير قيود اليومية إلى ملف Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+            <span>تصدير Excel</span>
           </button>
 
           <button
