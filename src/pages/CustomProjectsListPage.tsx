@@ -153,14 +153,19 @@ export const CustomProjectsListPage: React.FC = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700"
             >
-              <option value="all">كل مراحل ومراحل المشروع</option>
-              <option value="new">مشروع جديد</option>
-              <option value="visit_scheduled">معاينة مجدولة</option>
-              <option value="measured">تمت المعاينة والمقاسات</option>
-              <option value="designing">قيد التصميم 3D</option>
-              <option value="design_review">مراجعة التصميم مع العميل</option>
-              <option value="quotation">عرض السعر قيد الدراسة</option>
-              <option value="approved">موافق عليه من العميل (Approved)</option>
+              <option value="all">كل مراحل المشروع (All Stages)</option>
+              <option value="new">1. فرصة بيعية جديدة</option>
+              <option value="visit_scheduled">2. موعد معاينة مجدول</option>
+              <option value="measured">3. تمت المعاينة والرفع الميداني</option>
+              <option value="designing">4. قيد التصميم 3D</option>
+              <option value="design_review">5. مراجعة التصميم مع العميل</option>
+              <option value="design_approved">6. تم اعتماد التصميم 3D</option>
+              <option value="quotation">7. دراسة عرض السعر</option>
+              <option value="approved">8. قبول عرض السعر</option>
+              <option value="contract_signed">9. العقد موقع رسمياً</option>
+              <option value="deposit_verified">10. تم تأكيد العربون المالي</option>
+              <option value="ready_for_handover">11. جاهز لمحضر التسليم</option>
+              <option value="handed_over_to_tech_office">12. مستلم بالمكتب الفني</option>
             </select>
           </div>
 

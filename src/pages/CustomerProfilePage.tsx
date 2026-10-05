@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useERP } from '../context/ERPContext';
-import { CustomerStatus, LostReason, ActivityType } from '../types/erp';
+import { CustomerStatus, LostReason, ActivityType, ProjectQuotation } from '../types/erp';
 import { CrmService } from '../services/crmService';
 import { ReadySalesService } from '../services/readySalesService';
 import {
@@ -29,14 +29,25 @@ import {
   Download,
   ShoppingBag,
   Truck,
-  Eye
+  Eye,
+  Trash2,
+  Upload,
+  ShieldCheck,
+  History,
+  FileCode,
+  CreditCard,
+  Camera,
+  Layers,
+  FileSpreadsheet
 } from 'lucide-react';
 import { CustomerFormModal } from '../components/modals/CustomerFormModal';
 import { LostReasonModal } from '../components/modals/LostReasonModal';
 import { ActivityFormModal } from '../components/modals/ActivityFormModal';
 import { ReminderFormModal } from '../components/modals/ReminderFormModal';
 import { OfficialQuotationModal } from '../components/modals/OfficialQuotationModal';
-import { ProjectQuotation } from '../types/erp';
+import { CustomerDocumentModal } from '../components/modals/CustomerDocumentModal';
+import { OrderFormModal } from '../components/modals/OrderFormModal';
+import { ProjectFormModal } from '../components/modals/ProjectFormModal';
 
 interface CustomerProfilePageProps {
   customerId: string;
@@ -54,6 +65,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
     documents,
     afterSalesRecords,
     orders,
+    auditLogs,
     setSelectedOrderId,
     setActiveModule,
     updateCustomerStatus,
@@ -61,23 +73,28 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
     addCustomerReminder,
     toggleReminderCompleted,
     updateCustomer,
-    acceptQuotation
+    acceptQuotation,
+    deleteCustomerDocument,
+    createReadyOrder
   } = useERP();
 
   const customer = customers.find(c => c.id === customerId);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'reminders' | 'sales' | 'projects' | 'documents' | 'after_sales'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'reminders' | 'sales' | 'projects' | 'documents' | 'after_sales' | 'audit_log'>('overview');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLostModalOpen, setIsLostModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+  const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [selectedQuoteForModal, setSelectedQuoteForModal] = useState<{ quote: ProjectQuotation; project?: any } | null>(null);
 
   if (!customer) {
     return (
       <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
-        <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على ملف العميل المطلوبة</p>
+        <p className="text-slate-500 font-bold text-sm">عفواً، لم يتم العثور على ملف العميل المطلوب</p>
         <button onClick={onBack} className="px-4 py-2 bg-[#361D13] text-white text-xs font-bold rounded-xl">
           العودة لقائمة العملاء
         </button>
@@ -85,11 +102,30 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
     );
   }
 
+  // Determine Tab Visibility based on interestType (Prompt 2 Requirement)
+  const isInterestCustom = customer.interestType === 'kitchens' || customer.interestType === 'custom';
+  const isInterestFurniture = customer.interestType === 'furniture';
+  const isInterestBoth = customer.interestType === 'both' || (!isInterestCustom && !isInterestFurniture);
+
+  const showSalesTab = isInterestFurniture || isInterestBoth;
+  const showProjectsTab = isInterestCustom || isInterestBoth;
+
   const customerActivities = activities.filter(a => a.customerId === customer.id);
   const customerReminders = reminders.filter(r => r.customerId === customer.id);
   const customerDocuments = documents.filter(d => d.customerId === customer.id);
   const customerAfterSales = afterSalesRecords.find(a => a.customerId === customer.id);
   const customerOrders = orders.filter(o => o.customerId === customer.id);
+  const customerProjects = customProjects.filter(p => p.customerId === customer.id);
+
+  // Customer-specific Audit Logs (Prompt 5 Requirement)
+  const customerAuditLogs = auditLogs.filter(log => {
+    return (
+      log.target === customer.fullName ||
+      log.target === customer.phone ||
+      log.details.includes(customer.fullName) ||
+      log.details.includes(customer.id)
+    );
+  });
 
   const statusMeta = CrmService.getStatusMeta(customer.status);
   const sourceMeta = CrmService.getSourceLabel(customer.source);
@@ -108,6 +144,23 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
     updateCustomerStatus(customer.id, 'lost', reason, note);
   };
 
+  const getDocCategoryMeta = (cat?: string) => {
+    switch (cat) {
+      case 'national_id':
+        return { label: 'بطاقة الرقم القومي', icon: CreditCard, color: 'text-blue-600 bg-blue-50 border-blue-200' };
+      case 'site_photos':
+        return { label: 'صور الموقع والمعاينة', icon: Camera, color: 'text-emerald-600 bg-emerald-50 border-emerald-200' };
+      case 'sketch_drawing':
+        return { label: 'كروكي ومخطط أولي', icon: FileCode, color: 'text-amber-600 bg-amber-50 border-amber-200' };
+      case 'signed_contract':
+        return { label: 'عقد ورقي موقع', icon: FileCheck, color: 'text-purple-600 bg-purple-50 border-purple-200' };
+      case 'payment_receipt':
+        return { label: 'إيصال سداد / شيك', icon: FileSpreadsheet, color: 'text-rose-600 bg-rose-50 border-rose-200' };
+      default:
+        return { label: 'مستند ومرفق عام', icon: FileText, color: 'text-slate-600 bg-slate-50 border-slate-200' };
+    }
+  };
+
   return (
     <div className="space-y-6">
       
@@ -121,7 +174,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
           <span>العودة لقائمة العملاء</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setIsActivityModalOpen(true)}
             className="px-3.5 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-xs transition-colors flex items-center gap-1.5"
@@ -164,6 +217,17 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-black text-slate-900">{customer.fullName}</h1>
                 
+                {/* Interest Badge */}
+                <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border ${
+                  isInterestCustom
+                    ? 'bg-amber-100 text-amber-900 border-amber-300'
+                    : isInterestFurniture
+                    ? 'bg-blue-100 text-blue-900 border-blue-300'
+                    : 'bg-purple-100 text-purple-900 border-purple-300'
+                }`}>
+                  {isInterestCustom ? 'مهتم: تفصيل وعمولة' : isInterestFurniture ? 'مهتم: أثاث جاهز' : 'مهتم: جاهز + تفصيل'}
+                </span>
+
                 {/* Status Badge Dropdown */}
                 <div className="relative">
                   <button
@@ -210,9 +274,8 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
               {/* Contact Links */}
               <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap font-medium">
-                <span className="flex items-center gap-1 font-mono text-slate-900 font-bold" dir="ltr">
-                  <Phone className="w-3.5 h-3.5 text-slate-400" />
-                  {customer.phone}
+                <span className="flex items-center gap-1 font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200" dir="ltr">
+                  <span>📱 {customer.phone}</span>
                 </span>
 
                 {customer.city && (
@@ -226,20 +289,47 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                   <Building className="w-3.5 h-3.5 text-[#361D13]" />
                   الفرع: {customer.branchName}
                 </span>
+
+                {customer.responsibleUserName && (
+                  <span className="flex items-center gap-1 text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-lg">
+                    <UserCheck className="w-3.5 h-3.5 text-slate-500" />
+                    المسؤول: {customer.responsibleUserName}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Action Buttons: Quick WhatsApp */}
-          <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          {/* Action Buttons: Quick WhatsApp & Direct Modals */}
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            {showSalesTab && (
+              <button
+                onClick={() => setIsCreateOrderModalOpen(true)}
+                className="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-black text-xs shadow-xs transition-all flex items-center gap-1.5"
+              >
+                <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                <span>+ طلب مبيعات جاهز</span>
+              </button>
+            )}
+
+            {showProjectsTab && (
+              <button
+                onClick={() => setIsCreateProjectModalOpen(true)}
+                className="px-3.5 py-2 rounded-2xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5"
+              >
+                <Ruler className="w-4 h-4 text-[#C87A38]" />
+                <span>+ مشروع تفصيل جديد</span>
+              </button>
+            )}
+
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2"
+              className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2"
             >
               <MessageSquare className="w-4 h-4 fill-white" />
-              <span>فتح المحادثة عبر الواتساب</span>
+              <span>محادثة WhatsApp</span>
               <ExternalLink className="w-3.5 h-3.5 opacity-80" />
             </a>
           </div>
@@ -258,13 +348,6 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               <span className="bg-emerald-950 text-emerald-200 px-3 py-1 rounded-xl font-bold border border-emerald-800 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#C87A38]" />
                 <span>الحملة: {customer.campaignName}</span>
-              </span>
-            )}
-
-            {customer.responsibleUserName && (
-              <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-xl font-bold border border-slate-200 flex items-center gap-1.5">
-                <UserCheck className="w-3.5 h-3.5 text-slate-500" />
-                <span>المسؤول: {customer.responsibleUserName}</span>
               </span>
             )}
           </div>
@@ -308,7 +391,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             activeTab === 'activity' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <span>سجل النشاط والتتبع</span>
+          <span>سجل المتابعات والمكالمات</span>
           <span className="bg-white/20 text-xs px-2 py-0.2 rounded-full">{customerActivities.length}</span>
         </button>
 
@@ -318,7 +401,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             activeTab === 'reminders' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <span>التذكيرات والمتابعات</span>
+          <span>التذكيرات والمواعيد</span>
           {customerReminders.length > 0 && (
             <span className="bg-[#C87A38] text-white text-[10px] px-2 py-0.2 rounded-full">
               {customerReminders.length}
@@ -326,39 +409,50 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
           )}
         </button>
 
-        {/* SECTION 16: Live Ready Orders Integration inside Customer Profile */}
-        <button
-          onClick={() => setActiveTab('sales')}
-          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'sales' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <span>المبيعات وطلبات الأثاث الجاهز</span>
-          {customerOrders.length > 0 && (
-            <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.2 rounded-full">
-              {customerOrders.length} طلبات
-            </span>
-          )}
-        </button>
+        {/* Sales Tab: Rendered ONLY if customer is interested in furniture or both */}
+        {showSalesTab && (
+          <button
+            onClick={() => setActiveTab('sales')}
+            className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
+              activeTab === 'sales' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <span>المبيعات وطلبات الأثاث الجاهز</span>
+            {customerOrders.length > 0 && (
+              <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.2 rounded-full">
+                {customerOrders.length}
+              </span>
+            )}
+          </button>
+        )}
 
-        {(customer.interestType !== 'furniture' || customer.measurementDate || activeTab === 'projects') && (
+        {/* Custom Projects Tab: Rendered ONLY if customer is interested in custom/kitchens or both */}
+        {showProjectsTab && (
           <button
             onClick={() => setActiveTab('projects')}
-            className={`px-4 py-2.5 rounded-xl font-black transition-all ${
+            className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
               activeTab === 'projects' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            المشاريع والتفصيل
+            <span>مشاريع التفصيل والمقاسات</span>
+            {customerProjects.length > 0 && (
+              <span className="bg-amber-600 text-white text-[10px] px-2 py-0.2 rounded-full">
+                {customerProjects.length}
+              </span>
+            )}
           </button>
         )}
 
         <button
           onClick={() => setActiveTab('documents')}
-          className={`px-4 py-2.5 rounded-xl font-black transition-all ${
+          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
             activeTab === 'documents' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          الوثائق والمستندات ({customerDocuments.length})
+          <span>أرشيف الوثائق والمستندات</span>
+          <span className="bg-slate-200 text-slate-800 text-[10px] px-2 py-0.2 rounded-full font-bold">
+            {customerDocuments.length}
+          </span>
         </button>
 
         {customer.isAfterSales && (
@@ -369,9 +463,23 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             }`}
           >
             <Award className="w-3.5 h-3.5 text-amber-500" />
-            <span>خدمة ما بعد البيع (After-Sales)</span>
+            <span>خدمة ما بعد البيع</span>
           </button>
         )}
+
+        {/* Tab 8: Audit Log & History Trail (Prompt 5 Requirement) */}
+        <button
+          onClick={() => setActiveTab('audit_log')}
+          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 mr-auto ${
+            activeTab === 'audit_log' ? 'bg-[#361D13] text-amber-300 shadow-md' : 'text-slate-500 hover:bg-slate-100'
+          }`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+          <span>سجل التدقيق والرقابة</span>
+          <span className="bg-black/20 text-amber-300 text-[10px] px-2 py-0.2 rounded-full font-mono">
+            {customerAuditLogs.length}
+          </span>
+        </button>
       </div>
 
       {/* Tab 1: Overview View */}
@@ -382,7 +490,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             {/* Customer Details Box */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
               <h3 className="text-sm font-black text-slate-900 pb-3 border-b border-slate-100">
-                البيانات الأساسية للعميل
+                البيانات الأساسية ونوع الاهتمام
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -392,8 +500,8 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                 </div>
 
                 <div>
-                  <span className="text-slate-400 font-bold block">رقم الهاتف الرئيسي:</span>
-                  <span className="font-black text-slate-900 font-mono dir-ltr">{customer.phone}</span>
+                  <span className="text-slate-400 font-bold block">رقم الهاتف (WhatsApp):</span>
+                  <span className="font-black text-emerald-700 font-mono dir-ltr">{customer.phone}</span>
                 </div>
 
                 {customer.altPhone && (
@@ -416,9 +524,9 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                 </div>
 
                 <div>
-                  <span className="text-slate-400 font-bold block">نوع الاهتمام:</span>
+                  <span className="text-slate-400 font-bold block">نوع الاهتمام التجاري:</span>
                   <span className="font-bold text-[#C87A38]">
-                    {customer.interestType === 'kitchens' ? 'مطابخ تفصيل' : customer.interestType === 'furniture' ? 'أثاث جاهز' : 'أثاث ومطابخ معا'}
+                    {isInterestCustom ? 'شغل عمولة وتفصيل (مطابخ ودواليب)' : isInterestFurniture ? 'أثاث جاهز ومعارض' : 'أثاث جاهز وتفصيل عمولة معا'}
                   </span>
                 </div>
               </div>
@@ -478,47 +586,91 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               </div>
             </div>
 
-            {/* SECTION 16: Ready Orders Card Preview in Overview */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 className="text-sm font-black text-slate-900">طلبات المبيعات الحالية ({customerOrders.length})</h3>
-                <button
-                  onClick={() => setActiveTab('sales')}
-                  className="text-xs text-[#C87A38] font-bold hover:underline"
-                >
-                  استعراض الكل
-                </button>
-              </div>
-
-              {customerOrders.length === 0 ? (
-                <p className="text-xs text-slate-400 py-3 text-center">لا توجد طلبات بيع مسجلة بهذا العميل بعد</p>
-              ) : (
-                <div className="space-y-2">
-                  {customerOrders.map(ord => {
-                    const delMeta = ReadySalesService.getDeliveryStatusMeta(ord.deliveryInfo.deliveryStatus);
-                    return (
-                      <div
-                        key={ord.id}
-                        onClick={() => {
-                          setSelectedOrderId(ord.id);
-                          setActiveModule('sales');
-                        }}
-                        className="p-3 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer hover:border-[#361D13] transition-all space-y-1 text-xs"
-                      >
-                        <div className="flex items-center justify-between font-black text-slate-900">
-                          <span>{ord.orderNumber}</span>
-                          <span className="font-mono text-[#C87A38]">{ord.orderTotal.toLocaleString('ar-EG')} ج.م</span>
-                        </div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500">
-                          <span>التسليم: {delMeta.label}</span>
-                          <span>{ord.createdDate}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+            {/* Ready Orders Preview (If Interested) */}
+            {showSalesTab && (
+              <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h3 className="text-sm font-black text-slate-900">طلبات المبيعات الجاهزة ({customerOrders.length})</h3>
+                  <button
+                    onClick={() => setIsCreateOrderModalOpen(true)}
+                    className="text-xs text-[#C87A38] font-bold hover:underline"
+                  >
+                    + إنشاء طلب
+                  </button>
                 </div>
-              )}
-            </div>
+
+                {customerOrders.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-3 text-center">لا توجد طلبات بيع مسجلة لهذا العميل بعد</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customerOrders.slice(0, 3).map(ord => {
+                      const delMeta = ReadySalesService.getDeliveryStatusMeta(ord.deliveryInfo.deliveryStatus);
+                      return (
+                        <div
+                          key={ord.id}
+                          onClick={() => {
+                            setSelectedOrderId(ord.id);
+                            setActiveModule('sales');
+                          }}
+                          className="p-3 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer hover:border-[#361D13] transition-all space-y-1 text-xs"
+                        >
+                          <div className="flex items-center justify-between font-black text-slate-900">
+                            <span>{ord.orderNumber}</span>
+                            <span className="font-mono text-[#C87A38]">{ord.orderTotal.toLocaleString('ar-EG')} ج.م</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-slate-500">
+                            <span>التسليم: {delMeta.label}</span>
+                            <span>{ord.createdDate}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Custom Projects Preview (If Interested) */}
+            {showProjectsTab && (
+              <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h3 className="text-sm font-black text-slate-900">مشاريع التفصيل ({customerProjects.length})</h3>
+                  <button
+                    onClick={() => setIsCreateProjectModalOpen(true)}
+                    className="text-xs text-[#C87A38] font-bold hover:underline"
+                  >
+                    + بدء مشروع
+                  </button>
+                </div>
+
+                {customerProjects.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-3 text-center">لا توجد مشاريع تفصيل مسجلة لهذا العميل بعد</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customerProjects.slice(0, 3).map(prj => {
+                      return (
+                        <div
+                          key={prj.id}
+                          onClick={() => {
+                            setSelectedProjectId(prj.id);
+                            setActiveModule('custom_projects');
+                          }}
+                          className="p-3 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer hover:border-[#361D13] transition-all space-y-1 text-xs"
+                        >
+                          <div className="flex items-center justify-between font-black text-slate-900">
+                            <span>{prj.projectName}</span>
+                            <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md font-bold">{prj.status}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            {prj.projectNumber} • النوع: {prj.projectType}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
         </div>
@@ -611,8 +763,8 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         </div>
       )}
 
-      {/* SECTION 16: Tab 4: Sales 360 & Live Ready Orders Integration */}
-      {activeTab === 'sales' && (
+      {/* Tab 4: Sales 360 & Live Ready Orders */}
+      {showSalesTab && activeTab === 'sales' && (
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
@@ -621,17 +773,24 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
             </div>
 
             <button
-              onClick={() => setActiveModule('sales')}
-              className="px-4 py-2 bg-[#361D13] text-white text-xs font-black rounded-xl hover:bg-[#23120A]"
+              onClick={() => setIsCreateOrderModalOpen(true)}
+              className="px-4 py-2 bg-[#361D13] text-white text-xs font-black rounded-xl hover:bg-[#23120A] flex items-center gap-1.5 shadow-md"
             >
-              + إنشاء طلب مبيعات جديد
+              <Plus className="w-4 h-4 text-[#C87A38]" />
+              <span>+ إنشاء طلب مبيعات جديد</span>
             </button>
           </div>
 
           {customerOrders.length === 0 ? (
-            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500 space-y-2">
-              <ShoppingBag className="w-8 h-8 text-slate-400 mx-auto" />
-              <p className="font-bold">لم يتم إصدار عقود مبيعات أثاث جاهز لهذا العميل بعد</p>
+            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500 space-y-3">
+              <ShoppingBag className="w-10 h-10 text-slate-400 mx-auto" />
+              <p className="font-bold text-slate-700">لم يتم إصدار طلبات مبيعات أثاث جاهز لهذا العميل بعد</p>
+              <button
+                onClick={() => setIsCreateOrderModalOpen(true)}
+                className="px-4 py-2 bg-[#C87A38] text-white font-bold rounded-xl"
+              >
+                إنشاء أول طلب مبيعات للعميل
+              </button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -690,32 +849,37 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
       )}
 
       {/* Tab 5: Projects 360 Integration */}
-      {activeTab === 'projects' && (
+      {showProjectsTab && activeTab === 'projects' && (
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h3 className="text-base font-black text-slate-900">مشاريع التفصيل والمقاسات بالورشة (Projects 360)</h3>
-              <p className="text-xs text-slate-500">مراحل الـ 3D والمعاينة وعروض الأسعار والاعتماد</p>
+              <p className="text-xs text-slate-500">مراحل الـ 3D والمعاينة وعروض الأسعار والاعتماد الهندسي</p>
             </div>
 
             <button
-              onClick={() => {
-                setActiveModule('custom_projects');
-              }}
-              className="px-4 py-2 bg-[#361D13] text-white text-xs font-black rounded-xl hover:bg-[#23120A]"
+              onClick={() => setIsCreateProjectModalOpen(true)}
+              className="px-4 py-2 bg-[#361D13] text-white text-xs font-black rounded-xl hover:bg-[#23120A] flex items-center gap-1.5 shadow-md"
             >
-              + إنشاء مشروع تفصيل جديد
+              <Plus className="w-4 h-4 text-[#C87A38]" />
+              <span>+ إنشاء مشروع تفصيل جديد</span>
             </button>
           </div>
 
-          {customProjects.filter(p => p.customerId === customer.id).length === 0 ? (
-            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500 space-y-2">
-              <Ruler className="w-8 h-8 text-slate-400 mx-auto" />
-              <p className="font-bold">لا توجد مشاريع تفصيل أو معاينات مسجلة لهذا العميل بعد</p>
+          {customerProjects.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500 space-y-3">
+              <Ruler className="w-10 h-10 text-slate-400 mx-auto" />
+              <p className="font-bold text-slate-700">لا توجد مشاريع تفصيل أو معاينات مسجلة لهذا العميل بعد</p>
+              <button
+                onClick={() => setIsCreateProjectModalOpen(true)}
+                className="px-4 py-2 bg-[#361D13] text-white font-bold rounded-xl"
+              >
+                بدء أول مشروع تفصيل
+              </button>
             </div>
           ) : (
             <div className="space-y-3">
-              {customProjects.filter(p => p.customerId === customer.id).map(proj => {
+              {customerProjects.map(proj => {
                 return (
                   <div
                     key={proj.id}
@@ -746,7 +910,7 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                             title="عرض وطباعة عرض السعر الرسمي PDF"
                           >
                             <FileText className="w-3.5 h-3.5" />
-                            <span>عرض السعر الرسمي PDF</span>
+                            <span>عرض السعر PDF</span>
                           </button>
                         );
                       })()}
@@ -770,35 +934,109 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         </div>
       )}
 
-      {/* Tab 6: Documents View */}
+      {/* Tab 6: Documents & Attachments View */}
       {activeTab === 'documents' && (
-        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <h3 className="text-base font-black text-slate-900">وثائق ومستندات العميل</h3>
-            <button className="px-3.5 py-1.5 bg-[#361D13] text-white text-xs font-bold rounded-xl hover:bg-[#23120A]">
-              + رفع ملف جديد
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-6">
+          
+          {/* Informative Header with Action */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#C87A38]" />
+                <span>أرشيف الوثائق والمستندات الرسمية للعميل</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                حفظ وأرشفة الوثائق الرسمية، إثباتات الهوية، الكروكيات، صور الموقع، إيصالات السداد، والعقود الموقعة
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsDocModalOpen(true)}
+              className="px-4 py-2.5 bg-[#361D13] text-white text-xs font-black rounded-xl hover:bg-[#23120A] shadow-md flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4 text-[#C87A38]" />
+              <span>+ أرشفة / رفع مستند جديد</span>
             </button>
           </div>
 
-          {customerDocuments.length === 0 ? (
-            <p className="text-xs text-slate-400 py-6 text-center">لا توجد ملفات مرفقة لهذا العميل</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {customerDocuments.map(doc => (
-                <div key={doc.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-[#C87A38]" />
-                    <div>
-                      <p className="font-bold text-slate-900">{doc.title}</p>
-                      <p className="text-[10px] text-slate-500">{doc.fileName} ({doc.fileSize})</p>
-                    </div>
-                  </div>
+          {/* Guide Card */}
+          <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-950 flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-[#C87A38] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold">ما الغرض من وثائق ومستندات العميل؟</p>
+              <p className="text-[11px] leading-relaxed text-amber-900/90">
+                هذا القسم مخصص لأرشفة وحفظ المستندات الميدانية والقانونية مثل: <strong>بطاقة الرقم القومي</strong> للتعاقد، <strong>رسم كروكي أولي</strong> مرفوع من الموقع، <strong>صور وفيديوهات الموقع</strong> أثناء المعاينة، <strong>شيكات أو إيصالات سداد الدفعات</strong>، ونسخ <strong>العقد الورقي الممسوح ضوئياً (Scanner)</strong> بعد التوقيع.
+              </p>
+            </div>
+          </div>
 
-                  <button className="p-2 rounded-xl bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors">
-                    <Download className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+          {customerDocuments.length === 0 ? (
+            <div className="p-10 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500 space-y-3">
+              <FileText className="w-10 h-10 text-slate-400 mx-auto" />
+              <p className="font-bold text-slate-700">لا توجد وثائق أو مرفقات مؤرشفة لهذا العميل بعد</p>
+              <button
+                onClick={() => setIsDocModalOpen(true)}
+                className="px-4 py-2 bg-[#361D13] text-white font-bold rounded-xl"
+              >
+                رفع أول مستند للعميل الآن
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {customerDocuments.map(doc => {
+                const catMeta = getDocCategoryMeta(doc.category);
+                const CatIcon = catMeta.icon;
+
+                return (
+                  <div key={doc.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-3 hover:border-[#361D13]/50 transition-all">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2.5 rounded-xl bg-white border border-slate-200 text-[#C87A38] shrink-0">
+                          <CatIcon className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-black text-slate-900 text-sm">{doc.title}</p>
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border inline-block ${catMeta.color}`}>
+                            {catMeta.label}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => alert(`معاينة / تحميل الملف: ${doc.fileName}`)}
+                          className="p-2 rounded-xl bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
+                          title="تحميل / فتح المستند"
+                        >
+                          <Download className="w-4 h-4 text-emerald-700" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`هل أنت متأكد من حذف المستند "${doc.title}"؟`)) {
+                              deleteCustomerDocument(doc.id);
+                            }
+                          }}
+                          className="p-2 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 transition-colors"
+                          title="حذف المستند"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
+                      <span className="font-mono">{doc.fileName} ({doc.fileSize})</span>
+                      <span>رفع: {doc.uploadedDate} بواسطة {doc.uploadedByName}</span>
+                    </div>
+
+                    {doc.notes && (
+                      <p className="p-2 rounded-xl bg-white border border-slate-100 text-[11px] text-slate-600">
+                        {doc.notes}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -845,7 +1083,83 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               )}
             </div>
           ) : (
-            <p className="text-xs text-slate-500 py-6 text-center">لا توجد سجلات صيانة معقدة</p>
+            <p className="text-xs text-slate-500 py-6 text-center">لا توجد سجلات صيانة أو شكاوى مسجلة</p>
+          )}
+        </div>
+      )}
+
+      {/* Tab 8: Audit Log & Security Trail (Prompt 5 Requirement) */}
+      {activeTab === 'audit_log' && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-amber-600" />
+                <span>سجل التدقيق والرقابة الشامل (Customer Audit Trail)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                تتبع رقمي دقيق وغير قابل للتعديل لكافة الإجراءات والموظفين الذين تعاملوا مع ملف العميل
+              </p>
+            </div>
+
+            <span className="text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300 px-3 py-1.5 rounded-xl">
+              إجمالي الحركات المسجلة: {customerAuditLogs.length} حدث
+            </span>
+          </div>
+
+          {customerAuditLogs.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500">
+              لا توجد سجلات تدقيق سابقة لهذا العميل
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-right text-xs">
+                <thead className="bg-[#361D13] text-white font-bold">
+                  <tr>
+                    <th className="p-3">التاريخ والوقت</th>
+                    <th className="p-3">الموظف / المسؤول</th>
+                    <th className="p-3">نوع الإجراء</th>
+                    <th className="p-3">التفاصيل والبيانات</th>
+                    <th className="p-3 text-center">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {customerAuditLogs.map(log => (
+                    <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-3 font-mono text-[11px] text-slate-500 whitespace-nowrap" dir="ltr">
+                        {log.timestamp}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center font-bold text-[10px] text-slate-700">
+                            {log.userName.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-black text-slate-900 text-xs">{log.userName}</p>
+                            <span className="text-[10px] text-slate-400">{log.userRole}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200 inline-block">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-700 font-normal leading-relaxed max-w-md">
+                        {log.details}
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                          log.status === 'success' ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'
+                        }`}>
+                          {log.status === 'success' ? 'ناجح' : 'تحذير'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -879,6 +1193,26 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         onClose={() => setIsReminderModalOpen(false)}
       />
 
+      <CustomerDocumentModal
+        isOpen={isDocModalOpen}
+        customerId={customer.id}
+        customerName={customer.fullName}
+        onClose={() => setIsDocModalOpen(false)}
+      />
+
+      <OrderFormModal
+        isOpen={isCreateOrderModalOpen}
+        initialCustomerId={customer.id}
+        onSave={(orderData) => createReadyOrder(orderData)}
+        onClose={() => setIsCreateOrderModalOpen(false)}
+      />
+
+      <ProjectFormModal
+        isOpen={isCreateProjectModalOpen}
+        initialCustomerId={customer.id}
+        onClose={() => setIsCreateProjectModalOpen(false)}
+      />
+
       {selectedQuoteForModal && (
         <OfficialQuotationModal
           isOpen={true}
@@ -896,3 +1230,4 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
     </div>
   );
 };
+

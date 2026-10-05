@@ -47,6 +47,20 @@ import { StockTransfersView } from '../../pages/inventory/StockTransfersView';
 import { StocktakingView } from '../../pages/inventory/StocktakingView';
 import { WarehousesLocationsView } from '../../pages/inventory/WarehousesLocationsView';
 
+// Technical Office Pages
+import { TechnicalOfficeDashboardView } from '../../pages/technicalOffice/TechnicalOfficeDashboardView';
+import { TechnicalProjectsListView } from '../../pages/technicalOffice/TechnicalProjectsListView';
+import { TechnicalDesignsView } from '../../pages/technicalOffice/TechnicalDesignsView';
+import { TechnicalBOMExplosionView } from '../../pages/technicalOffice/TechnicalBOMExplosionView';
+import { TechnicalReleasesView } from '../../pages/technicalOffice/TechnicalReleasesView';
+import { TechnicalECRView } from '../../pages/technicalOffice/TechnicalECRView';
+
+// Planning & MRP Pages
+import { PlanningPage } from '../../pages/planning/PlanningPage';
+
+// Procurement & Purchasing Pages
+import { ProcurementWorkspace } from '../../pages/procurement/ProcurementWorkspace';
+
 import { PlaceholderModulePage } from '../../pages/PlaceholderModulePage';
 
 import { Building2, MapPin, Users as UsersIcon, ShieldCheck, History, Terminal } from 'lucide-react';
@@ -90,6 +104,52 @@ export const ApplicationShell: React.FC = () => {
       case 'custom_projects':
         return <CustomProjectsListPage />;
 
+      case 'tech_office':
+      case 'tech_dashboard':
+        return <TechnicalOfficeDashboardView />;
+
+      case 'tech_projects':
+      case 'tech_handovers':
+      case 'tech_surveys':
+        return <TechnicalProjectsListView />;
+
+      case 'tech_designs':
+        return <TechnicalDesignsView />;
+
+      case 'tech_boms':
+        return <TechnicalBOMExplosionView />;
+
+      case 'tech_releases':
+        return <TechnicalReleasesView />;
+
+      case 'tech_ecr':
+        return <TechnicalECRView />;
+
+      case 'planning':
+      case 'plan_dashboard':
+        return <PlanningPage initialTab="plan_dashboard" />;
+
+      case 'plan_demand':
+        return <PlanningPage initialTab="plan_demand" />;
+
+      case 'plan_mrp':
+        return <PlanningPage initialTab="plan_mrp" />;
+
+      case 'plan_shortages':
+        return <PlanningPage initialTab="plan_shortages" />;
+
+      case 'plan_proposals':
+        return <PlanningPage initialTab="plan_proposals" />;
+
+      case 'plan_capacity':
+        return <PlanningPage initialTab="plan_capacity" />;
+
+      case 'plan_schedule':
+        return <PlanningPage initialTab="plan_schedule" />;
+
+      case 'plan_mps':
+        return <PlanningPage initialTab="plan_mps" />;
+
       case 'production':
         return <ProductionListPage />;
 
@@ -129,6 +189,20 @@ export const ApplicationShell: React.FC = () => {
 
       case 'suppliers':
         return <SuppliersListPage />;
+
+      case 'procurement':
+      case 'proc_dashboard':
+      case 'proc_requests':
+      case 'proc_rfq':
+      case 'proc_quotations':
+      case 'proc_comparison':
+      case 'proc_orders':
+      case 'proc_deliveries':
+      case 'proc_returns':
+      case 'proc_prices':
+      case 'proc_suppliers':
+      case 'proc_reports':
+        return <ProcurementWorkspace initialTab={activeModule} />;
 
       case 'finance':
       case 'acc_dashboard':

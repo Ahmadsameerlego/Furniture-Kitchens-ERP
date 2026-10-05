@@ -1,4 +1,4 @@
-import { CustomContract, PaymentReceipt, PaymentSchedule } from '../types/erp';
+import { CustomContract, PaymentReceipt, PaymentSchedule, ProjectHandoverProtocol } from '../types/erp';
 
 export const initialCustomContracts: CustomContract[] = [
   {
@@ -11,12 +11,50 @@ export const initialCustomContracts: CustomContract[] = [
     quotationId: 'qte-501',
     quotationVersion: 1,
     contractDate: '2026-08-25',
-    totalValue: 126000,
-    paymentTerms: 'دفعة مقدمة 40,000 ج.م والمتبقي على 4 أقساط شهرية مسيرة',
+    totalValue: 118500,
+    paymentTerms: 'عربون تعاقد 40% + دفعة بدء التشغيل قبل الشحن 40% + دفعة التسليم النهائي بعد التركيب 20%',
     deliveryTerms: 'التسليم والتركيب بالفيلا خلال 30 يوم عمل من استلام المقدم',
+    milestones: [
+      {
+        id: 'ms-1',
+        milestoneIndex: 1,
+        title: 'عربون وتأكيد التعاقد الرسمي',
+        percentage: 40,
+        amount: 47400,
+        dueDateDescription: 'عند توقيع العقد',
+        status: 'verified_in_finance',
+        paidAmount: 47400,
+        financialReceiptRef: 'RCP-2026-001',
+        paymentDate: '2026-08-25 19:00',
+        notes: 'تم التحقق من الإيداع البنكي بحساب البنك الأهلي'
+      },
+      {
+        id: 'ms-2',
+        milestoneIndex: 2,
+        title: 'دفعة بدء التشغيل والشحن من المصنع',
+        percentage: 40,
+        amount: 47400,
+        dueDateDescription: 'قبل خروج وحدات المطبخ من المصنع للتسليم',
+        status: 'pending',
+        paidAmount: 0,
+        notes: 'مستحقة عند اكتمال التصنيع'
+      },
+      {
+        id: 'ms-3',
+        milestoneIndex: 3,
+        title: 'دفعة الاستلام النهائي والتركيب',
+        percentage: 20,
+        amount: 23700,
+        dueDateDescription: 'خلال 48 ساعة من توقيع محضر استلام الموقع النهائي',
+        status: 'pending',
+        paidAmount: 0,
+        notes: 'مستحقة بعد التركيب'
+      }
+    ],
     status: 'signed',
     signedAt: '2026-08-25 18:30',
     signedByCustomerName: 'محمد حسن (العميل)',
+    isDepositVerified: true,
     notes: 'عقد معتمد وموقع إلكترونياً وبداية مسار التجهيز للإنتاج'
   },
   {
@@ -30,11 +68,46 @@ export const initialCustomContracts: CustomContract[] = [
     quotationVersion: 2,
     contractDate: '2026-08-24',
     totalValue: 95000,
-    paymentTerms: 'مقدم 30,000 ج.م وقسطين متساويين وقسط تسليم',
+    paymentTerms: 'مقدم 30% + دفعة مرحلية 50% + دفعة تسليم 20%',
     deliveryTerms: 'التركيب خلال 20 يوم عمل شامل الضمان 5 سنوات',
+    milestones: [
+      {
+        id: 'ms-4',
+        milestoneIndex: 1,
+        title: 'عربون وتأكيد التعاقد',
+        percentage: 30,
+        amount: 28500,
+        dueDateDescription: 'عند توقيع العقد',
+        status: 'verified_in_finance',
+        paidAmount: 28500,
+        financialReceiptRef: 'RCP-2026-002',
+        paymentDate: '2026-08-24 15:00'
+      },
+      {
+        id: 'ms-5',
+        milestoneIndex: 2,
+        title: 'دفعة استكمال الهيكل بالورشة',
+        percentage: 50,
+        amount: 47500,
+        dueDateDescription: 'قبل الدهان',
+        status: 'pending',
+        paidAmount: 0
+      },
+      {
+        id: 'ms-6',
+        milestoneIndex: 3,
+        title: 'دفعة التسليم النهائي',
+        percentage: 20,
+        amount: 19000,
+        dueDateDescription: 'عند اكتمال التسليم',
+        status: 'pending',
+        paidAmount: 0
+      }
+    ],
     status: 'signed',
     signedAt: '2026-08-24 14:00',
     signedByCustomerName: 'سارة علي (العميلة)',
+    isDepositVerified: true,
     notes: 'عقد غرفة نوم شامبين معتمد وموقع'
   },
   {
@@ -50,8 +123,59 @@ export const initialCustomContracts: CustomContract[] = [
     totalValue: 42000,
     paymentTerms: 'مقدم 50% والباقي عند التسليم',
     deliveryTerms: 'التسليم خلال 15 يوم عمل',
+    milestones: [
+      {
+        id: 'ms-7',
+        milestoneIndex: 1,
+        title: 'عربون التعاقد 50%',
+        percentage: 50,
+        amount: 21000,
+        dueDateDescription: 'عند توقيع العقد',
+        status: 'pending',
+        paidAmount: 0
+      },
+      {
+        id: 'ms-8',
+        milestoneIndex: 2,
+        title: 'دفعة التسليم النهائي 50%',
+        percentage: 50,
+        amount: 21000,
+        dueDateDescription: 'عند التسليم',
+        status: 'pending',
+        paidAmount: 0
+      }
+    ],
     status: 'draft',
+    isDepositVerified: false,
     notes: 'مسودة عقد قيد مراجعة وتوقيع العميل'
+  }
+];
+
+export const initialProjectHandovers: ProjectHandoverProtocol[] = [
+  {
+    id: 'hnd-101',
+    projectId: 'prj-101',
+    projectNumber: 'PRJ-2026-001',
+    customerName: 'محمد حسن',
+    status: 'accepted_by_tech_office',
+    submittedDate: '2026-08-25 19:30',
+    submittedByUserName: 'عمر فاروق (مهندس المبيعات)',
+    acceptedDate: '2026-08-26 09:00',
+    acceptedByUserName: 'م. إبراهيم فؤاد (رئيس المكتب الفني)',
+    checklist: {
+      contractSigned: true,
+      contractNumber: 'CNT-2026-001',
+      depositVerifiedInFinance: true,
+      depositReceiptNumber: 'RCP-2026-001',
+      depositAmount: 47400,
+      approvedQuotationVersion: 1,
+      commercialSpecsLocked: true,
+      approvedDesignVersion: 2,
+      siteSurveyCompleted: true,
+      surveyObstaclesChecked: true,
+      technicalDocumentsAttached: true
+    },
+    notesForTechOffice: 'المطبخ يحتوي على عمود بالجدار B وتوصيل غسالة أطباق بلت إن. تم توثيق صور وفيديو المعاينة بالموقع.'
   }
 ];
 

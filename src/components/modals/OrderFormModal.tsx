@@ -6,21 +6,35 @@ import { CustomerFormModal } from './CustomerFormModal';
 
 interface OrderFormModalProps {
   isOpen: boolean;
+  initialCustomerId?: string;
   onSave: (orderData: any) => void;
   onClose: () => void;
 }
 
 export const OrderFormModal: React.FC<OrderFormModalProps> = ({
   isOpen,
+  initialCustomerId,
   onSave,
   onClose
 }) => {
   const { customers, products, availableBranches, addCustomer } = useERP();
 
   // Step state
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>(customers[0]?.id || '');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>(initialCustomerId || customers[0]?.id || '');
   const [selectedBranchId, setSelectedBranchId] = useState<string>(availableBranches[0]?.id || 'branch-1');
   const [isQuickCustomerModalOpen, setIsQuickCustomerModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (initialCustomerId) {
+      setSelectedCustomerId(initialCustomerId);
+      const cust = customers.find(c => c.id === initialCustomerId);
+      if (cust && cust.branchId) {
+        setSelectedBranchId(cust.branchId);
+      }
+    } else if (customers.length > 0 && !selectedCustomerId) {
+      setSelectedCustomerId(customers[0].id);
+    }
+  }, [initialCustomerId, customers, isOpen]);
 
   // Line Items state
   const [items, setItems] = useState<OrderItem[]>([]);

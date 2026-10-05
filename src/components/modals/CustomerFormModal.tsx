@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useERP } from '../../context/ERPContext';
-import { Customer, CustomerStatus, CustomerSource, LostReason } from '../../types/erp';
+import { Customer, CustomerStatus, CustomerSource, LostReason, CustomerInterestType } from '../../types/erp';
 import { CrmService } from '../../services/crmService';
 import { Users, Phone, MapPin, Sparkles, X, CheckCircle, AlertTriangle, Building, ShieldAlert } from 'lucide-react';
 
@@ -26,7 +26,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
   const [city, setCity] = useState('القاهرة');
   const [area, setArea] = useState('');
   const [address, setAddress] = useState('');
-  const [interestType, setInterestType] = useState<'furniture' | 'kitchens' | 'both'>('both');
+  const [interestType, setInterestType] = useState<CustomerInterestType>('both');
   const [status, setStatus] = useState<CustomerStatus>('new');
   const [source, setSource] = useState<CustomerSource>('instagram');
   const [campaignId, setCampaignId] = useState('');
@@ -207,12 +207,17 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="اسم العميل الثلاثي"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">رقم الهاتف الرئيسي *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-bold text-slate-700">رقم الهاتف (يُفضل رقم الواتساب) *</label>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold border border-emerald-200 flex items-center gap-1">
+                  <span>📱 للتواصل والواتساب</span>
+                </span>
+              </div>
               <input
                 type="text"
                 required
@@ -220,9 +225,12 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                 onChange={(e) => setPhone(e.target.value)}
                 onBlur={handlePhoneBlur}
                 placeholder="010xxxxxxx"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-left font-mono"
+                className="w-full px-3 py-2 bg-emerald-50/40 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500/30 text-left font-mono font-bold text-slate-900"
                 dir="ltr"
               />
+              <p className="text-[10px] text-emerald-700 mt-1 font-medium">
+                💡 سيُستخدم هذا الرقم لإرسال العروض والتصاميم وتحديثات المراحل للعميل عبر WhatsApp.
+              </p>
             </div>
           </div>
 
@@ -282,15 +290,15 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">نوع الاهتمام التجاري</label>
+              <label className="block font-bold text-slate-700 mb-1">نوع الاهتمام التجاري *</label>
               <select
                 value={interestType}
                 onChange={(e) => setInterestType(e.target.value as any)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
+                className="w-full px-3 py-2 bg-amber-50 border border-amber-300 rounded-xl font-black text-amber-950"
               >
-                <option value="both">أثاث ومطابخ معا</option>
-                <option value="kitchens">مطابخ فقط</option>
-                <option value="furniture">أثاث فقط</option>
+                <option value="kitchens">شغل عمولة وتفصيل فقط (Custom Projects)</option>
+                <option value="furniture">شغل جاهز ومعارض فقط (Ready Furniture)</option>
+                <option value="both">كلاهما معا (جاهز + تفصيل وعمولة)</option>
               </select>
             </div>
           </div>

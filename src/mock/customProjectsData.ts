@@ -11,7 +11,7 @@ export const initialCustomProjects: CustomProject[] = [
   {
     id: 'prj-101',
     projectNumber: 'PRJ-2026-001',
-    projectName: 'مطبخ مودرن رويل HPL',
+    projectName: 'مطبخ مودرن رويل HPL فاخر',
     customerId: 'cust-1',
     customerName: 'محمد حسن',
     customerPhone: '01009876543',
@@ -20,10 +20,14 @@ export const initialCustomProjects: CustomProject[] = [
     projectType: 'kitchen',
     assignedUserId: 'user-4',
     assignedUserName: 'عمر فاروق',
-    status: 'design_review',
+    status: 'handed_over_to_tech_office',
     createdDate: '2026-08-18',
-    lastUpdatedDate: '2026-08-26 19:30',
-    notes: 'مطبخ تفصيل HPL هندي مع إكسسوارات ومفصلات Blum سوفت كلوز وزجاج فاميه بني.'
+    lastUpdatedDate: '2026-08-26 09:00',
+    contractId: 'cnt-101',
+    approvedQuotationId: 'qte-501',
+    approvedDesignId: 'dsg-402',
+    handoverId: 'hnd-101',
+    notes: 'مطبخ تفصيل HPL هندي مع إكسسوارات ومفصلات Blum سوفت كلوز ومسطح رخام جالاكسي. تم تسليم كامل المستندات والمقاسات للمكتب الفني.'
   },
   {
     id: 'prj-102',
@@ -37,10 +41,10 @@ export const initialCustomProjects: CustomProject[] = [
     projectType: 'bedroom',
     assignedUserId: 'user-1',
     assignedUserName: 'أحمد محمود',
-    status: 'quotation',
+    status: 'visit_scheduled',
     createdDate: '2026-08-10',
     lastUpdatedDate: '2026-08-25 16:00',
-    notes: 'غرفة نوم تفصيل بمقاس خاص لسرير 190سم ودولاب جرار 300سم.'
+    notes: 'غرفة نوم تفصيل بمقاس خاص لسرير 190سم ودولاب جرار 300سم. تم جدولة موعد المعاينة بالموقع.'
   },
   {
     id: 'prj-103',
@@ -57,7 +61,8 @@ export const initialCustomProjects: CustomProject[] = [
     status: 'approved',
     createdDate: '2026-08-01',
     lastUpdatedDate: '2026-08-24 14:00',
-    notes: 'تم قبول عرض السعر والتصميم النهائي واعتماد العقد للإنتاج بالورشة.'
+    approvedQuotationId: 'qte-502',
+    notes: 'تم قبول عرض السعر والتصميم النهائي وفي مرحلة صياغة واعتماد العقد وجدول الدفعات.'
   }
 ];
 

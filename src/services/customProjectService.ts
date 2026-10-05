@@ -3,7 +3,14 @@ import {
   ProjectType,
   DesignStatus,
   QuotationStatus,
-  QuotationLineItem
+  QuotationLineItem,
+  CustomProject,
+  SiteVisit,
+  ProjectMeasurement,
+  ProjectDesign,
+  ProjectQuotation,
+  CustomContract,
+  ProjectHandoverProtocol
 } from '../types/erp';
 
 export class CustomProjectService {
@@ -11,23 +18,45 @@ export class CustomProjectService {
   static getProjectStatusMeta(status: ProjectStatus) {
     switch (status) {
       case 'new':
-        return { label: 'مشروع جديد', bgClass: 'bg-blue-100 text-blue-900 border-blue-200', step: 1 };
+      case 'opportunity':
+        return { label: 'فرصة بيعية جديدة (Opportunity)', bgClass: 'bg-blue-100 text-blue-900 border-blue-200', step: 1 };
       case 'visit_scheduled':
-        return { label: 'موعد معاينة مجدول', bgClass: 'bg-amber-100 text-amber-900 border-amber-200', step: 2 };
+        return { label: 'موعد معاينة مجدول بالموقع', bgClass: 'bg-amber-100 text-amber-900 border-amber-200', step: 2 };
       case 'measured':
-        return { label: 'تمت المعاينة والمقاسات', bgClass: 'bg-indigo-100 text-indigo-900 border-indigo-200', step: 3 };
+        return { label: 'تمت المعاينة والرفع الميداني', bgClass: 'bg-indigo-100 text-indigo-900 border-indigo-200', step: 3 };
       case 'designing':
-        return { label: 'قيد التصميم 3D', bgClass: 'bg-purple-100 text-purple-900 border-purple-200', step: 4 };
+        return { label: 'قيد إعداد التصميم 3D', bgClass: 'bg-purple-100 text-purple-900 border-purple-200', step: 4 };
       case 'design_review':
-        return { label: 'مراجعة التصميم مع العميل', bgClass: 'bg-orange-100 text-orange-900 border-orange-200', step: 5 };
+        return { label: 'مراجعة التصميم 3D مع العميل', bgClass: 'bg-orange-100 text-orange-900 border-orange-200', step: 5 };
+      case 'design_approved':
+        return { label: '✓ تم اعتماد التصميم 3D', bgClass: 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold', step: 6 };
       case 'quotation':
-        return { label: 'عرض السعر قيد الدراسة', bgClass: 'bg-yellow-100 text-yellow-900 border-yellow-200', step: 6 };
+      case 'quotation_sent':
       case 'customer_approval':
-        return { label: 'في انتظار موافقة العميل', bgClass: 'bg-[#C87A38]/20 text-[#C87A38] border-[#C87A38]/40', step: 7 };
+        return { label: 'دراسة ومفاوضة عرض السعر', bgClass: 'bg-yellow-100 text-yellow-900 border-yellow-200', step: 7 };
       case 'approved':
-        return { label: 'موافق عليه ومفعل (Approved)', bgClass: 'bg-emerald-100 text-emerald-900 border-emerald-300 font-black', step: 8 };
+        return { label: '✓ قبول عرض السعر (Quote Approved)', bgClass: 'bg-teal-100 text-teal-900 border-teal-300 font-bold', step: 8 };
+      case 'contract_draft':
+        return { label: 'مسودة العقد وجدول الدفعات', bgClass: 'bg-cyan-100 text-cyan-900 border-cyan-200', step: 9 };
+      case 'contract_signed':
+        return { label: '✓ العقد موقع رسمياً (Contract Signed)', bgClass: 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold', step: 10 };
+      case 'deposit_verified':
+        return { label: '✓ تم تأكيد سداد العربون مالياً', bgClass: 'bg-green-100 text-green-900 border-green-300 font-bold', step: 11 };
+      case 'ready_for_handover':
+        return { label: 'جاهز لمحضر التسليم للمكتب الفني', bgClass: 'bg-indigo-100 text-indigo-900 border-indigo-300 font-black', step: 12 };
+      case 'handed_over_to_tech_office':
+        return { label: '✓ تم التسليم للمكتب الفني (Tech Office)', bgClass: 'bg-[#361D13] text-white border-amber-500 font-black shadow-sm', step: 13 };
       case 'ready_for_production':
-        return { label: 'جاهز لأمر التصنيع والإنتاج', bgClass: 'bg-teal-100 text-teal-900 border-teal-300 font-black', step: 9 };
+        return { label: 'جاهز لأمر الإنتاج بالمصنع', bgClass: 'bg-teal-100 text-teal-900 border-teal-300 font-black', step: 14 };
+      case 'in_production':
+        return { label: 'قيد التصنيع بالورش والمصنع', bgClass: 'bg-blue-100 text-blue-900 border-blue-300 font-black', step: 15 };
+      case 'production_completed':
+        return { label: 'تم انتهاء التصنيع والتغليف', bgClass: 'bg-emerald-100 text-emerald-900 border-emerald-300 font-black', step: 16 };
+      case 'installation_scheduled':
+        return { label: 'مجدول للتركيب بالموقع', bgClass: 'bg-purple-100 text-purple-900 border-purple-300 font-black', step: 17 };
+      case 'installed':
+      case 'completed':
+        return { label: '✓ تم التركيب والتسليم النهائي', bgClass: 'bg-emerald-100 text-emerald-900 border-emerald-400 font-black', step: 18 };
       case 'rejected':
         return { label: 'مرفوض من العميل', bgClass: 'bg-rose-100 text-rose-900 border-rose-300', step: 0 };
       case 'cancelled':
@@ -113,4 +142,69 @@ export class CustomProjectService {
       estimatedProfit
     };
   }
+
+  // ==========================================
+  // BUSINESS STAGE GATES & EXIT CONDITIONS
+  // ==========================================
+
+  static canSubmitDesign(project: CustomProject, siteVisits: SiteVisit[], measurements: ProjectMeasurement[]) {
+    const hasCompletedVisit = siteVisits.some(v => v.projectId === project.id && v.status === 'completed');
+    const hasMeasurements = measurements.some(m => m.projectId === project.id && m.items.length > 0);
+    return {
+      allowed: hasCompletedVisit || hasMeasurements,
+      reason: hasCompletedVisit || hasMeasurements ? '' : 'يتطلب إتمام المعاينة الميدانية أو تسجيل أبعاد المقاسات الأولية أولاً'
+    };
+  }
+
+  static canCreateQuotation(project: CustomProject, designs: ProjectDesign[], measurements: ProjectMeasurement[]) {
+    const hasApprovedDesign = designs.some(d => d.projectId === project.id && d.status === 'approved');
+    const hasMeasurements = measurements.some(m => m.projectId === project.id && m.items.length > 0);
+    return {
+      allowed: hasApprovedDesign || hasMeasurements,
+      reason: hasApprovedDesign || hasMeasurements ? '' : 'يتطلب رفع مقاسات أو اعتماد تصميم 3D أولي لحساب بنود المقايسة'
+    };
+  }
+
+  static canGenerateContract(project: CustomProject, quotations: ProjectQuotation[]) {
+    const approvedQuote = quotations.find(q => q.projectId === project.id && q.status === 'accepted');
+    return {
+      allowed: !!approvedQuote,
+      approvedQuote,
+      reason: approvedQuote ? '' : 'يتطلب موافقة واعتماد العميل على نسخة من عرض السعر أولاً'
+    };
+  }
+
+  static canInitiateHandover(
+    project: CustomProject,
+    contract?: CustomContract,
+    approvedQuote?: ProjectQuotation,
+    approvedDesign?: ProjectDesign,
+    latestVisit?: SiteVisit,
+    measurements?: ProjectMeasurement[]
+  ) {
+    const hasValidMeasurements = (latestVisit?.status === 'completed') || (measurements && measurements.length > 0 && measurements.some(m => m.items && m.items.length > 0));
+
+    const checks = {
+      contractSigned: contract?.status === 'signed',
+      depositVerified: !!(contract?.isDepositVerified || contract?.milestones.some(m => m.milestoneIndex === 1 && (m.status === 'paid' || m.status === 'verified_in_finance'))),
+      quoteApproved: !!approvedQuote,
+      designApproved: !!approvedDesign,
+      surveyCompleted: !!hasValidMeasurements
+    };
+
+    const isReady = checks.contractSigned && checks.depositVerified && checks.quoteApproved && checks.designApproved && checks.surveyCompleted;
+
+    return {
+      isReady,
+      checks,
+      reasons: [
+        !checks.contractSigned && 'العقد غير موقع رسمياً',
+        !checks.depositVerified && 'لم يتم التحقق من سداد عربون التعاقد في الحسابات',
+        !checks.quoteApproved && 'لا يوجد عرض سعر معتمد ومغلق المواصفات',
+        !checks.designApproved && 'لا يوجد تصميم 3D معتمد من العميل',
+        !checks.surveyCompleted && 'المعاينة الميدانية أو أبعاد الليزر غير موثقة'
+      ].filter(Boolean) as string[]
+    };
+  }
 }
+

@@ -8,6 +8,24 @@ export type ModuleId =
   | 'campaigns'
   | 'sales'
   | 'custom_projects'
+  | 'tech_office'
+  | 'tech_dashboard'
+  | 'tech_projects'
+  | 'tech_handovers'
+  | 'tech_surveys'
+  | 'tech_designs'
+  | 'tech_boms'
+  | 'tech_releases'
+  | 'tech_ecr'
+  | 'planning'
+  | 'plan_dashboard'
+  | 'plan_demand'
+  | 'plan_mrp'
+  | 'plan_shortages'
+  | 'plan_proposals'
+  | 'plan_capacity'
+  | 'plan_schedule'
+  | 'plan_mps'
   | 'products'
   | 'materials'
   | 'inventory'
@@ -20,6 +38,18 @@ export type ModuleId =
   | 'inv_stocktaking'
   | 'inv_warehouses'
   | 'suppliers'
+  | 'procurement'
+  | 'proc_dashboard'
+  | 'proc_requests'
+  | 'proc_rfq'
+  | 'proc_quotations'
+  | 'proc_comparison'
+  | 'proc_orders'
+  | 'proc_deliveries'
+  | 'proc_returns'
+  | 'proc_suppliers'
+  | 'proc_prices'
+  | 'proc_reports'
   | 'production'
   | 'installation'
   | 'finance'
@@ -139,7 +169,15 @@ export type NotificationType =
   | 'installation_scheduled'
   | 'handover_completed'
   | 'cost_overrun'
-  | 'large_expense';
+  | 'large_expense'
+  | 'pr_approval'
+  | 'rfq_deadline'
+  | 'po_approval'
+  | 'quotation_received'
+  | 'delivery_due'
+  | 'delivery_delayed'
+  | 'price_mismatch'
+  | 'qty_mismatch';
 
 export interface SystemNotification {
   id: string;
@@ -331,12 +369,14 @@ export interface CustomerDocument {
   id: string;
   customerId: string;
   title: string;
+  category?: 'national_id' | 'site_photos' | 'sketch_drawing' | 'signed_contract' | 'payment_receipt' | 'other';
   fileType: 'pdf' | 'image' | 'cad' | 'doc';
   fileName: string;
   fileSize: string;
   uploadedDate: string;
   uploadedByName: string;
   url?: string;
+  notes?: string;
 }
 
 export interface AfterSalesRecord {
@@ -350,6 +390,8 @@ export interface AfterSalesRecord {
   notes?: string;
 }
 
+export type CustomerInterestType = 'furniture' | 'kitchens' | 'both' | 'custom';
+
 export interface Customer {
   id: string;
   fullName: string;
@@ -359,7 +401,7 @@ export interface Customer {
   city: string;
   area: string;
   address?: string;
-  interestType: 'furniture' | 'kitchens' | 'both';
+  interestType: CustomerInterestType;
   status: CustomerStatus;
   lostReason?: LostReason;
   lostNote?: string;
@@ -401,13 +443,21 @@ export type ProjectType =
 
 export type ProjectStatus =
   | 'new'
+  | 'opportunity'
   | 'visit_scheduled'
   | 'measured'
   | 'designing'
   | 'design_review'
+  | 'design_approved'
   | 'quotation'
+  | 'quotation_sent'
   | 'customer_approval'
   | 'approved'
+  | 'contract_draft'
+  | 'contract_signed'
+  | 'deposit_verified'
+  | 'ready_for_handover'
+  | 'handed_over_to_tech_office'
   | 'ready_for_production'
   | 'in_production'
   | 'production_completed'
@@ -432,6 +482,10 @@ export interface CustomProject {
   status: ProjectStatus;
   createdDate: string;
   lastUpdatedDate: string;
+  contractId?: string;
+  approvedQuotationId?: string;
+  approvedDesignId?: string;
+  handoverId?: string;
   notes?: string;
 }
 
@@ -733,11 +787,21 @@ export interface InstallationRecord {
   handoverDate?: string;
 }
 
-// ----------------------------------------------------
-// CONTRACTS & COMMERCIAL CONVERSION (PROMPT 6)
-// ----------------------------------------------------
-
 export type CustomContractStatus = 'draft' | 'sent' | 'customer_review' | 'signed' | 'cancelled';
+
+export interface PaymentMilestone {
+  id: string;
+  milestoneIndex: number;
+  title: string; // e.g. "عربون وتأكيد التعاقد", "دفعة بدء التشغيل قبل الشحن", "دفعة الاستلام النهائي والتركيب"
+  percentage: number; // e.g. 40
+  amount: number; // e.g. 184000
+  dueDateDescription: string; // e.g. "عند توقيع العقد", "قبل خروج البضاعة من المصنع", "خلال 48 ساعة من انتهاء التركيب"
+  status: 'pending' | 'partially_paid' | 'paid' | 'verified_in_finance';
+  paidAmount?: number;
+  financialReceiptRef?: string;
+  paymentDate?: string;
+  notes?: string;
+}
 
 export interface CustomContract {
   id: string;
@@ -752,11 +816,42 @@ export interface CustomContract {
   totalValue: number;
   paymentTerms: string;
   deliveryTerms: string;
+  milestones: PaymentMilestone[];
   status: CustomContractStatus;
   signedAt?: string;
   signedByCustomerName?: string;
+  isDepositVerified?: boolean;
   notes?: string;
   pdfUrl?: string;
+}
+
+export interface ProjectHandoverChecklist {
+  contractSigned: boolean;
+  contractNumber?: string;
+  depositVerifiedInFinance: boolean;
+  depositReceiptNumber?: string;
+  depositAmount?: number;
+  approvedQuotationVersion: number;
+  commercialSpecsLocked: boolean;
+  approvedDesignVersion: number;
+  siteSurveyCompleted: boolean;
+  surveyObstaclesChecked: boolean;
+  technicalDocumentsAttached: boolean;
+}
+
+export interface ProjectHandoverProtocol {
+  id: string;
+  projectId: string;
+  projectNumber: string;
+  customerName: string;
+  status: 'pending' | 'submitted' | 'accepted_by_tech_office' | 'returned_for_clarification';
+  submittedDate?: string;
+  submittedByUserName?: string;
+  acceptedDate?: string;
+  acceptedByUserName?: string;
+  checklist: ProjectHandoverChecklist;
+  notesForTechOffice?: string;
+  clarificationRequests?: string;
 }
 
 export interface PaymentReceipt {
@@ -1484,3 +1579,5 @@ export interface StockLedgerEntry {
   userName: string;
   notes?: string;
 }
+
+export * from './procurement';

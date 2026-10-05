@@ -251,9 +251,11 @@ export const CustomersListPage: React.FC = () => {
           <table className="w-full text-right text-xs">
             <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
-                <th className="p-4">اسم العميل ورقم الهاتف</th>
+                <th className="p-4">اسم العميل ورقم الهاتف (WhatsApp)</th>
+                <th className="p-4">نوع الطلب والاهتمام</th>
+                <th className="p-4">الموظف المسؤول</th>
                 <th className="p-4">حالة العميل (Status)</th>
-                <th className="p-4">المصدر والحملة التسويقية</th>
+                <th className="p-4">المصدر والحملة</th>
                 <th className="p-4">الفرع والموقع</th>
                 <th className="p-4">آخر نشاط</th>
                 <th className="p-4 text-center">الإجراءات</th>
@@ -279,10 +281,39 @@ export const CustomersListPage: React.FC = () => {
                         />
                         <div>
                           <p className="font-black text-slate-900 text-sm">{c.fullName}</p>
-                          <span className="font-mono text-[11px] text-slate-600 font-bold dir-ltr block">
-                            {c.phone}
+                          <span className="font-mono text-[11px] text-emerald-700 font-bold dir-ltr flex items-center gap-1">
+                            <span>📱 {c.phone}</span>
                           </span>
                         </div>
+                      </div>
+                    </td>
+
+                    {/* Interest Type */}
+                    <td className="p-4">
+                      <span className={`px-2.5 py-1 rounded-xl text-[11px] font-bold inline-block ${
+                        c.interestType === 'kitchens' || c.interestType === 'custom'
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : c.interestType === 'furniture'
+                          ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                          : 'bg-purple-100 text-purple-900 border border-purple-300'
+                      }`}>
+                        {c.interestType === 'kitchens' || c.interestType === 'custom'
+                          ? 'تفصيل وعمولة'
+                          : c.interestType === 'furniture'
+                          ? 'أثاث جاهز'
+                          : 'جاهز + تفصيل'}
+                      </span>
+                    </td>
+
+                    {/* Responsible User */}
+                    <td className="p-4">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-700">
+                          {c.responsibleUserName ? c.responsibleUserName.charAt(0) : '?'}
+                        </div>
+                        <span className="font-bold text-slate-900 text-xs">
+                          {c.responsibleUserName || 'غير محدد'}
+                        </span>
                       </div>
                     </td>
 
@@ -298,7 +329,7 @@ export const CustomersListPage: React.FC = () => {
                       <div className="space-y-0.5">
                         <p className="font-bold text-slate-800">{sourceMeta.label}</p>
                         {c.campaignName && (
-                          <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded border border-emerald-200 block truncate max-w-[160px]">
+                          <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded border border-emerald-200 block truncate max-w-[140px]">
                             {c.campaignName}
                           </span>
                         )}
@@ -327,7 +358,7 @@ export const CustomersListPage: React.FC = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 transition-colors"
-                          title="فتح الواتساب"
+                          title="فتح محادثة واتساب"
                         >
                           <MessageSquare className="w-4 h-4" />
                         </a>

@@ -45,6 +45,8 @@ import {
   DesignStatus,
   QuotationStatus,
   CustomContract,
+  PaymentMilestone,
+  ProjectHandoverProtocol,
   PaymentReceipt,
   ProductionOrder,
   ProductionMaterialItem,
@@ -121,6 +123,7 @@ import {
 } from '../mock/customProjectsData';
 import {
   initialCustomContracts,
+  initialProjectHandovers,
   initialPaymentReceipts,
   initialCommercialPaymentSchedules
 } from '../mock/commercialData';
@@ -161,6 +164,70 @@ import { CrmService } from '../services/crmService';
 import { ReadySalesService } from '../services/readySalesService';
 import { InventoryService } from '../services/inventoryService';
 import { CustomProjectService } from '../services/customProjectService';
+import {
+  TechnicalProject,
+  TechnicalSiteSurvey,
+  TechnicalDesignRevision,
+  TechnicalBOM,
+  TechnicalReleasePackage,
+  EngineeringChangeRequest
+} from '../types/technicalOffice';
+import {
+  initialTechnicalProjects,
+  initialTechnicalSurveys,
+  initialTechnicalDesigns,
+  initialTechnicalBOMs,
+  initialTechnicalReleases,
+  initialEngineeringChangeRequests
+} from '../mock/technicalOfficeData';
+import { TechnicalOfficeService } from '../services/technicalOfficeService';
+import {
+  PlanningDemand,
+  MRPNetRequirement,
+  SupplyProposal,
+  WorkCenterCapacity,
+  ProjectPlanningReadiness,
+  PlanningRun,
+  MPSWeeklyBucket,
+  MPSItemRow,
+  PlanningAuditEntry
+} from '../types/planning';
+import {
+  initialPlanningDemands,
+  initialSupplyProposals,
+  initialWorkCenterCapacities,
+  initialProjectReadinessList,
+  initialPlanningRuns,
+  initialMPSWeeklyBuckets,
+  initialMPSItems,
+  initialPlanningAuditLogs
+} from '../mock/planningData';
+import {
+  calculateNetRequirements,
+  generateSupplyProposalsFromShortages,
+  evaluateProjectReadiness
+} from '../services/planningService';
+import {
+  PurchaseRequest,
+  RequestForQuotation,
+  SupplierQuotation,
+  EnterprisePurchaseOrder,
+  SupplierItemPrice,
+  ProcurementSupplierReturn,
+  ThreeWayMatchingRecord,
+  POReceivingStatus,
+  POStatus
+} from '../types/procurement';
+import {
+  initialPurchaseRequests,
+  initialRFQs,
+  initialSupplierQuotations,
+  initialEnterprisePurchaseOrders,
+  initialSupplierPriceLists,
+  initialProcurementReturns,
+  initialThreeWayMatches
+} from '../mock/procurementData';
+import { ProcurementService } from '../services/procurementService';
 
 interface ToastState {
   id: string;
@@ -223,9 +290,56 @@ interface ERPContextType {
   projectQuotations: ProjectQuotation[];
   projectTimelineEvents: ProjectTimelineEvent[];
   customContracts: CustomContract[];
+  projectHandovers: ProjectHandoverProtocol[];
   paymentReceipts: PaymentReceipt[];
   selectedProjectId: string | null;
   portalCurrentCustomerId: string;
+
+  // Technical Office & Engineering State
+  technicalProjects: TechnicalProject[];
+  technicalSurveys: TechnicalSiteSurvey[];
+  technicalDesigns: TechnicalDesignRevision[];
+  technicalBOMs: TechnicalBOM[];
+  technicalReleases: TechnicalReleasePackage[];
+  engineeringChangeRequests: EngineeringChangeRequest[];
+  selectedTechnicalProjectId: string | null;
+  setSelectedTechnicalProjectId: (id: string | null) => void;
+
+  // Technical Office & Engineering Actions
+  acceptTechnicalHandover: (handoverId: string, assignedEngineerId?: string, assignedEngineerName?: string) => void;
+  rejectTechnicalHandover: (handoverId: string, clarificationRequests: string) => void;
+  saveTechnicalSurvey: (surveyData: Partial<TechnicalSiteSurvey> & { technicalProjectId: string }) => TechnicalSiteSurvey;
+  verifyTechnicalSurvey: (surveyId: string, notes?: string) => void;
+  addTechnicalDesignRevision: (designData: Omit<TechnicalDesignRevision, 'id' | 'createdAt' | 'updatedAt' | 'approvalHistory'>) => TechnicalDesignRevision;
+  approveTechnicalDesign: (designId: string, approvedBy: string, notes?: string) => void;
+  saveTechnicalBOM: (bomData: Partial<TechnicalBOM> & { technicalProjectId: string; revisionCode: string }) => TechnicalBOM;
+  approveTechnicalBOM: (bomId: string, approvedBy: string, notes?: string) => void;
+  createBOMRevision: (sourceBomId: string, newRevisionCode: string, reason: string) => TechnicalBOM;
+  releaseTechnicalPackageToPlanning: (data: { technicalProjectId: string; bomId: string; designRevisionId?: string; surveyId?: string; notes?: string; targetProductionStartDate?: string; targetFactoryCompletionDate?: string; targetSiteInstallationDate?: string; specialManufacturingInstructions?: string }) => TechnicalReleasePackage;
+  createEngineeringChangeRequest: (data: Omit<EngineeringChangeRequest, 'id' | 'ecrNumber' | 'createdAt' | 'status'>) => EngineeringChangeRequest;
+  approveEngineeringChangeRequest: (ecrId: string, reviewedBy: string, approvalNotes?: string) => void;
+  rejectEngineeringChangeRequest: (ecrId: string, reviewedBy: string, reason: string) => void;
+
+  // Planning & MRP Module State
+  planningDemands: PlanningDemand[];
+  supplyProposals: SupplyProposal[];
+  workCenterCapacities: WorkCenterCapacity[];
+  projectReadinessList: ProjectPlanningReadiness[];
+  planningRuns: PlanningRun[];
+  mpsWeeklyBuckets: MPSWeeklyBucket[];
+  mpsItems: MPSItemRow[];
+  planningAuditLogs: PlanningAuditEntry[];
+
+  // Planning & MRP Actions
+  executeMRPRun: (params: { planningHorizonDays: number; targetWarehouse?: string; autoGenerateProposals?: boolean }) => { success: boolean; run: PlanningRun; proposalsCreated: number };
+  createSupplyProposal: (proposalData: Partial<SupplyProposal>) => SupplyProposal;
+  approveSupplyProposal: (proposalId: string) => void;
+  convertProposalToProcurement: (proposal: SupplyProposal) => void;
+  convertProposalToProduction: (proposal: SupplyProposal) => void;
+  cancelSupplyProposal: (proposalId: string) => void;
+  rescheduleProjectTimeline: (projectId: string, newDeliveryDate: string, reason: string) => void;
+  updateWorkCenterCapacityHours: (workCenterId: string, additionalHours: number) => void;
+  batchGenerateProposalsFromShortages: () => void;
 
   // Prompt 7: Production & Installation State
   productionOrders: ProductionOrder[];
@@ -327,6 +441,8 @@ interface ERPContextType {
   addCustomerActivity: (customerId: string, type: CustomerActivity['type'], title: string, note: string) => void;
   addCustomerReminder: (customerId: string, title: string, dueDate: string, dueTime?: string, priority?: 'normal' | 'high') => void;
   toggleReminderCompleted: (reminderId: string) => void;
+  addCustomerDocument: (docData: Omit<CustomerDocument, 'id' | 'uploadedDate' | 'uploadedByName'>) => CustomerDocument;
+  deleteCustomerDocument: (docId: string) => void;
   addCampaign: (campaignData: Omit<MarketingCampaign, 'id' | 'customersCount' | 'purchasedCount' | 'revenueAttributed'>) => void;
   updateCampaign: (campaignId: string, updates: Partial<MarketingCampaign>) => void;
 
@@ -369,7 +485,10 @@ interface ERPContextType {
   createProjectQuotation: (projectId: string, quotationData: any) => ProjectQuotation;
   updateQuotationStatus: (quotationId: string, status: QuotationStatus, rejectionReason?: string) => void;
   acceptQuotation: (quotationId: string) => void;
-  createContractFromQuotation: (quotationId: string, paymentTerms: string, deliveryTerms: string, notes?: string) => CustomContract;
+  createContractFromQuotation: (quotationId: string, paymentTerms: string, deliveryTerms: string, notes?: string, customMilestones?: PaymentMilestone[]) => CustomContract;
+  verifyContractDeposit: (contractId: string, receiptNumber?: string, amount?: number) => void;
+  submitProjectHandover: (projectId: string, checklist: any, notesForTechOffice?: string) => ProjectHandoverProtocol;
+  acceptProjectHandover: (handoverId: string) => void;
   signContract: (contractId: string) => void;
   convertQuotationToOrder: (quotationId: string, depositAmount: number, installmentsCount?: number) => ReadyOrder;
   loginAsPortalCustomer: (customerId: string) => void;
@@ -409,9 +528,50 @@ interface ERPContextType {
   createStocktakeSession: (data: any) => StocktakeSession;
   postStocktakeAdjustment: (sessionId: string) => boolean;
   createMaterialRequisition: (data: any) => MaterialRequisition;
-  approveMaterialRequisition: (requisitionId: string) => void;
-  rejectMaterialRequisition: (requisitionId: string, reason?: string) => void;
+  approveMaterialRequisition: (reqId: string) => void;
+  rejectMaterialRequisition: (reqId: string, reason?: string) => void;
   confirmWarehouseTransfer: (transferId: string) => void;
+
+  // Complete Procurement & Purchasing State
+  purchaseRequests: PurchaseRequest[];
+  rfqs: RequestForQuotation[];
+  supplierQuotations: SupplierQuotation[];
+  enterprisePurchaseOrders: EnterprisePurchaseOrder[];
+  supplierPriceLists: SupplierItemPrice[];
+  procurementSupplierReturns: ProcurementSupplierReturn[];
+  threeWayMatches: ThreeWayMatchingRecord[];
+  selectedPRId: string | null;
+  selectedRFQId: string | null;
+  selectedPOId: string | null;
+
+  // Complete Procurement & Purchasing Actions
+  setSelectedPRId: (id: string | null) => void;
+  setSelectedRFQId: (id: string | null) => void;
+  setSelectedPOId: (id: string | null) => void;
+  createPurchaseRequest: (data: Partial<PurchaseRequest>) => PurchaseRequest;
+  updatePurchaseRequest: (prId: string, data: Partial<PurchaseRequest>, revisionReason?: string) => void;
+  approvePurchaseRequest: (prId: string) => void;
+  rejectPurchaseRequest: (prId: string, reason: string) => void;
+  cancelPurchaseRequest: (prId: string, reason: string) => void;
+  createPRFromPlanningProposal: (proposal: SupplyProposal) => PurchaseRequest;
+  createRFQ: (data: Partial<RequestForQuotation>) => RequestForQuotation;
+  sendRFQToSuppliers: (rfqId: string, supplierIds: string[]) => void;
+  cancelRFQ: (rfqId: string, reason: string) => void;
+  recordSupplierQuotation: (data: Partial<SupplierQuotation>) => SupplierQuotation;
+  updateSupplierQuotation: (quotationId: string, data: Partial<SupplierQuotation>) => void;
+  selectWinningQuotation: (rfqId: string, quotationId: string, selectionReason: string, autoGeneratePO?: boolean) => { po?: EnterprisePurchaseOrder; quotation: SupplierQuotation };
+  createEnterprisePurchaseOrder: (data: Partial<EnterprisePurchaseOrder>) => EnterprisePurchaseOrder;
+  approveEnterprisePurchaseOrder: (poId: string) => void;
+  rejectEnterprisePurchaseOrder: (poId: string, reason: string) => void;
+  sendPOToSupplier: (poId: string) => void;
+  revisePurchaseOrder: (poId: string, data: Partial<EnterprisePurchaseOrder>, revisionReason: string) => void;
+  cancelEnterprisePurchaseOrder: (poId: string, reason: string) => void;
+  updatePOExpectedDeliveryDate: (poId: string, newExpectedDate: string, reason: string) => void;
+  recordProcurementReceipt: (poId: string, receiptData: { grnNumber: string; items: { itemId: string; receivedQty: number }[]; warehouseName: string; notes?: string }) => void;
+  createProcurementSupplierReturn: (data: Partial<ProcurementSupplierReturn>) => ProcurementSupplierReturn;
+  addSupplierItemPrice: (data: Partial<SupplierItemPrice>) => SupplierItemPrice;
+  updateSupplierItemPrice: (priceId: string, newPrice: number, reason: string) => void;
+  runThreeWayMatching: (poId: string) => ThreeWayMatchingRecord;
 }
 
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
@@ -462,9 +622,19 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [projectQuotations, setProjectQuotations] = useState<ProjectQuotation[]>(initialProjectQuotations);
   const [projectTimelineEvents, setProjectTimelineEvents] = useState<ProjectTimelineEvent[]>(initialProjectTimelineEvents);
   const [customContracts, setCustomContracts] = useState<CustomContract[]>(initialCustomContracts);
+  const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(initialProjectHandovers);
   const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(initialPaymentReceipts);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [portalCurrentCustomerId, setPortalCurrentCustomerId] = useState<string>('cust-1');
+
+  // Technical Office & Engineering State
+  const [technicalProjects, setTechnicalProjects] = useState<TechnicalProject[]>(initialTechnicalProjects);
+  const [technicalSurveys, setTechnicalSurveys] = useState<TechnicalSiteSurvey[]>(initialTechnicalSurveys);
+  const [technicalDesigns, setTechnicalDesigns] = useState<TechnicalDesignRevision[]>(initialTechnicalDesigns);
+  const [technicalBOMs, setTechnicalBOMs] = useState<TechnicalBOM[]>(initialTechnicalBOMs);
+  const [technicalReleases, setTechnicalReleases] = useState<TechnicalReleasePackage[]>(initialTechnicalReleases);
+  const [engineeringChangeRequests, setEngineeringChangeRequests] = useState<EngineeringChangeRequest[]>(initialEngineeringChangeRequests);
+  const [selectedTechnicalProjectId, setSelectedTechnicalProjectId] = useState<string | null>(null);
 
   // Prompt 7 State
   const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(initialProductionOrders);
@@ -497,6 +667,28 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(initialStockLedgerEntries);
   const [selectedItemCardId, setSelectedItemCardId] = useState<string | null>(null);
 
+  // Planning & MRP Module State
+  const [planningDemands, setPlanningDemands] = useState<PlanningDemand[]>(initialPlanningDemands);
+  const [supplyProposals, setSupplyProposals] = useState<SupplyProposal[]>(initialSupplyProposals);
+  const [workCenterCapacities, setWorkCenterCapacities] = useState<WorkCenterCapacity[]>(initialWorkCenterCapacities);
+  const [projectReadinessList, setProjectReadinessList] = useState<ProjectPlanningReadiness[]>(initialProjectReadinessList);
+  const [planningRuns, setPlanningRuns] = useState<PlanningRun[]>(initialPlanningRuns);
+  const [mpsWeeklyBuckets, setMpsWeeklyBuckets] = useState<MPSWeeklyBucket[]>(initialMPSWeeklyBuckets);
+  const [mpsItems, setMpsItems] = useState<MPSItemRow[]>(initialMPSItems);
+  const [planningAuditLogs, setPlanningAuditLogs] = useState<PlanningAuditEntry[]>(initialPlanningAuditLogs);
+
+  // Complete Procurement & Purchasing Module State
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(initialPurchaseRequests);
+  const [rfqs, setRFQs] = useState<RequestForQuotation[]>(initialRFQs);
+  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(initialSupplierQuotations);
+  const [enterprisePurchaseOrders, setEnterprisePurchaseOrders] = useState<EnterprisePurchaseOrder[]>(initialEnterprisePurchaseOrders);
+  const [supplierPriceLists, setSupplierPriceLists] = useState<SupplierItemPrice[]>(initialSupplierPriceLists);
+  const [procurementSupplierReturns, setProcurementSupplierReturns] = useState<ProcurementSupplierReturn[]>(initialProcurementReturns);
+  const [threeWayMatches, setThreeWayMatches] = useState<ThreeWayMatchingRecord[]>(initialThreeWayMatches);
+  const [selectedPRId, setSelectedPRId] = useState<string | null>(null);
+  const [selectedRFQId, setSelectedRFQId] = useState<string | null>(null);
+  const [selectedPOId, setSelectedPOId] = useState<string | null>(null);
+
   // URL Hash to ModuleId Mapping
   const moduleToRouteMap: Record<ModuleId, string> = {
     dashboard: '/dashboard',
@@ -504,6 +696,24 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     campaigns: '/crm/campaigns',
     sales: '/sales/ready-orders',
     custom_projects: '/sales/custom-projects',
+    tech_office: '/tech/dashboard',
+    tech_dashboard: '/tech/dashboard',
+    tech_projects: '/tech/projects',
+    tech_handovers: '/tech/projects',
+    tech_surveys: '/tech/projects',
+    tech_designs: '/tech/designs',
+    tech_boms: '/tech/boms',
+    tech_releases: '/tech/releases',
+    tech_ecr: '/tech/ecr',
+    planning: '/planning/dashboard',
+    plan_dashboard: '/planning/dashboard',
+    plan_demand: '/planning/demand',
+    plan_mrp: '/planning/mrp',
+    plan_shortages: '/planning/shortages',
+    plan_proposals: '/planning/proposals',
+    plan_capacity: '/planning/capacity',
+    plan_schedule: '/planning/schedule',
+    plan_mps: '/planning/mps',
     products: '/catalog/products',
     materials: '/catalog/materials',
     inventory: '/inventory/dashboard',
@@ -515,9 +725,21 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     inv_transfers: '/inventory/transfers',
     inv_stocktaking: '/inventory/stocktaking',
     inv_warehouses: '/inventory/warehouses',
+    suppliers: '/operations/suppliers',
+    procurement: '/procurement/dashboard',
+    proc_dashboard: '/procurement/dashboard',
+    proc_requests: '/procurement/requests',
+    proc_rfq: '/procurement/rfq',
+    proc_quotations: '/procurement/quotations',
+    proc_comparison: '/procurement/comparison',
+    proc_orders: '/procurement/orders',
+    proc_deliveries: '/procurement/deliveries',
+    proc_returns: '/procurement/returns',
+    proc_suppliers: '/procurement/suppliers',
+    proc_prices: '/procurement/prices',
+    proc_reports: '/procurement/reports',
     production: '/operations/production',
     installation: '/operations/installation',
-    suppliers: '/operations/suppliers',
     finance: '/accounting/dashboard',
     acc_dashboard: '/accounting/dashboard',
     acc_coa: '/accounting/chart-of-accounts',
@@ -545,6 +767,22 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     '/sales': 'sales',
     '/sales/custom-projects': 'custom_projects',
     '/custom_projects': 'custom_projects',
+    '/tech': 'tech_dashboard',
+    '/tech/dashboard': 'tech_dashboard',
+    '/tech/projects': 'tech_projects',
+    '/tech/designs': 'tech_designs',
+    '/tech/boms': 'tech_boms',
+    '/tech/releases': 'tech_releases',
+    '/tech/ecr': 'tech_ecr',
+    '/planning': 'plan_dashboard',
+    '/planning/dashboard': 'plan_dashboard',
+    '/planning/demand': 'plan_demand',
+    '/planning/mrp': 'plan_mrp',
+    '/planning/shortages': 'plan_shortages',
+    '/planning/proposals': 'plan_proposals',
+    '/planning/capacity': 'plan_capacity',
+    '/planning/schedule': 'plan_schedule',
+    '/planning/mps': 'plan_mps',
     '/catalog/products': 'products',
     '/products': 'products',
     '/catalog/materials': 'materials',
@@ -559,6 +797,18 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     '/inventory/transfers': 'inv_transfers',
     '/inventory/stocktaking': 'inv_stocktaking',
     '/inventory/warehouses': 'inv_warehouses',
+    '/procurement': 'proc_dashboard',
+    '/procurement/dashboard': 'proc_dashboard',
+    '/procurement/requests': 'proc_requests',
+    '/procurement/rfq': 'proc_rfq',
+    '/procurement/quotations': 'proc_quotations',
+    '/procurement/comparison': 'proc_comparison',
+    '/procurement/orders': 'proc_orders',
+    '/procurement/deliveries': 'proc_deliveries',
+    '/procurement/returns': 'proc_returns',
+    '/procurement/suppliers': 'proc_suppliers',
+    '/procurement/prices': 'proc_prices',
+    '/procurement/reports': 'proc_reports',
     '/operations/production': 'production',
     '/production': 'production',
     '/operations/installation': 'installation',
@@ -973,25 +1223,63 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setCustomers(prev => [newCustomer, ...prev]);
+
+    addAuditLog({
+      category: 'customer',
+      action: 'تسجيل عميل جديد',
+      actionEn: 'Customer Registered',
+      target: newCustomer.fullName,
+      details: `تم تسجيل ملف العميل برقم هاتف (${newCustomer.phone}) - الفرع: ${newCustomer.branchName} - نوع الاهتمام: ${newCustomer.interestType === 'kitchens' ? 'تفصيل' : newCustomer.interestType === 'furniture' ? 'جاهز' : 'جاهز وتفصيل'}`,
+      status: 'success'
+    });
+
     showToast(`تمت إضافة العميل ${newCustomer.fullName} بنجاح`, 'success');
     return newCustomer;
   };
 
   const updateCustomer = (customerId: string, updates: Partial<Customer>) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const existing = customers.find(c => c.id === customerId);
     setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, ...updates, lastActivityDate: timestamp } : c));
+
+    if (existing) {
+      addAuditLog({
+        category: 'customer',
+        action: 'تعديل بيانات العميل',
+        actionEn: 'Customer Profile Updated',
+        target: existing.fullName,
+        details: `تحديث بيانات الاتصال أو الموقع أو الموظف المسؤول لـ (${existing.fullName})`,
+        status: 'success'
+      });
+    }
+
     showToast('تم تحديث بيانات العميل بنجاح', 'success');
   };
 
   const updateCustomerStatus = (customerId: string, newStatus: CustomerStatus, lostReason?: LostReason, lostNote?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const existing = customers.find(c => c.id === customerId);
     setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, status: newStatus, lostReason, lostNote, lastActivityDate: timestamp } : c));
+
+    if (existing) {
+      const statusMeta = CrmService.getStatusMeta(newStatus);
+      addAuditLog({
+        category: 'customer',
+        action: 'تحديث حالة مسار العميل',
+        actionEn: 'Customer Status Changed',
+        target: existing.fullName,
+        details: `تغيير الحالة إلى: "${statusMeta.label}" ${lostReason ? `- سبب الفقد: ${lostReason}` : ''}`,
+        status: newStatus === 'lost' ? 'warning' : 'success'
+      });
+    }
+
     showToast('تمت تحديث حالة العميل', 'success');
   };
 
   const addCustomerActivity = (customerId: string, type: CustomerActivity['type'], title: string, note: string) => {
     const today = new Date().toISOString().substring(0, 10);
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const customer = customers.find(c => c.id === customerId);
 
     const newActivity: CustomerActivity = {
       id: `act-${Date.now()}`,
@@ -1006,6 +1294,18 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setActivities(prev => [newActivity, ...prev]);
+
+    if (customer) {
+      addAuditLog({
+        category: 'customer',
+        action: `تسجيل نشاط: ${title}`,
+        actionEn: `Activity Logged: ${type}`,
+        target: customer.fullName,
+        details: `إجراء (${type}): ${note}`,
+        status: 'success'
+      });
+    }
+
     showToast('تم تسجيل النشاط بسجل العميل', 'success');
   };
 
@@ -1029,12 +1329,84 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setReminders(prev => [newReminder, ...prev]);
+
+    addAuditLog({
+      category: 'customer',
+      action: 'جدولة تذكير ومتابعة',
+      actionEn: 'Follow-up Reminder Scheduled',
+      target: customer.fullName,
+      details: `تذكير: "${title}" بتاريخ ${dueDate} (${dueTime || '12:00'})`,
+      status: 'success'
+    });
+
     showToast(`تم جدول التذكير لمتابعة ${customer.fullName}`, 'success');
   };
 
   const toggleReminderCompleted = (reminderId: string) => {
-    setReminders(prev => prev.map(r => r.id === reminderId ? { ...r, isCompleted: !r.isCompleted } : r));
+    setReminders(prev => prev.map(r => {
+      if (r.id === reminderId) {
+        const nextState = !r.isCompleted;
+        addAuditLog({
+          category: 'customer',
+          action: nextState ? 'إتمام متابعة وتذكير' : 'إعادة فتح تذكير',
+          actionEn: nextState ? 'Reminder Completed' : 'Reminder Reopened',
+          target: r.customerName,
+          details: `المهمة: "${r.title}" تم تعيينها كـ ${nextState ? 'مكتملة' : 'غير مكتملة'}`,
+          status: 'success'
+        });
+        return { ...r, isCompleted: nextState };
+      }
+      return r;
+    }));
     showToast('تمت تحديث حالة التذكير', 'info');
+  };
+
+  const addCustomerDocument = (docData: Omit<CustomerDocument, 'id' | 'uploadedDate' | 'uploadedByName'>): CustomerDocument => {
+    const today = new Date().toISOString().substring(0, 10);
+    const customer = customers.find(c => c.id === docData.customerId);
+
+    const newDoc: CustomerDocument = {
+      ...docData,
+      id: `doc-${Date.now()}`,
+      uploadedDate: today,
+      uploadedByName: currentUser.fullName
+    };
+
+    setDocuments(prev => [newDoc, ...prev]);
+
+    if (customer) {
+      addAuditLog({
+        category: 'customer',
+        action: 'أرشفة ورفع مستند',
+        actionEn: 'Customer Document Uploaded',
+        target: customer.fullName,
+        details: `تم رفع مستند: "${newDoc.title}" (${newDoc.fileName} - ${newDoc.fileSize}) تصنيف: ${newDoc.category || 'عام'}`,
+        status: 'success'
+      });
+    }
+
+    showToast(`تمت أرشفة المستند "${newDoc.title}" بنجاح`, 'success');
+    return newDoc;
+  };
+
+  const deleteCustomerDocument = (docId: string) => {
+    const doc = documents.find(d => d.id === docId);
+    const customer = doc ? customers.find(c => c.id === doc.customerId) : null;
+
+    setDocuments(prev => prev.filter(d => d.id !== docId));
+
+    if (doc && customer) {
+      addAuditLog({
+        category: 'customer',
+        action: 'حذف مستند مؤرشف',
+        actionEn: 'Customer Document Deleted',
+        target: customer.fullName,
+        details: `تم حذف المستند: "${doc.title}" (${doc.fileName})`,
+        status: 'warning'
+      });
+    }
+
+    showToast('تم حذف المستند من أرشيف العميل', 'info');
   };
 
   const addCampaign = (campaignData: Omit<MarketingCampaign, 'id' | 'customersCount' | 'purchasedCount' | 'revenueAttributed'>) => {
@@ -1633,7 +2005,13 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`🎉 تم اعتماد موافقة العميل على عرض السعر V${targetQuotation.version} وتفعيل عقد المشروع!`, 'success');
   };
 
-  const createContractFromQuotation = (quotationId: string, paymentTerms: string, deliveryTerms: string, notes?: string): CustomContract => {
+  const createContractFromQuotation = (
+    quotationId: string,
+    paymentTerms: string,
+    deliveryTerms: string,
+    notes?: string,
+    customMilestones?: PaymentMilestone[]
+  ): CustomContract => {
     const today = new Date().toISOString().substring(0, 10);
     const targetQuotation = projectQuotations.find(q => q.id === quotationId);
     if (!targetQuotation) throw new Error('Quotation not found');
@@ -1642,6 +2020,40 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!targetProject) throw new Error('Project not found');
 
     const contractNumber = `CNT-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const totalVal = targetQuotation.totalSelling;
+
+    const defaultMilestones: PaymentMilestone[] = customMilestones && customMilestones.length > 0 ? customMilestones : [
+      {
+        id: `ms-${Date.now()}-1`,
+        milestoneIndex: 1,
+        title: 'عربون وتأكيد التعاقد الرسمي',
+        percentage: 40,
+        amount: Math.round(totalVal * 0.4),
+        dueDateDescription: 'عند توقيع العقد واعتماد التصميم',
+        status: 'pending',
+        paidAmount: 0
+      },
+      {
+        id: `ms-${Date.now()}-2`,
+        milestoneIndex: 2,
+        title: 'دفعة بدء التشغيل قبل الشحن من المصنع',
+        percentage: 40,
+        amount: Math.round(totalVal * 0.4),
+        dueDateDescription: 'قبل خروج وحدات المطبخ من المصنع للتسليم',
+        status: 'pending',
+        paidAmount: 0
+      },
+      {
+        id: `ms-${Date.now()}-3`,
+        milestoneIndex: 3,
+        title: 'دفعة التسليم النهائي بعد التركيب',
+        percentage: 20,
+        amount: totalVal - (Math.round(totalVal * 0.4) * 2),
+        dueDateDescription: 'خلال 48 ساعة من توقيع محضر استلام الموقع النهائي',
+        status: 'pending',
+        paidAmount: 0
+      }
+    ];
 
     const newContract: CustomContract = {
       id: `cnt-${Date.now()}`,
@@ -1653,18 +2065,2271 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       quotationId: targetQuotation.id,
       quotationVersion: targetQuotation.version,
       contractDate: today,
-      totalValue: targetQuotation.totalSelling,
+      totalValue: totalVal,
       paymentTerms,
       deliveryTerms,
+      milestones: defaultMilestones,
       status: 'signed',
       signedAt: `${today} 18:00`,
       signedByCustomerName: targetProject.customerName,
+      isDepositVerified: false,
       notes
     };
 
     setCustomContracts(prev => [newContract, ...prev]);
+    updateProjectStatus(targetProject.id, 'contract_signed');
+    addTimelineEvent(targetProject.id, `إبرام وتوقيع عقد المشروع (${contractNumber})`, `تم إبرام العقد بقيمة ${totalVal.toLocaleString('ar-EG')} ج.م وجدولة الدفعات`, 'contract');
     showToast(`تم توقيع وإصدار عقد التفصيل (${contractNumber}) بنجاح`, 'success');
     return newContract;
+  };
+
+  const verifyContractDeposit = (contractId: string, receiptNumber?: string, amount?: number) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetContract = customContracts.find(c => c.id === contractId);
+    if (!targetContract) return;
+
+    const rNumber = receiptNumber || `RCP-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const depositAmt = amount || (targetContract.milestones[0]?.amount || Math.round(targetContract.totalValue * 0.4));
+
+    setCustomContracts(prev => prev.map(c => {
+      if (c.id === contractId) {
+        const updatedMilestones = c.milestones.map(m => {
+          if (m.milestoneIndex === 1) {
+            return {
+              ...m,
+              status: 'verified_in_finance' as const,
+              paidAmount: depositAmt,
+              financialReceiptRef: rNumber,
+              paymentDate: timestamp
+            };
+          }
+          return m;
+        });
+        return { ...c, isDepositVerified: true, milestones: updatedMilestones };
+      }
+      return c;
+    }));
+
+    // Generate a payment receipt linking to finance
+    const newReceipt: PaymentReceipt = {
+      id: `rcp-${Date.now()}`,
+      receiptNumber: rNumber,
+      orderId: `ord-${targetContract.projectNumber}`,
+      orderNumber: targetContract.projectNumber,
+      customerId: targetContract.customerId,
+      customerName: targetContract.customerName,
+      amount: depositAmt,
+      paymentDate: timestamp,
+      paymentMethod: 'bank_transfer',
+      paymentType: 'deposit',
+      receivedByUserName: currentUser.fullName,
+      notes: `عربون تعاقد لمشروع ${targetContract.projectNumber}`
+    };
+    setPaymentReceipts(prev => [newReceipt, ...prev]);
+
+    updateProjectStatus(targetContract.projectId, 'deposit_verified');
+    addTimelineEvent(targetContract.projectId, `تأكيد استلام عربون التعاقد (${rNumber})`, `تم إيداع مبلغ ${depositAmt.toLocaleString('ar-EG')} ج.م بالخزينة/البنك والتحقق المالي`, 'payment');
+    showToast(`✓ تم التحقق المالي من سداد العربون (${rNumber}) وإيداعه بحسابات الشركة`, 'success');
+  };
+
+  const submitProjectHandover = (projectId: string, checklist: any, notesForTechOffice?: string): ProjectHandoverProtocol => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetProject = customProjects.find(p => p.id === projectId);
+    if (!targetProject) throw new Error('Project not found');
+
+    const newHandover: ProjectHandoverProtocol = {
+      id: `hnd-${Date.now()}`,
+      projectId,
+      projectNumber: targetProject.projectNumber,
+      customerName: targetProject.customerName,
+      status: 'submitted',
+      submittedDate: timestamp,
+      submittedByUserName: currentUser.fullName,
+      checklist,
+      notesForTechOffice
+    };
+
+    setProjectHandovers(prev => [newHandover, ...prev.filter(h => h.projectId !== projectId)]);
+    updateProjectStatus(projectId, 'ready_for_handover');
+    addTimelineEvent(projectId, 'تقديم محضر تسليم المشروع للمكتب الفني', 'تم تجهيز واستيفاء كامل الشروط التعاقدية والفنية وتسليم الملف للمكتب الفني', 'handover');
+    showToast(`تم تقديم محضر تسليم المشروع (${targetProject.projectNumber}) للمكتب الفني`, 'success');
+    return newHandover;
+  };
+
+  const acceptProjectHandover = (handoverId: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetHandover = projectHandovers.find(h => h.id === handoverId);
+    if (!targetHandover) return;
+
+    setProjectHandovers(prev => prev.map(h => {
+      if (h.id === handoverId) {
+        return {
+          ...h,
+          status: 'accepted_by_tech_office',
+          acceptedDate: timestamp,
+          acceptedByUserName: `${currentUser.fullName} (المكتب الفني)`
+        };
+      }
+      return h;
+    }));
+
+    updateProjectStatus(targetHandover.projectId, 'handed_over_to_tech_office');
+    addTimelineEvent(targetHandover.projectId, 'اعتماد واستلام المشروع بالمكتب الفني', 'تم قبول ملف المشروع والبدء في أعمال تفجير الـ BOM وقوائم التقطيع الهندسية', 'handover');
+    showToast(`🎉 تم اعتماد استلام المشروع بمكتب الهندسة والـ BOM (${targetHandover.projectNumber})`, 'success');
+  };
+
+  // ----------------------------------------------------
+  // TECHNICAL OFFICE & ENGINEERING WORKFLOW ACTIONS
+  // ----------------------------------------------------
+
+  const acceptTechnicalHandover = (handoverId: string, assignedEngineerId?: string, assignedEngineerName?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetHandover = projectHandovers.find(h => h.id === handoverId);
+    if (!targetHandover) return;
+
+    const engineerId = assignedEngineerId || currentUser.id;
+    const engineerName = assignedEngineerName || currentUser.fullName;
+
+    setProjectHandovers(prev => prev.map(h => {
+      if (h.id === handoverId) {
+        return {
+          ...h,
+          status: 'accepted_by_tech_office',
+          acceptedDate: timestamp,
+          acceptedByUserName: `${engineerName} (المكتب الفني)`
+        };
+      }
+      return h;
+    }));
+
+    updateProjectStatus(targetHandover.projectId, 'handed_over_to_tech_office');
+    
+    // Check or create Technical Project
+    let existingTech = technicalProjects.find(tp => tp.salesProjectId === targetHandover.projectId);
+    if (!existingTech) {
+      const salesPrj = customProjects.find(p => p.id === targetHandover.projectId);
+      const contract = customContracts.find(c => c.projectId === targetHandover.projectId);
+      const newTechPrj: TechnicalProject = {
+        id: `tech-${Date.now()}`,
+        projectNumber: `TECH-2026-${Math.floor(100 + Math.random() * 900)}`,
+        salesProjectId: targetHandover.projectId,
+        salesProjectNumber: targetHandover.projectNumber,
+        projectName: salesPrj ? salesPrj.projectName : 'مشروع تفصيل جديد',
+        customerId: salesPrj ? salesPrj.customerId : 'cust-1',
+        customerName: targetHandover.customerName,
+        customerPhone: salesPrj ? salesPrj.customerPhone : '',
+        contractId: contract?.id,
+        contractNumber: contract?.contractNumber,
+        branchId: salesPrj ? salesPrj.branchId : currentBranch.id,
+        branchName: salesPrj ? salesPrj.branchName : currentBranch.name,
+        projectType: salesPrj ? salesPrj.projectType : 'kitchen',
+        status: 'site_survey_in_progress',
+        priority: 'high',
+        responsibleEngineerId: engineerId,
+        responsibleEngineerName: engineerName,
+        createdDate: timestamp.substring(0, 10),
+        lastUpdatedDate: timestamp,
+        targetReleaseDate: new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
+        activeDesignVersion: 1,
+        activeBomRevision: 'REV-01',
+        handoverId: handoverId,
+        technicalNotes: 'تم قبول محضر التسليم الهندسي بنجاح وجاري إعداد الرفع المساحي والـ BOM.',
+        commercialScopeSummary: contract ? `عقد بقيمة ${contract.totalValue.toLocaleString('ar-EG')} ج.م` : 'عقد معتمد'
+      };
+      setTechnicalProjects(prev => [newTechPrj, ...prev]);
+    } else {
+      setTechnicalProjects(prev => prev.map(tp => {
+        if (tp.id === existingTech!.id) {
+          return {
+            ...tp,
+            status: 'site_survey_in_progress',
+            responsibleEngineerId: engineerId,
+            responsibleEngineerName: engineerName,
+            lastUpdatedDate: timestamp
+          };
+        }
+        return tp;
+      }));
+    }
+
+    addTimelineEvent(targetHandover.projectId, 'قبول المشروع بالمكتب الفني', `تم قبول محضر التسليم وتعيين المهندس المسؤول: ${engineerName}`, 'handover');
+    
+    addAuditLog({
+      category: 'custom_project',
+      action: 'قبول استلام مشروع بالمكتب الفني',
+      actionEn: 'Technical Handover Accepted',
+      target: targetHandover.projectNumber,
+      details: `المشروع: ${targetHandover.customerName} | المهندس المسؤول: ${engineerName}`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم قبول استلام المشروع (${targetHandover.projectNumber}) وبدء الرفع المساحي والهندسي`, 'success');
+  };
+
+  const rejectTechnicalHandover = (handoverId: string, clarificationRequests: string) => {
+    const targetHandover = projectHandovers.find(h => h.id === handoverId);
+    if (!targetHandover) return;
+
+    setProjectHandovers(prev => prev.map(h => {
+      if (h.id === handoverId) {
+        return {
+          ...h,
+          status: 'returned_for_clarification',
+          clarificationRequests
+        };
+      }
+      return h;
+    }));
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.salesProjectId === targetHandover.projectId) {
+        return { ...tp, status: 'pending_handover' };
+      }
+      return tp;
+    }));
+
+    addTimelineEvent(targetHandover.projectId, 'إعادة محضر التسليم للاستيضاح', `ملاحظات المكتب الفني: ${clarificationRequests}`, 'handover');
+    
+    showToast(`تمت إعادة محضر التسليم للمبيعات لاستيفاء الملاحظات: ${clarificationRequests}`, 'warning');
+  };
+
+  const saveTechnicalSurvey = (surveyData: Partial<TechnicalSiteSurvey> & { technicalProjectId: string }): TechnicalSiteSurvey => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    let existing = technicalSurveys.find(s => s.technicalProjectId === surveyData.technicalProjectId || s.id === surveyData.id);
+
+    let savedSurvey: TechnicalSiteSurvey;
+
+    if (existing) {
+      savedSurvey = {
+        ...existing,
+        ...surveyData,
+        surveyNumber: existing.surveyNumber,
+        id: existing.id
+      };
+      setTechnicalSurveys(prev => prev.map(s => s.id === existing!.id ? savedSurvey : s));
+    } else {
+      savedSurvey = {
+        id: `srv-${Date.now()}`,
+        technicalProjectId: surveyData.technicalProjectId,
+        surveyNumber: `SRV-2026-${Math.floor(100 + Math.random() * 900)}`,
+        surveyorName: surveyData.surveyorName || currentUser.fullName,
+        surveyDate: surveyData.surveyDate || timestamp.substring(0, 10),
+        status: surveyData.status || 'draft',
+        walls: surveyData.walls || [],
+        openings: surveyData.openings || [],
+        electricalPoints: surveyData.electricalPoints || [],
+        plumbing: surveyData.plumbing || {
+          waterSupplyLocation: 'الجدار A',
+          waterDrainageLocation: 'الجدار A',
+          hotColdDistanceCm: 16,
+          drainDiameterInch: 2,
+          status: 'ok'
+        },
+        gas: surveyData.gas || {
+          hasNaturalGas: true,
+          valveLocation: 'الجدار A',
+          valveHeightCm: 75,
+          status: 'ok'
+        },
+        ventilation: surveyData.ventilation || {
+          hasDuctHole: true,
+          ductDiameterCm: 15,
+          ductHeightFromFloorCm: 220,
+          ductLocation: 'الجدار A'
+        },
+        appliances: surveyData.appliances || [],
+        obstaclesAndConstraints: surveyData.obstaclesAndConstraints || {
+          hasConcreteColumn: false,
+          hasCeilingBeams: false
+        },
+        ceilingHeightCm: surveyData.ceilingHeightCm || 280,
+        flooringLevelStatus: surveyData.flooringLevelStatus || 'perfect',
+        flooringVarianceMm: surveyData.flooringVarianceMm || 0,
+        sitePhotos: surveyData.sitePhotos || [],
+        notes: surveyData.notes || '',
+        generalNotes: surveyData.generalNotes || surveyData.notes || '',
+        straightnessVerified: surveyData.straightnessVerified ?? true,
+        diagonal1Mm: surveyData.diagonal1Mm,
+        diagonal2Mm: surveyData.diagonal2Mm
+      };
+      setTechnicalSurveys(prev => [savedSurvey, ...prev]);
+    }
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === surveyData.technicalProjectId) {
+        return {
+          ...tp,
+          lastUpdatedDate: timestamp,
+          status: tp.status === 'pending_handover' || tp.status === 'site_survey_in_progress' ? 'site_survey_in_progress' : tp.status
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`✓ تم حفظ بيانات الرفع المساحي الهندسي بنجاح (${savedSurvey.surveyNumber})`, 'success');
+    return savedSurvey;
+  };
+
+  const verifyTechnicalSurvey = (surveyId: string, notes?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetSurvey = technicalSurveys.find(s => s.id === surveyId);
+    if (!targetSurvey) return;
+
+    setTechnicalSurveys(prev => prev.map(s => {
+      if (s.id === surveyId) {
+        return {
+          ...s,
+          status: 'verified',
+          verifiedByEngineerName: currentUser.fullName,
+          verifiedAt: timestamp,
+          notes: notes ? `${s.notes ? s.notes + ' | ' : ''}${notes}` : s.notes
+        };
+      }
+      return s;
+    }));
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === targetSurvey.technicalProjectId) {
+        return {
+          ...tp,
+          status: tp.status === 'site_survey_in_progress' ? 'cad_design_in_progress' : tp.status,
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`✓ تم تدقيق واعتماد الرفع المساحي هندسياً (${targetSurvey.surveyNumber})`, 'success');
+  };
+
+  const addTechnicalDesignRevision = (designData: Omit<TechnicalDesignRevision, 'id' | 'createdAt' | 'updatedAt' | 'approvalHistory'>): TechnicalDesignRevision => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const newDesign: TechnicalDesignRevision = {
+      ...designData,
+      id: `tdesign-${Date.now()}`,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      approvalHistory: []
+    };
+
+    setTechnicalDesigns(prev => [newDesign, ...prev]);
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === designData.technicalProjectId) {
+        return {
+          ...tp,
+          activeDesignVersion: designData.versionNumber,
+          designerEngineerName: designData.designerName,
+          lastUpdatedDate: timestamp,
+          status: 'cad_design_in_progress'
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`✓ تم تسجيل إصدار المخططات الهندسية الجديد (V${designData.versionNumber}.0)`, 'success');
+    return newDesign;
+  };
+
+  const approveTechnicalDesign = (designId: string, approvedBy: string, notes?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetDesign = technicalDesigns.find(d => d.id === designId);
+    if (!targetDesign) return;
+
+    setTechnicalDesigns(prev => prev.map(d => {
+      if (d.id === designId) {
+        return {
+          ...d,
+          status: 'approved',
+          approvedByEngineerName: approvedBy || currentUser.fullName,
+          approvedAt: timestamp,
+          approvalHistory: [
+            ...(d.approvalHistory || []),
+            {
+              action: 'approve',
+              byUserName: approvedBy || currentUser.fullName,
+              timestamp,
+              notes: notes || 'اعتماد هندسي كامل للمخططات التنفيذية'
+            }
+          ]
+        };
+      }
+      return d;
+    }));
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === targetDesign.technicalProjectId) {
+        return {
+          ...tp,
+          status: tp.status === 'cad_design_in_progress' ? 'bom_explosion_in_progress' : tp.status,
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`✓ تم اعتماد المخطط الهندسي V${targetDesign.versionNumber}.0 رسمياً`, 'success');
+  };
+
+  const saveTechnicalBOM = (bomData: Partial<TechnicalBOM> & { technicalProjectId: string; revisionCode: string }): TechnicalBOM => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    let existing = technicalBOMs.find(b => b.id === bomData.id || (b.technicalProjectId === bomData.technicalProjectId && b.revisionCode === bomData.revisionCode));
+
+    const units = bomData.units || (existing ? existing.units : []);
+    const materialsSummary = TechnicalOfficeService.calculateMaterialYield(units);
+    const hardwareSummary = TechnicalOfficeService.calculateHardwareSummary(units);
+    const totalPartsCount = units.reduce((acc, u) => acc + (u.cuttingParts?.length || 0), 0);
+    const totalHardwareCount = units.reduce((acc, u) => acc + (u.hardwareParts?.reduce((hacc, h) => hacc + h.quantity, 0) || 0), 0);
+    const totalEstimatedCost = units.reduce((acc, u) => {
+      const partsCost = u.cuttingParts?.reduce((cacc, cp) => cacc + (cp.totalCostEstimate || 0), 0) || 0;
+      const hwCost = u.hardwareParts?.reduce((hacc, hp) => hacc + (hp.totalCostEstimate || 0), 0) || 0;
+      return acc + partsCost + hwCost;
+    }, 0);
+
+    let savedBOM: TechnicalBOM;
+
+    if (existing) {
+      savedBOM = {
+        ...existing,
+        ...bomData,
+        units,
+        materialsSummary,
+        hardwareSummary,
+        totalPartsCount,
+        totalHardwareCount,
+        totalEstimatedCost,
+        updatedAt: timestamp
+      };
+      setTechnicalBOMs(prev => prev.map(b => b.id === existing!.id ? savedBOM : b));
+    } else {
+      savedBOM = {
+        id: `tbom-${Date.now()}`,
+        technicalProjectId: bomData.technicalProjectId,
+        bomNumber: `BOM-2026-${Math.floor(100 + Math.random() * 900)}`,
+        revisionCode: bomData.revisionCode || 'REV-01',
+        designRevisionVersion: bomData.designRevisionVersion || 1,
+        status: bomData.status || 'draft',
+        preparedByEngineerName: bomData.preparedByEngineerName || currentUser.fullName,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        units,
+        materialsSummary,
+        hardwareSummary,
+        totalPartsCount,
+        totalHardwareCount,
+        totalEstimatedCost,
+        revisionNotes: bomData.revisionNotes || 'تفجير أولي للـ BOM وقوائم التقطيع'
+      };
+      setTechnicalBOMs(prev => [savedBOM, ...prev]);
+    }
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === bomData.technicalProjectId) {
+        return {
+          ...tp,
+          activeBomRevision: savedBOM.revisionCode,
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`✓ تم حفظ وتحديث الـ BOM (${savedBOM.bomNumber} - ${savedBOM.revisionCode})`, 'success');
+    return savedBOM;
+  };
+
+  const approveTechnicalBOM = (bomId: string, approvedBy: string, notes?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetBom = technicalBOMs.find(b => b.id === bomId);
+    if (!targetBom) return;
+
+    setTechnicalBOMs(prev => prev.map(b => {
+      if (b.id === bomId) {
+        return {
+          ...b,
+          status: 'approved',
+          approvedByEngineerName: approvedBy || currentUser.fullName,
+          approvedAt: timestamp,
+          revisionNotes: notes ? `${b.revisionNotes ? b.revisionNotes + ' | ' : ''}${notes}` : b.revisionNotes
+        };
+      }
+      return b;
+    }));
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === targetBom.technicalProjectId) {
+        return {
+          ...tp,
+          status: 'technically_approved',
+          activeBomRevision: targetBom.revisionCode,
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`🎉 تم اعتماد الـ BOM وقوائم التقطيع (${targetBom.bomNumber} - ${targetBom.revisionCode}) رسمياً!`, 'success');
+  };
+
+  const createBOMRevision = (sourceBomId: string, newRevisionCode: string, reason: string): TechnicalBOM => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const sourceBom = technicalBOMs.find(b => b.id === sourceBomId);
+    if (!sourceBom) throw new Error('Source BOM not found');
+
+    const newBom: TechnicalBOM = {
+      ...sourceBom,
+      id: `tbom-${Date.now()}`,
+      bomNumber: sourceBom.bomNumber,
+      revisionCode: newRevisionCode,
+      status: 'draft',
+      preparedByEngineerName: currentUser.fullName,
+      approvedByEngineerName: undefined,
+      approvedAt: undefined,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      revisionNotes: `إصدار مراجع (${newRevisionCode}): ${reason}`
+    };
+
+    setTechnicalBOMs(prev => [newBom, ...prev]);
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === sourceBom.technicalProjectId) {
+        return {
+          ...tp,
+          activeBomRevision: newRevisionCode,
+          status: 'bom_explosion_in_progress',
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`✓ تم إنشاء إصدار BOM جديد (${newRevisionCode}) بنجاح`, 'success');
+    return newBom;
+  };
+
+  const releaseTechnicalPackageToPlanning = (data: {
+    technicalProjectId: string;
+    bomId: string;
+    designRevisionId?: string;
+    surveyId?: string;
+    notes?: string;
+    targetProductionStartDate?: string;
+    targetFactoryCompletionDate?: string;
+    targetSiteInstallationDate?: string;
+    specialManufacturingInstructions?: string;
+  }): TechnicalReleasePackage => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetPrj = technicalProjects.find(p => p.id === data.technicalProjectId);
+    if (!targetPrj) throw new Error('Technical project not found');
+
+    const targetBom = technicalBOMs.find(b => b.id === data.bomId);
+    if (!targetBom) throw new Error('BOM not found');
+
+    const releaseNumber = `REL-2026-${Math.floor(100 + Math.random() * 900)}`;
+
+    const newRelease: TechnicalReleasePackage = {
+      id: `rel-${Date.now()}`,
+      releaseNumber,
+      technicalProjectId: targetPrj.id,
+      projectNumber: targetPrj.projectNumber,
+      customerName: targetPrj.customerName,
+      contractNumber: targetPrj.contractNumber,
+      approvedDesignVersion: targetPrj.activeDesignVersion,
+      approvedBomRevision: targetBom.revisionCode,
+      releasedByUserName: currentUser.fullName,
+      releasedAt: timestamp,
+      targetProductionStartDate: data.targetProductionStartDate || new Date(Date.now() + 3 * 86400000).toISOString().substring(0, 10),
+      targetFactoryCompletionDate: data.targetFactoryCompletionDate || new Date(Date.now() + 20 * 86400000).toISOString().substring(0, 10),
+      targetSiteInstallationDate: data.targetSiteInstallationDate || new Date(Date.now() + 25 * 86400000).toISOString().substring(0, 10),
+      planningStatus: 'received_by_planning',
+      planningReceivedBy: 'مسؤول التخطيط والمشتريات',
+      planningReceivedAt: timestamp,
+      planningNotes: data.notes || 'تم استلام الحزمة الهندسية وجاري تدقيق كفاية المخزون وحجز الخامات',
+      technicalSpecificationsSummary: targetPrj.technicalNotes || `${targetPrj.projectName} - ${targetBom.revisionCode}`,
+      specialManufacturingInstructions: data.specialManufacturingInstructions || 'الالتزام التام باتجاه الثمرة وقشاط الـ PVC الموضح بالـ BOM'
+    };
+
+    setTechnicalReleases(prev => [newRelease, ...prev]);
+
+    // Auto-generate Planning Demands from BOM units & parts for MRP
+    const allParts: Array<{
+      id: string;
+      itemCode: string;
+      description: string;
+      category: 'wood' | 'hardware';
+      quantity: number;
+      uom: string;
+    }> = [];
+
+    if (targetBom && targetBom.units && targetBom.units.length > 0) {
+      targetBom.units.forEach(u => {
+        (u.cuttingParts || []).forEach(p => {
+          allParts.push({
+            id: p.id,
+            itemCode: p.materialCode,
+            description: p.materialName,
+            category: 'wood',
+            quantity: p.quantity,
+            uom: 'لوح'
+          });
+        });
+        (u.hardwareParts || []).forEach(h => {
+          allParts.push({
+            id: h.id,
+            itemCode: h.itemCode,
+            description: h.itemName,
+            category: 'hardware',
+            quantity: h.quantity,
+            uom: h.unit
+          });
+        });
+      });
+    }
+
+    if (allParts.length > 0) {
+      const newDemands: PlanningDemand[] = allParts.map((item, idx) => ({
+        id: `dem-${Date.now()}-${idx}`,
+        demandNumber: `DEM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        sourceType: 'custom_project',
+        sourceId: targetPrj.salesProjectId || targetPrj.id,
+        sourceNumber: releaseNumber,
+        projectId: targetPrj.salesProjectId || targetPrj.id,
+        projectNumber: targetPrj.projectNumber,
+        projectName: targetPrj.projectName,
+        customerName: targetPrj.customerName,
+        itemId: item.id || `item-${idx}`,
+        itemCode: item.itemCode,
+        itemName: item.description,
+        itemCategory: item.category === 'wood' ? 'raw_wood' : 'hardware',
+        quantityRequired: item.quantity,
+        uom: item.uom,
+        requiredDate: data.targetProductionStartDate || new Date(Date.now() + 5 * 86400000).toISOString().substring(0, 10),
+        leadTimeDays: 7,
+        warehouseId: 'wh-main',
+        warehouseName: 'المستودع الرئيسي للخامات - A1',
+        priority: 'high',
+        status: 'open',
+        bomRevision: targetBom.revisionCode,
+        createdAt: timestamp,
+        notes: `مطلوب لتنفيذ حزمة الإفراج ${releaseNumber} (BOM: ${targetBom.revisionCode})`
+      }));
+
+      setPlanningDemands(prev => [...newDemands, ...prev]);
+
+      // Add Project Readiness Entry
+      const newReadiness: ProjectPlanningReadiness = {
+        projectId: targetPrj.salesProjectId || targetPrj.id,
+        projectNumber: targetPrj.projectNumber,
+        projectName: targetPrj.projectName,
+        customerName: targetPrj.customerName,
+        projectType: targetPrj.projectType || 'kitchen',
+        techReleaseNumber: releaseNumber,
+        targetDeliveryDate: data.targetSiteInstallationDate || new Date(Date.now() + 25 * 86400000).toISOString().substring(0, 10),
+        plannedManufacturingStartDate: data.targetProductionStartDate || new Date(Date.now() + 5 * 86400000).toISOString().substring(0, 10),
+        plannedManufacturingEndDate: data.targetFactoryCompletionDate || new Date(Date.now() + 20 * 86400000).toISOString().substring(0, 10),
+        plannedSiteInstallationDate: data.targetSiteInstallationDate || new Date(Date.now() + 25 * 86400000).toISOString().substring(0, 10),
+        overallReadiness: 'partially_ready',
+        readinessPercentage: 65,
+        totalMaterialDemandsCount: allParts.length,
+        coveredMaterialsCount: Math.floor(allParts.length * 0.65),
+        shortageMaterialsCount: Math.ceil(allParts.length * 0.35),
+        criticalShortages: [],
+        estimatedTotalWorkCenterHours: Math.round(allParts.length * 1.8),
+        isCapacityFeasible: true,
+        activeProposalsCount: 1,
+        priority: 'high'
+      };
+
+      setProjectReadinessList(prev => [newReadiness, ...prev.filter(p => p.projectId !== newReadiness.projectId)]);
+    }
+
+    // Update Technical Project Status
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === targetPrj.id) {
+        return {
+          ...tp,
+          status: 'released_to_planning',
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    // Update Sales Custom Project status
+    if (targetPrj.salesProjectId) {
+      updateProjectStatus(targetPrj.salesProjectId, 'ready_for_production');
+      addTimelineEvent(targetPrj.salesProjectId, 'الإفراج الفني للتخطيط والإنتاج', `تم إصدار حزمة الإفراج الهندسي (${releaseNumber}) وتوليد طلبات خامات الـ MRP برقم BOM: ${targetBom.revisionCode}`, 'production');
+    }
+
+    addAuditLog({
+      category: 'production',
+      action: 'إصدار حزمة إفراج فني للتخطيط وتوليد طلبات MRP',
+      actionEn: 'Technical Package Released & MRP Demands Generated',
+      target: releaseNumber,
+      details: `المشروع: ${targetPrj.projectNumber} (${targetPrj.customerName}) | الـ BOM: ${targetBom.revisionCode}`,
+      status: 'success'
+    });
+
+    showToast(`🚀 تم إصدار حزمة الإفراج الفني (${releaseNumber}) وتمريرها لقسم التخطيط والإنتاج بنجاح!`, 'success');
+    return newRelease;
+  };
+
+  const createEngineeringChangeRequest = (data: Omit<EngineeringChangeRequest, 'id' | 'ecrNumber' | 'createdAt' | 'status'>): EngineeringChangeRequest => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetPrj = technicalProjects.find(p => p.id === data.technicalProjectId);
+    const ecrNumber = `ECR-2026-${Math.floor(100 + Math.random() * 900)}`;
+
+    const newEcr: EngineeringChangeRequest = {
+      ...data,
+      id: `ecr-${Date.now()}`,
+      ecrNumber,
+      createdAt: timestamp,
+      status: 'under_review'
+    };
+
+    setEngineeringChangeRequests(prev => [newEcr, ...prev]);
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === data.technicalProjectId) {
+        return {
+          ...tp,
+          status: 'ecr_in_progress',
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    if (targetPrj?.salesProjectId) {
+      addTimelineEvent(targetPrj.salesProjectId, 'طلب تعديل هندسي (ECR)', `${newEcr.title} (${ecrNumber})`, 'design');
+    }
+
+    showToast(`✓ تم تسجيل طلب التعديل الهندسي (${ecrNumber}) وقيد المراجعة الفنية`, 'info');
+    return newEcr;
+  };
+
+  const approveEngineeringChangeRequest = (ecrId: string, reviewedBy: string, approvalNotes?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetEcr = engineeringChangeRequests.find(e => e.id === ecrId);
+    if (!targetEcr) return;
+
+    setEngineeringChangeRequests(prev => prev.map(e => {
+      if (e.id === ecrId) {
+        return {
+          ...e,
+          status: 'approved',
+          reviewedByUserName: reviewedBy || currentUser.fullName,
+          reviewedAt: timestamp,
+          resolutionNotes: approvalNotes || 'تمت الموافقة على طلب التعديل الهندسي واعتماد الفوارق'
+        };
+      }
+      return e;
+    }));
+
+    // If target new BOM revision specified, create revision if not exists
+    const projectBoms = technicalBOMs.filter(b => b.technicalProjectId === targetEcr.technicalProjectId);
+    const latestBom = projectBoms[0];
+    if (latestBom && targetEcr.targetNewBomRevision && targetEcr.targetNewBomRevision !== latestBom.revisionCode) {
+      createBOMRevision(latestBom.id, targetEcr.targetNewBomRevision, `بناءً على أمر التعديل ${targetEcr.ecrNumber}: ${targetEcr.title}`);
+    }
+
+    showToast(`✓ تم اعتماد طلب التعديل الهندسي (${targetEcr.ecrNumber}) وتحديث مسار الـ BOM`, 'success');
+  };
+
+  const rejectEngineeringChangeRequest = (ecrId: string, reviewedBy: string, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetEcr = engineeringChangeRequests.find(e => e.id === ecrId);
+    if (!targetEcr) return;
+
+    setEngineeringChangeRequests(prev => prev.map(e => {
+      if (e.id === ecrId) {
+        return {
+          ...e,
+          status: 'rejected',
+          reviewedByUserName: reviewedBy || currentUser.fullName,
+          reviewedAt: timestamp,
+          resolutionNotes: reason
+        };
+      }
+      return e;
+    }));
+
+    setTechnicalProjects(prev => prev.map(tp => {
+      if (tp.id === targetEcr.technicalProjectId) {
+        return {
+          ...tp,
+          status: 'technically_approved',
+          lastUpdatedDate: timestamp
+        };
+      }
+      return tp;
+    }));
+
+    showToast(`تم رفض طلب التعديل الهندسي (${targetEcr.ecrNumber}): ${reason}`, 'warning');
+  };
+
+  // ==========================================
+  // Planning & MRP Engine Operations
+  // ==========================================
+
+  const executeMRPRun = (params: { 
+    planningHorizonDays: number; 
+    targetWarehouse?: string; 
+    autoGenerateProposals?: boolean 
+  }): { success: boolean; run: PlanningRun; proposalsCreated: number } => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const runNumber = `MRP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const netReqs = calculateNetRequirements(planningDemands);
+    let createdProposals: SupplyProposal[] = [];
+
+    if (params.autoGenerateProposals !== false) {
+      createdProposals = generateSupplyProposalsFromShortages(netReqs, currentUser.fullName, currentUser.id);
+      if (createdProposals.length > 0) {
+        setSupplyProposals(prev => [...createdProposals, ...prev]);
+      }
+    }
+
+    // Mark pending demands as planned
+    setPlanningDemands(prev => prev.map(d => {
+      if (d.status === 'open') {
+        return { ...d, status: 'planned' };
+      }
+      return d;
+    }));
+
+    const newRun: PlanningRun = {
+      id: `run-${Date.now()}`,
+      runNumber,
+      runDate: timestamp,
+      executedByUserName: currentUser.fullName,
+      planningHorizonDays: params.planningHorizonDays,
+      warehousesIncluded: [params.targetWarehouse || 'كل المستودعات'],
+      demandsEvaluatedCount: planningDemands.length,
+      shortagesIdentifiedCount: netReqs.filter(r => r.netShortageQty > 0).length,
+      purchaseProposalsGeneratedCount: createdProposals.filter(p => p.proposalType === 'purchase_requisition').length,
+      productionProposalsGeneratedCount: createdProposals.filter(p => p.proposalType === 'planned_production').length,
+      capacityOverloadsCount: workCenterCapacities.filter(wc => wc.loadStatus === 'overloaded').length,
+      totalEstimatedPurchaseCostEGP: createdProposals.reduce((sum, p) => sum + (p.estimatedTotalCostEGP || 0), 0),
+      status: 'executed'
+    };
+
+    setPlanningRuns(prev => [newRun, ...prev]);
+
+    // Audit Log
+    addAuditLog({
+      category: 'production',
+      action: 'تشغيل محرك الـ MRP وحساب صافي الاحتياجات',
+      actionEn: 'MRP Run Executed',
+      target: runNumber,
+      details: `معالجة ${planningDemands.length} طلب | توليد ${createdProposals.length} مقترح توريد وإنتاج`,
+      status: 'success'
+    });
+
+    showToast(`⚙️ تم تشغيل محرك الـ MRP بنجاح! تم كشف النواقص وتوليد (${createdProposals.length}) مقترح توريد/إنتاج.`, 'success');
+    return { success: true, run: newRun, proposalsCreated: createdProposals.length };
+  };
+
+  const createSupplyProposal = (
+    proposalData: Partial<SupplyProposal>
+  ): SupplyProposal => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const codePrefix = proposalData.proposalType === 'purchase_requisition' ? 'PROP-PR' : 'PROP-MO';
+    const proposalNumber = `${codePrefix}-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const unitCost = proposalData.estimatedUnitCostEGP || 1450;
+    const qty = proposalData.quantity || 1;
+
+    const newProposal: SupplyProposal = {
+      id: `prop-${Date.now()}`,
+      proposalNumber,
+      proposalType: proposalData.proposalType || 'purchase_requisition',
+      itemId: proposalData.itemId || 'item-1',
+      itemCode: proposalData.itemCode || 'MDF-WHITE-18',
+      itemName: proposalData.itemName || 'خامة مطلوبة',
+      quantity: qty,
+      uom: proposalData.uom || 'لوح',
+      targetWarehouseId: proposalData.targetWarehouseId || 'wh-main',
+      targetWarehouseName: proposalData.targetWarehouseName || 'المستودع الرئيسي للخامات',
+      requiredDate: proposalData.requiredDate || new Date(Date.now() + 14 * 86400000).toISOString().substring(0, 10),
+      suggestedOrderDate: proposalData.suggestedOrderDate || new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
+      leadTimeDays: proposalData.leadTimeDays || 7,
+      priority: proposalData.priority || 'high',
+      status: 'draft',
+      demandIds: proposalData.demandIds || [],
+      projectIds: proposalData.projectIds || [],
+      projectNumbers: proposalData.projectNumbers || [],
+      customerNames: proposalData.customerNames || [],
+      estimatedUnitCostEGP: unitCost,
+      estimatedTotalCostEGP: qty * unitCost,
+      suggestedSupplierName: proposalData.suggestedSupplierName,
+      targetWorkCenterName: proposalData.targetWorkCenterName,
+      notes: proposalData.notes,
+      createdDate: timestamp,
+      createdByUserName: currentUser.fullName
+    };
+
+    setSupplyProposals(prev => [newProposal, ...prev]);
+
+    showToast(`✓ تم إنشاء مقترح التوريد (${proposalNumber}) بنجاح`, 'success');
+    return newProposal;
+  };
+
+  const approveSupplyProposal = (proposalId: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setSupplyProposals(prev => prev.map(p => {
+      if (p.id === proposalId) {
+        return {
+          ...p,
+          status: 'approved',
+          approvedByUserName: currentUser.fullName,
+          approvedDate: timestamp
+        };
+      }
+      return p;
+    }));
+
+    showToast(`✓ تم اعتماد مقترح التوريد من إدارة التخطيط`, 'success');
+  };
+
+  // ====================================================
+  // REWAQ ERP — COMPLETE PROCUREMENT ACTION HANDLERS
+  // ====================================================
+
+  const createPurchaseRequest = (data: Partial<PurchaseRequest>): PurchaseRequest => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const prNumber = data.prNumber || `PR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const items = (data.items || []).map((it, idx) => ({
+      id: it.id || `pri-${Date.now()}-${idx}`,
+      itemId: it.itemId || 'item-1',
+      itemCode: it.itemCode || 'MAT-RAW',
+      itemName: it.itemName || 'خامة مطلوبة',
+      itemCategory: it.itemCategory || 'mdf',
+      quantity: Number(it.quantity) || 1,
+      uom: it.uom || 'لوح',
+      estimatedUnitCost: Number(it.estimatedUnitCost) || 0,
+      estimatedTotalCost: (Number(it.quantity) || 1) * (Number(it.estimatedUnitCost) || 0),
+      suggestedSupplierId: it.suggestedSupplierId,
+      suggestedSupplierName: it.suggestedSupplierName,
+      requiredDate: it.requiredDate || data.requiredDate || new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
+      specifications: it.specifications,
+      notes: it.notes,
+      demandId: it.demandId,
+      projectId: it.projectId || data.projectId,
+      projectNumber: it.projectNumber || data.projectNumber,
+      projectName: it.projectName || data.projectName,
+      customerName: it.customerName || data.customerName,
+      processedQuantity: 0,
+      remainingQuantity: Number(it.quantity) || 1,
+      status: 'pending' as const
+    }));
+
+    const totalEstimatedValue = items.reduce((s, i) => s + i.estimatedTotalCost, 0);
+
+    const newPR: PurchaseRequest = {
+      id: data.id || `pr-${Date.now()}`,
+      prNumber,
+      requestDate: data.requestDate || timestamp.substring(0, 10),
+      requiredDate: data.requiredDate || new Date(Date.now() + 10 * 86400000).toISOString().substring(0, 10),
+      priority: data.priority || 'high',
+      status: data.status || 'pending_approval',
+      requesterId: currentUser.id,
+      requesterName: currentUser.fullName,
+      department: data.department || 'planning',
+      sourceType: data.sourceType || 'planning_proposal',
+      sourceReference: data.sourceReference,
+      projectId: data.projectId,
+      projectNumber: data.projectNumber,
+      projectName: data.projectName,
+      customerName: data.customerName,
+      contractNumber: data.contractNumber,
+      technicalReleaseNumber: data.technicalReleaseNumber,
+      warehouseId: data.warehouseId || warehouses[0]?.id || 'branch-2',
+      warehouseName: data.warehouseName || warehouses[0]?.name || 'المخزن المركزي - العاشر',
+      branchId: data.branchId || currentBranch?.id || 'branch-2',
+      branchName: data.branchName || currentBranch?.name || 'المخزن المركزي - العاشر',
+      items,
+      totalEstimatedValue,
+      suggestedSupplierId: data.suggestedSupplierId,
+      suggestedSupplierName: data.suggestedSupplierName,
+      notes: data.notes,
+      attachments: data.attachments || [],
+      rfqIds: [],
+      rfqNumbers: [],
+      poIds: [],
+      poNumbers: [],
+      revisions: [],
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    setPurchaseRequests(prev => [newPR, ...prev]);
+
+    addAuditLog({
+      category: 'purchasing',
+      action: 'إنشاء طلب شراء (Purchase Request)',
+      actionEn: 'Purchase Request Created',
+      target: prNumber,
+      details: `بواسطة ${currentUser.fullName} | القيمة التقديرية: ${totalEstimatedValue.toLocaleString()} ج.م | عدد البنود: ${items.length}`,
+      status: 'success'
+    });
+
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}`,
+        type: 'pr_approval',
+        title: `📑 طلب شراء جديد (${prNumber})`,
+        message: `تم رفع طلب شراء جديد بقيمة تقديرية ${totalEstimatedValue.toLocaleString()} ج.م من قسم ${newPR.department} وبانتظار المراجعة والاعتماد.`,
+        timestamp,
+        isRead: false,
+        targetModule: 'proc_requests',
+        targetId: newPR.id,
+        branchId: newPR.branchId,
+        branchName: newPR.branchName
+      },
+      ...prev
+    ]);
+
+    showToast(`✓ تم إنشاء طلب الشراء (${prNumber}) بنجاح`, 'success');
+    return newPR;
+  };
+
+  const createPRFromPlanningProposal = (proposal: SupplyProposal): PurchaseRequest => {
+    const pr = createPurchaseRequest({
+      sourceType: 'planning_proposal',
+      sourceReference: proposal.proposalNumber,
+      priority: proposal.priority,
+      requiredDate: proposal.requiredDate,
+      department: 'planning',
+      projectId: proposal.projectIds[0],
+      projectNumber: proposal.projectNumbers[0],
+      customerName: proposal.customerNames[0],
+      warehouseId: proposal.targetWarehouseId,
+      warehouseName: proposal.targetWarehouseName,
+      suggestedSupplierName: proposal.suggestedSupplierName,
+      notes: proposal.notes || `تم التوليد تلقائياً من مقترح التخطيط (${proposal.proposalNumber})`,
+      status: 'approved',
+      items: [
+        {
+          id: `pri-${Date.now()}`,
+          itemId: proposal.itemId,
+          itemCode: proposal.itemCode,
+          itemName: proposal.itemName,
+          itemCategory: 'mdf',
+          quantity: proposal.quantity,
+          uom: proposal.uom,
+          estimatedUnitCost: proposal.estimatedUnitCostEGP || 0,
+          estimatedTotalCost: proposal.estimatedTotalCostEGP || 0,
+          requiredDate: proposal.requiredDate,
+          suggestedSupplierName: proposal.suggestedSupplierName,
+          demandId: proposal.demandIds[0],
+          projectId: proposal.projectIds[0],
+          projectNumber: proposal.projectNumbers[0],
+          customerName: proposal.customerNames[0],
+          processedQuantity: 0,
+          remainingQuantity: proposal.quantity,
+          status: 'pending'
+        }
+      ]
+    });
+
+    setSupplyProposals(prev => prev.map(p => {
+      if (p.id === proposal.id) {
+        return {
+          ...p,
+          status: 'converted_to_po',
+          convertedDocumentRef: pr.prNumber
+        };
+      }
+      return p;
+    }));
+
+    return pr;
+  };
+
+  const updatePurchaseRequest = (prId: string, data: Partial<PurchaseRequest>, revisionReason?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setPurchaseRequests(prev => prev.map(pr => {
+      if (pr.id === prId) {
+        const updated = { ...pr, ...data, updatedAt: timestamp };
+        if (pr.status === 'approved' && revisionReason) {
+          const revNum = (pr.revisions?.length || 0) + 1;
+          updated.revisions = [
+            ...(pr.revisions || []),
+            {
+              revisionNumber: revNum,
+              modifiedDate: timestamp,
+              modifiedByUserName: currentUser.fullName,
+              reason: revisionReason,
+              changesSummary: `تعديل في بنود أو كميات طلب الشراء (النسخة ${revNum})`
+            }
+          ];
+        }
+        return updated;
+      }
+      return pr;
+    }));
+    showToast('تم تحديث طلب الشراء بنجاح', 'success');
+  };
+
+  const approvePurchaseRequest = (prId: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setPurchaseRequests(prev => prev.map(pr => {
+      if (pr.id === prId) {
+        return {
+          ...pr,
+          status: 'approved',
+          approvedByUserName: currentUser.fullName,
+          approvedDate: timestamp,
+          updatedAt: timestamp
+        };
+      }
+      return pr;
+    }));
+    addAuditLog({
+      category: 'purchasing',
+      action: 'اعتماد طلب شراء',
+      actionEn: 'Purchase Request Approved',
+      target: prId,
+      details: `تم الاعتماد بواسطة ${currentUser.fullName}`,
+      status: 'success'
+    });
+    showToast('✓ تم اعتماد طلب الشراء وأصبح جاهزاً للتسعير والشراء', 'success');
+  };
+
+  const rejectPurchaseRequest = (prId: string, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setPurchaseRequests(prev => prev.map(pr => {
+      if (pr.id === prId) {
+        return {
+          ...pr,
+          status: 'rejected',
+          rejectionReason: reason,
+          updatedAt: timestamp
+        };
+      }
+      return pr;
+    }));
+    addAuditLog({
+      category: 'purchasing',
+      action: 'رفض طلب شراء',
+      actionEn: 'Purchase Request Rejected',
+      target: prId,
+      details: `سبب الرفض: ${reason}`,
+      status: 'warning'
+    });
+    showToast('تم رفض طلب الشراء', 'info');
+  };
+
+  const cancelPurchaseRequest = (prId: string, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setPurchaseRequests(prev => prev.map(pr => {
+      if (pr.id === prId) {
+        return {
+          ...pr,
+          status: 'cancelled',
+          rejectionReason: reason,
+          updatedAt: timestamp
+        };
+      }
+      return pr;
+    }));
+    showToast('تم إلغاء طلب الشراء', 'info');
+  };
+
+  const createRFQ = (data: Partial<RequestForQuotation>): RequestForQuotation => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const rfqNumber = data.rfqNumber || `RFQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newRFQ: RequestForQuotation = {
+      id: data.id || `rfq-${Date.now()}`,
+      rfqNumber,
+      issueDate: data.issueDate || timestamp.substring(0, 10),
+      responseDeadline: data.responseDeadline || new Date(Date.now() + 3 * 86400000).toISOString().substring(0, 10),
+      requiredDeliveryDate: data.requiredDeliveryDate || new Date(Date.now() + 10 * 86400000).toISOString().substring(0, 10),
+      purchaseRequestId: data.purchaseRequestId,
+      purchaseRequestNumber: data.purchaseRequestNumber,
+      projectId: data.projectId,
+      projectNumber: data.projectNumber,
+      projectName: data.projectName,
+      customerName: data.customerName,
+      warehouseId: data.warehouseId || 'branch-2',
+      warehouseName: data.warehouseName || 'المخزن المركزي - العاشر',
+      branchId: data.branchId || 'branch-2',
+      branchName: data.branchName || 'المخزن المركزي - العاشر',
+      items: data.items || [],
+      targetSuppliers: data.targetSuppliers || [],
+      paymentTermsRequested: data.paymentTermsRequested || 'آجل 30 يوم',
+      deliveryTermsRequested: data.deliveryTermsRequested || 'التسليم داخل مخازن الشركة بالعاشر شامل النقل',
+      status: data.status || 'draft',
+      notes: data.notes,
+      attachments: data.attachments || [],
+      createdByUserName: currentUser.fullName,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    setRFQs(prev => [newRFQ, ...prev]);
+
+    if (data.purchaseRequestId) {
+      setPurchaseRequests(prev => prev.map(pr => {
+        if (pr.id === data.purchaseRequestId) {
+          return {
+            ...pr,
+            status: pr.status === 'approved' ? 'partially_processed' : pr.status,
+            rfqIds: [...(pr.rfqIds || []), newRFQ.id],
+            rfqNumbers: [...(pr.rfqNumbers || []), rfqNumber]
+          };
+        }
+        return pr;
+      }));
+    }
+
+    addAuditLog({
+      category: 'purchasing',
+      action: 'إنشاء طلب عروض أسعار (RFQ)',
+      actionEn: 'RFQ Created',
+      target: rfqNumber,
+      details: `تم إنشاء RFQ ودعوة ${newRFQ.targetSuppliers.length} موردين للمنافسة`,
+      status: 'success'
+    });
+
+    showToast(`✓ تم إنشاء طلب عروض الأسعار (${rfqNumber}) بنجاح`, 'success');
+    return newRFQ;
+  };
+
+  const sendRFQToSuppliers = (rfqId: string, supplierIds: string[]) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setRFQs(prev => prev.map(r => {
+      if (r.id === rfqId) {
+        const updatedSuppliers = r.targetSuppliers.map(s => {
+          if (supplierIds.includes(s.supplierId)) {
+            return { ...s, invitationStatus: 'invited' as const, sentDate: timestamp };
+          }
+          return s;
+        });
+        return {
+          ...r,
+          status: 'sent',
+          targetSuppliers: updatedSuppliers,
+          updatedAt: timestamp
+        };
+      }
+      return r;
+    }));
+
+    showToast('✉️ تم إرسال طلب عروض الأسعار للموردين بنجاح', 'success');
+  };
+
+  const cancelRFQ = (rfqId: string, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setRFQs(prev => prev.map(r => {
+      if (r.id === rfqId) {
+        return {
+          ...r,
+          status: 'cancelled',
+          notes: `${r.notes || ''} [ملغي: ${reason}]`,
+          updatedAt: timestamp
+        };
+      }
+      return r;
+    }));
+    showToast('تم إلغاء طلب عروض الأسعار', 'info');
+  };
+
+  const recordSupplierQuotation = (data: Partial<SupplierQuotation>): SupplierQuotation => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const quotationNumber = data.quotationNumber || `SQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const items = (data.items || []).map((it, idx) => {
+      const unitPrice = Number(it.unitPrice) || 0;
+      const qty = Number(it.quantity) || 1;
+      const discountPercent = Number(it.discountPercent) || 0;
+      const discountAmount = Math.round((unitPrice * qty) * (discountPercent / 100));
+      const netLine = (unitPrice * qty) - discountAmount;
+      const taxPercent = it.taxPercent !== undefined ? Number(it.taxPercent) : 14;
+      const taxAmount = Math.round(netLine * (taxPercent / 100));
+      const lineTotal = netLine + taxAmount;
+
+      return {
+        id: it.id || `sqi-${Date.now()}-${idx}`,
+        itemId: it.itemId || 'item-1',
+        itemCode: it.itemCode || 'MAT-RAW',
+        itemName: it.itemName || 'خامة',
+        quantity: qty,
+        uom: it.uom || 'لوح',
+        unitPrice,
+        discountPercent,
+        discountAmount,
+        taxPercent,
+        taxAmount,
+        lineTotal,
+        leadTimeDays: it.leadTimeDays || 5,
+        warrantyMonths: it.warrantyMonths,
+        brandOrOrigin: it.brandOrOrigin,
+        notes: it.notes
+      };
+    });
+
+    const totals = ProcurementService.calculateQuotationTotals(
+      items,
+      Number(data.shippingCost) || 0,
+      Number(data.otherCharges) || 0
+    );
+
+    const newQuotation: SupplierQuotation = {
+      id: data.id || `sq-${Date.now()}`,
+      quotationNumber,
+      vendorQuoteReference: data.vendorQuoteReference,
+      rfqId: data.rfqId,
+      rfqNumber: data.rfqNumber,
+      purchaseRequestId: data.purchaseRequestId,
+      purchaseRequestNumber: data.purchaseRequestNumber,
+      supplierId: data.supplierId || suppliers[0]?.id || 'sup-1',
+      supplierName: data.supplierName || suppliers[0]?.name || 'المورد',
+      supplierContactPerson: data.supplierContactPerson,
+      supplierPhone: data.supplierPhone,
+      quotationDate: data.quotationDate || timestamp.substring(0, 10),
+      validUntil: data.validUntil || new Date(Date.now() + 14 * 86400000).toISOString().substring(0, 10),
+      currency: data.currency || 'EGP',
+      exchangeRate: data.exchangeRate || 1.0,
+      items,
+      subtotal: totals.subtotal,
+      totalDiscount: totals.totalDiscount,
+      taxTotal: totals.taxTotal,
+      shippingCost: totals.shippingCost,
+      otherCharges: totals.otherCharges,
+      grandTotal: totals.grandTotal,
+      paymentTerms: data.paymentTerms || 'آجل 30 يوم',
+      deliveryLeadTimeDays: Number(data.deliveryLeadTimeDays) || 5,
+      expectedDeliveryDate: data.expectedDeliveryDate || new Date(Date.now() + 5 * 86400000).toISOString().substring(0, 10),
+      shippingTerms: data.shippingTerms || 'شامل التوصيل لمخزن العاشر',
+      warrantyTerms: data.warrantyTerms,
+      status: data.status || 'received',
+      notes: data.notes,
+      attachments: data.attachments || [],
+      createdByUserName: currentUser.fullName,
+      createdAt: timestamp
+    };
+
+    setSupplierQuotations(prev => [newQuotation, ...prev]);
+
+    if (data.rfqId) {
+      setRFQs(prev => prev.map(r => {
+        if (r.id === data.rfqId) {
+          const updatedSuppliers = r.targetSuppliers.map(s => {
+            if (s.supplierId === data.supplierId) {
+              return {
+                ...s,
+                invitationStatus: 'quoted' as const,
+                quotationId: newQuotation.id,
+                quotationNumber: newQuotation.quotationNumber,
+                responseDate: timestamp
+              };
+            }
+            return s;
+          });
+          const allQuoted = updatedSuppliers.every(s => s.invitationStatus === 'quoted' || s.invitationStatus === 'declined');
+          return {
+            ...r,
+            status: allQuoted ? 'fully_responded' : 'partially_responded',
+            targetSuppliers: updatedSuppliers,
+            updatedAt: timestamp
+          };
+        }
+        return r;
+      }));
+    }
+
+    addAuditLog({
+      category: 'purchasing',
+      action: 'تسجيل عرض سعر مورد (Supplier Quotation)',
+      actionEn: 'Supplier Quotation Recorded',
+      target: quotationNumber,
+      details: `المورد: ${newQuotation.supplierName} | القيمة: ${newQuotation.grandTotal.toLocaleString()} ج.م | RFQ: ${newQuotation.rfqNumber || 'مباشر'}`,
+      status: 'success'
+    });
+
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}`,
+        type: 'quotation_received',
+        title: `💵 عرض سعر مورد جديد (${newQuotation.supplierName})`,
+        message: `تم تسجيل عرض سعر جديد بقيمة ${newQuotation.grandTotal.toLocaleString()} ج.م بخصوص RFQ (${newQuotation.rfqNumber || 'مباشر'}).`,
+        timestamp,
+        isRead: false,
+        targetModule: 'proc_quotations',
+        targetId: newQuotation.id
+      },
+      ...prev
+    ]);
+
+    showToast(`✓ تم تسجيل عرض سعر المورد (${quotationNumber}) بنجاح`, 'success');
+    return newQuotation;
+  };
+
+  const updateSupplierQuotation = (quotationId: string, data: Partial<SupplierQuotation>) => {
+    setSupplierQuotations(prev => prev.map(q => {
+      if (q.id === quotationId) {
+        return { ...q, ...data };
+      }
+      return q;
+    }));
+    showToast('تم تحديث عرض السعر', 'success');
+  };
+
+  const selectWinningQuotation = (
+    rfqId: string,
+    quotationId: string,
+    selectionReason: string,
+    autoGeneratePO = true
+  ): { po?: EnterprisePurchaseOrder; quotation: SupplierQuotation } => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const selectedQuote = supplierQuotations.find(q => q.id === quotationId);
+    if (!selectedQuote) {
+      throw new Error('Quotation not found');
+    }
+
+    setSupplierQuotations(prev => prev.map(q => {
+      if (q.rfqId === rfqId || q.id === quotationId) {
+        if (q.id === quotationId) {
+          return {
+            ...q,
+            status: 'selected',
+            selectionReason,
+            selectedByUserName: currentUser.fullName,
+            selectedDate: timestamp
+          };
+        } else {
+          return {
+            ...q,
+            status: 'rejected',
+            selectionReason: `تم اختيار عرض المورد (${selectedQuote.supplierName}) كأنسب عرض تجاري وفني`
+          };
+        }
+      }
+      return q;
+    }));
+
+    setRFQs(prev => prev.map(r => {
+      if (r.id === rfqId) {
+        return {
+          ...r,
+          status: 'comparison_completed',
+          selectedQuotationId: quotationId,
+          selectedSupplierName: selectedQuote.supplierName,
+          selectionReason,
+          updatedAt: timestamp
+        };
+      }
+      return r;
+    }));
+
+    selectedQuote.items.forEach(it => {
+      addSupplierItemPrice({
+        supplierId: selectedQuote.supplierId,
+        supplierName: selectedQuote.supplierName,
+        itemId: it.itemId,
+        itemCode: it.itemCode,
+        itemName: it.itemName,
+        itemCategory: 'mdf',
+        uom: it.uom,
+        unitPrice: it.unitPrice,
+        currency: selectedQuote.currency,
+        minQuantity: it.quantity,
+        leadTimeDays: it.leadTimeDays,
+        paymentTerms: selectedQuote.paymentTerms,
+        effectiveDate: timestamp.substring(0, 10),
+        notes: `تم التحديث بناء على اختيار العرض الفائز (${selectedQuote.quotationNumber})`
+      });
+    });
+
+    let generatedPO: EnterprisePurchaseOrder | undefined;
+
+    if (autoGeneratePO) {
+      const targetPR = purchaseRequests.find(p => p.id === selectedQuote.purchaseRequestId);
+
+      const poItems = selectedQuote.items.map((it, idx) => ({
+        id: `poi-${Date.now()}-${idx}`,
+        itemId: it.itemId,
+        itemType: 'material' as const,
+        itemCode: it.itemCode,
+        itemName: it.itemName,
+        itemCategory: 'mdf',
+        specifications: it.notes,
+        quantity: it.quantity,
+        receivedQuantity: 0,
+        remainingQuantity: it.quantity,
+        returnedQuantity: 0,
+        uom: it.uom,
+        unitPrice: it.unitPrice,
+        discountPercent: it.discountPercent,
+        discountAmount: it.discountAmount,
+        netUnitPrice: it.unitPrice - (it.quantity > 0 ? it.discountAmount / it.quantity : 0),
+        taxRate: it.taxPercent,
+        taxAmount: it.taxAmount,
+        totalAmount: it.lineTotal,
+        requiredDate: selectedQuote.expectedDeliveryDate,
+        expectedDate: selectedQuote.expectedDeliveryDate,
+        projectId: targetPR?.projectId,
+        projectNumber: targetPR?.projectNumber,
+        customerName: targetPR?.customerName
+      }));
+
+      generatedPO = createEnterprisePurchaseOrder({
+        supplierId: selectedQuote.supplierId,
+        supplierName: selectedQuote.supplierName,
+        branchId: targetPR?.branchId || 'branch-2',
+        branchName: targetPR?.branchName || 'المخزن المركزي - العاشر',
+        warehouseId: targetPR?.warehouseId || 'branch-2',
+        warehouseName: targetPR?.warehouseName || 'المخزن المركزي - العاشر',
+        paymentTerms: selectedQuote.paymentTerms,
+        shippingTerms: selectedQuote.shippingTerms,
+        purchaseRequestId: selectedQuote.purchaseRequestId,
+        purchaseRequestNumber: selectedQuote.purchaseRequestNumber,
+        rfqId: selectedQuote.rfqId,
+        rfqNumber: selectedQuote.rfqNumber,
+        supplierQuotationId: selectedQuote.id,
+        supplierQuotationNumber: selectedQuote.quotationNumber,
+        projectId: targetPR?.projectId,
+        projectNumber: targetPR?.projectNumber,
+        projectName: targetPR?.projectName,
+        customerName: targetPR?.customerName,
+        contractNumber: targetPR?.contractNumber,
+        expectedDeliveryDate: selectedQuote.expectedDeliveryDate,
+        items: poItems,
+        subtotal: selectedQuote.subtotal,
+        totalDiscount: selectedQuote.totalDiscount,
+        taxTotal: selectedQuote.taxTotal,
+        shippingCost: selectedQuote.shippingCost,
+        otherCharges: selectedQuote.otherCharges,
+        grandTotal: selectedQuote.grandTotal,
+        notes: `أمر شراء تم توليده آلياً من العرض الفائز (${selectedQuote.quotationNumber}) - مبرر الاختيار: ${selectionReason}`
+      });
+
+      setSupplierQuotations(prev => prev.map(q => q.id === quotationId ? { ...q, convertedToPoId: generatedPO!.id, convertedToPoNumber: generatedPO!.poNumber } : q));
+    }
+
+    addAuditLog({
+      category: 'purchasing',
+      action: 'اختيار العرض الفائز للمورد',
+      actionEn: 'Winning Supplier Quotation Selected',
+      target: selectedQuote.quotationNumber,
+      details: `تم اختيار مورد ${selectedQuote.supplierName} | المبرر: ${selectionReason}`,
+      status: 'success'
+    });
+
+    showToast(`🏆 تم اعتماد المورد (${selectedQuote.supplierName}) وإصدار أمر الشراء بنجاح!`, 'success');
+    return { po: generatedPO, quotation: selectedQuote };
+  };
+
+  const createEnterprisePurchaseOrder = (data: Partial<EnterprisePurchaseOrder>): EnterprisePurchaseOrder => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const poNumber = data.poNumber || `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const items = (data.items || []).map((it, idx) => ({
+      id: it.id || `poi-${Date.now()}-${idx}`,
+      itemId: it.itemId || 'item-1',
+      itemType: it.itemType || 'material',
+      itemCode: it.itemCode || 'MAT-RAW',
+      itemName: it.itemName || 'خامة مطلوبة',
+      itemCategory: it.itemCategory || 'mdf',
+      specifications: it.specifications,
+      quantity: Number(it.quantity) || 1,
+      receivedQuantity: Number(it.receivedQuantity) || 0,
+      remainingQuantity: (Number(it.quantity) || 1) - (Number(it.receivedQuantity) || 0),
+      returnedQuantity: Number(it.returnedQuantity) || 0,
+      uom: it.uom || 'لوح',
+      unitPrice: Number(it.unitPrice) || 0,
+      discountPercent: Number(it.discountPercent) || 0,
+      discountAmount: Number(it.discountAmount) || 0,
+      netUnitPrice: Number(it.netUnitPrice) || (Number(it.unitPrice) || 0),
+      taxRate: it.taxRate !== undefined ? Number(it.taxRate) : 14,
+      taxAmount: Number(it.taxAmount) || 0,
+      totalAmount: Number(it.totalAmount) || 0,
+      requiredDate: it.requiredDate || timestamp.substring(0, 10),
+      expectedDate: it.expectedDate || data.expectedDeliveryDate,
+      demandId: it.demandId,
+      projectId: it.projectId || data.projectId,
+      projectNumber: it.projectNumber || data.projectNumber,
+      projectName: it.projectName || data.projectName,
+      customerName: it.customerName || data.customerName
+    }));
+
+    const totals = ProcurementService.calculateQuotationTotals(
+      items,
+      Number(data.shippingCost) || 0,
+      Number(data.otherCharges) || 0
+    );
+
+    const newPO: EnterprisePurchaseOrder = {
+      id: data.id || `po-proc-${Date.now()}`,
+      poNumber,
+      poDate: data.poDate || timestamp.substring(0, 10),
+      expectedDeliveryDate: data.expectedDeliveryDate || new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
+      supplierId: data.supplierId || suppliers[0]?.id || 'sup-1',
+      supplierName: data.supplierName || suppliers[0]?.name || 'المورد',
+      supplierCode: data.supplierCode,
+      supplierContactPerson: data.supplierContactPerson,
+      supplierPhone: data.supplierPhone,
+      supplierTaxNumber: data.supplierTaxNumber || '441-209-310',
+      branchId: data.branchId || 'branch-2',
+      branchName: data.branchName || 'المخزن المركزي - العاشر',
+      warehouseId: data.warehouseId || 'branch-2',
+      warehouseName: data.warehouseName || 'المخزن المركزي - العاشر',
+      buyerId: currentUser.id,
+      buyerName: currentUser.fullName,
+      currency: data.currency || 'EGP',
+      exchangeRate: data.exchangeRate || 1.0,
+      paymentTerms: data.paymentTerms || 'آجل 30 يوم',
+      shippingTerms: data.shippingTerms || 'التسليم داخل مخازن الشركة بالعاشر من رمضان شامل النقل',
+      purchaseRequestId: data.purchaseRequestId,
+      purchaseRequestNumber: data.purchaseRequestNumber,
+      rfqId: data.rfqId,
+      rfqNumber: data.rfqNumber,
+      supplierQuotationId: data.supplierQuotationId,
+      supplierQuotationNumber: data.supplierQuotationNumber,
+      projectId: data.projectId,
+      projectNumber: data.projectNumber,
+      projectName: data.projectName,
+      customerName: data.customerName,
+      contractNumber: data.contractNumber,
+      items,
+      subtotal: data.subtotal || totals.subtotal,
+      totalDiscount: data.totalDiscount || totals.totalDiscount,
+      taxTotal: data.taxTotal || totals.taxTotal,
+      shippingCost: data.shippingCost !== undefined ? Number(data.shippingCost) : totals.shippingCost,
+      otherCharges: data.otherCharges !== undefined ? Number(data.otherCharges) : totals.otherCharges,
+      grandTotal: data.grandTotal || totals.grandTotal,
+      paidAmount: Number(data.paidAmount) || 0,
+      balanceDue: (data.grandTotal || totals.grandTotal) - (Number(data.paidAmount) || 0),
+      status: data.status || 'pending_approval',
+      receivingStatus: data.receivingStatus || 'pending',
+      paymentStatus: data.paymentStatus || 'unpaid',
+      receiptNotes: data.receiptNotes || [],
+      vendorBills: data.vendorBills || [],
+      revisions: [],
+      notes: data.notes,
+      attachments: data.attachments || [],
+      createdByUserName: currentUser.fullName,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    setEnterprisePurchaseOrders(prev => [newPO, ...prev]);
+
+    const simplePO: PurchaseOrder = {
+      id: newPO.id,
+      poNumber: newPO.poNumber,
+      supplierId: newPO.supplierId,
+      supplierName: newPO.supplierName,
+      branchId: newPO.branchId,
+      branchName: newPO.branchName,
+      orderDate: newPO.poDate,
+      expectedDeliveryDate: newPO.expectedDeliveryDate,
+      items: newPO.items.map(it => ({
+        id: it.id,
+        itemId: it.itemId,
+        itemType: it.itemType,
+        itemName: it.itemName,
+        itemCode: it.itemCode,
+        quantity: it.quantity,
+        receivedQuantity: it.receivedQuantity,
+        unit: it.uom,
+        unitCost: it.netUnitPrice,
+        totalCost: it.totalAmount
+      })),
+      totalAmount: newPO.grandTotal,
+      paidAmount: newPO.paidAmount,
+      balanceDue: newPO.balanceDue,
+      receivingStatus: newPO.receivingStatus,
+      paymentStatus: newPO.paymentStatus,
+      createdByUserName: newPO.createdByUserName,
+      notes: newPO.notes
+    };
+    setPurchaseOrders(prev => [simplePO, ...prev]);
+
+    if (data.purchaseRequestId) {
+      setPurchaseRequests(prev => prev.map(pr => {
+        if (pr.id === data.purchaseRequestId) {
+          return {
+            ...pr,
+            status: 'fully_processed',
+            poIds: [...(pr.poIds || []), newPO.id],
+            poNumbers: [...(pr.poNumbers || []), newPO.poNumber]
+          };
+        }
+        return pr;
+      }));
+    }
+
+    addAuditLog({
+      category: 'purchasing',
+      action: 'إنشاء أمر شراء رسمي (PO)',
+      actionEn: 'Purchase Order Created',
+      target: poNumber,
+      details: `المورد: ${newPO.supplierName} | القيمة الإجمالية: ${newPO.grandTotal.toLocaleString()} ج.م | البنود: ${items.length}`,
+      status: 'success'
+    });
+
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}`,
+        type: 'po_approval',
+        title: `📑 أمر شراء بانتظار الاعتماد (${poNumber})`,
+        message: `تم إنشاء أمر الشراء ${poNumber} بقيمة ${newPO.grandTotal.toLocaleString()} ج.م لصالح (${newPO.supplierName}) وبانتظار اعتماد الإدارة.`,
+        timestamp,
+        isRead: false,
+        targetModule: 'proc_orders',
+        targetId: newPO.id,
+        branchId: newPO.branchId,
+        branchName: newPO.branchName
+      },
+      ...prev
+    ]);
+
+    showToast(`✓ تم إنشاء أمر الشراء الرسمي (${poNumber}) بنجاح`, 'success');
+    return newPO;
+  };
+
+  const approveEnterprisePurchaseOrder = (poId: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setEnterprisePurchaseOrders(prev => prev.map(po => {
+      if (po.id === poId) {
+        return {
+          ...po,
+          status: 'approved',
+          approvedByUserName: currentUser.fullName,
+          approvedDate: timestamp,
+          updatedAt: timestamp
+        };
+      }
+      return po;
+    }));
+    addAuditLog({
+      category: 'purchasing',
+      action: 'اعتماد أمر شراء',
+      actionEn: 'Purchase Order Approved',
+      target: poId,
+      details: `تم الاعتماد بواسطة ${currentUser.fullName}`,
+      status: 'success'
+    });
+    showToast('✓ تم اعتماد أمر الشراء رسمياً وجاهز للإرسال للمورد', 'success');
+  };
+
+  const rejectEnterprisePurchaseOrder = (poId: string, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setEnterprisePurchaseOrders(prev => prev.map(po => {
+      if (po.id === poId) {
+        return {
+          ...po,
+          status: 'draft',
+          rejectionReason: reason,
+          updatedAt: timestamp
+        };
+      }
+      return po;
+    }));
+    showToast('تم رفض أمر الشراء وإعادته للمسودة', 'info');
+  };
+
+  const sendPOToSupplier = (poId: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setEnterprisePurchaseOrders(prev => prev.map(po => {
+      if (po.id === poId) {
+        return {
+          ...po,
+          status: 'sent_to_supplier',
+          updatedAt: timestamp
+        };
+      }
+      return po;
+    }));
+    addAuditLog({
+      category: 'purchasing',
+      action: 'إرسال أمر الشراء للمورد',
+      actionEn: 'PO Sent to Supplier',
+      target: poId,
+      details: `تم الإرسال الرسمي للمورد وبدء فترة التوريد`,
+      status: 'success'
+    });
+    showToast('✉️ تم إرسال أمر الشراء للمورد وبدء متابعة موعد التوريد', 'success');
+  };
+
+  const revisePurchaseOrder = (poId: string, data: Partial<EnterprisePurchaseOrder>, revisionReason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setEnterprisePurchaseOrders(prev => prev.map(po => {
+      if (po.id === poId) {
+        const revNum = (po.revisions?.length || 0) + 1;
+        const previousTotal = po.grandTotal;
+        const updated = {
+          ...po,
+          ...data,
+          status: 'pending_approval' as const,
+          updatedAt: timestamp,
+          revisions: [
+            ...(po.revisions || []),
+            {
+              revisionNumber: revNum,
+              modifiedDate: timestamp,
+              modifiedByUserName: currentUser.fullName,
+              reason: revisionReason,
+              previousTotal,
+              newTotal: data.grandTotal || previousTotal,
+              changesSummary: `تعديل في بنود أو أسعار أمر الشراء (النسخة ${revNum})`
+            }
+          ]
+        };
+        return updated;
+      }
+      return po;
+    }));
+    addAuditLog({
+      category: 'purchasing',
+      action: 'تعديل وإنشاء مراجعة لأمر شراء',
+      actionEn: 'Purchase Order Revised',
+      target: poId,
+      details: `المبرر: ${revisionReason}`,
+      status: 'warning'
+    });
+    showToast('تم إنشاء مراجعة لأمر الشراء وتوجيهه لإعادة الاعتماد', 'info');
+  };
+
+  const cancelEnterprisePurchaseOrder = (poId: string, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setEnterprisePurchaseOrders(prev => prev.map(po => {
+      if (po.id === poId) {
+        return {
+          ...po,
+          status: 'cancelled',
+          notes: `${po.notes || ''} [ملغي: ${reason}]`,
+          updatedAt: timestamp
+        };
+      }
+      return po;
+    }));
+    showToast('تم إلغاء أمر الشراء', 'info');
+  };
+
+  const updatePOExpectedDeliveryDate = (poId: string, newExpectedDate: string, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setEnterprisePurchaseOrders(prev => prev.map(po => {
+      if (po.id === poId) {
+        return {
+          ...po,
+          expectedDeliveryDate: newExpectedDate,
+          notes: `${po.notes || ''}\n[تحديث موعد التوريد المتوقع إلى ${newExpectedDate} - السبب: ${reason} (${timestamp})]`,
+          updatedAt: timestamp
+        };
+      }
+      return po;
+    }));
+    addAuditLog({
+      category: 'purchasing',
+      action: 'تحديث موعد التوريد المتوقع',
+      actionEn: 'PO Expected Delivery Date Updated',
+      target: poId,
+      details: `الموعد الجديد: ${newExpectedDate} | السبب: ${reason}`,
+      status: 'success'
+    });
+    showToast('✓ تم تحديث موعد التوريد المتوقع وتوثيق السبب بسجل المراجعة', 'success');
+  };
+
+  const recordProcurementReceipt = (
+    poId: string,
+    receiptData: {
+      grnNumber: string;
+      items: { itemId: string; receivedQty: number }[];
+      warehouseName: string;
+      notes?: string;
+    }
+  ) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setEnterprisePurchaseOrders(prev => prev.map(po => {
+      if (po.id === poId) {
+        let totalReceivedSoFar = 0;
+        let totalOrdered = 0;
+
+        const updatedItems = po.items.map(it => {
+          const matchingReceiptItem = receiptData.items.find(ri => ri.itemId === it.itemId || ri.itemId === it.itemCode);
+          const additionalQty = matchingReceiptItem ? matchingReceiptItem.receivedQty : 0;
+          const newReceived = it.receivedQuantity + additionalQty;
+          const remaining = Math.max(0, it.quantity - newReceived);
+
+          totalReceivedSoFar += newReceived;
+          totalOrdered += it.quantity;
+
+          return {
+            ...it,
+            receivedQuantity: newReceived,
+            remainingQuantity: remaining
+          };
+        });
+
+        const isFullyReceived = totalReceivedSoFar >= totalOrdered;
+        const newReceivingStatus: POReceivingStatus = isFullyReceived ? 'fully_received' : 'partially_received';
+        const newPOStatus: POStatus = isFullyReceived ? 'fully_received' : 'partially_received';
+
+        const totalItemsInReceipt = receiptData.items.reduce((s, i) => s + i.receivedQty, 0);
+
+        const newReceiptRef = {
+          grnId: `grn-${Date.now()}`,
+          grnNumber: receiptData.grnNumber,
+          grnDate: timestamp,
+          receivedQty: totalItemsInReceipt,
+          warehouseName: receiptData.warehouseName,
+          receivedByUserName: currentUser.fullName
+        };
+
+        return {
+          ...po,
+          items: updatedItems,
+          receivingStatus: newReceivingStatus,
+          status: newPOStatus,
+          actualDeliveryDate: isFullyReceived ? timestamp.substring(0, 10) : po.actualDeliveryDate,
+          receiptNotes: [...(po.receiptNotes || []), newReceiptRef],
+          updatedAt: timestamp
+        };
+      }
+      return po;
+    }));
+
+    showToast(`📦 تم توثيق الاستلام المخزني وتحديث رصيد أمر الشراء`, 'success');
+  };
+
+  const createProcurementSupplierReturn = (data: Partial<ProcurementSupplierReturn>): ProcurementSupplierReturn => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const returnNumber = data.returnNumber || `PRET-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const items = (data.items || []).map((it, idx) => ({
+      id: it.id || `preti-${Date.now()}-${idx}`,
+      itemId: it.itemId || 'item-1',
+      itemCode: it.itemCode || 'MAT-RAW',
+      itemName: it.itemName || 'خامة',
+      quantity: Number(it.quantity) || 1,
+      uom: it.uom || 'لوح',
+      unitCost: Number(it.unitCost) || 0,
+      totalCost: (Number(it.quantity) || 1) * (Number(it.unitCost) || 0),
+      defectReason: it.defectReason || 'تلف أو عيوب تصنيع'
+    }));
+
+    const totalRefundAmount = items.reduce((s, i) => s + i.totalCost, 0);
+
+    const newReturn: ProcurementSupplierReturn = {
+      id: data.id || `pret-${Date.now()}`,
+      returnNumber,
+      returnDate: data.returnDate || timestamp.substring(0, 10),
+      supplierId: data.supplierId || suppliers[0]?.id || 'sup-1',
+      supplierName: data.supplierName || suppliers[0]?.name || 'المورد',
+      purchaseOrderId: data.purchaseOrderId,
+      purchaseOrderNumber: data.purchaseOrderNumber,
+      goodsReceiptNoteId: data.goodsReceiptNoteId,
+      grnNumber: data.grnNumber,
+      branchId: data.branchId || 'branch-2',
+      branchName: data.branchName || 'المخزن المركزي - العاشر',
+      warehouseId: data.warehouseId || 'branch-2',
+      warehouseName: data.warehouseName || 'المخزن المركزي - العاشر',
+      items,
+      totalRefundAmount,
+      reason: data.reason || 'إرجاع خامات تالفة للمورد',
+      status: data.status || 'approved',
+      approvedByUserName: currentUser.fullName,
+      approvedDate: timestamp,
+      notes: data.notes,
+      attachments: data.attachments || [],
+      processedByUserName: currentUser.fullName,
+      createdAt: timestamp
+    };
+
+    setProcurementSupplierReturns(prev => [newReturn, ...prev]);
+
+    if (data.purchaseOrderId) {
+      setEnterprisePurchaseOrders(prev => prev.map(po => {
+        if (po.id === data.purchaseOrderId) {
+          const updatedItems = po.items.map(poi => {
+            const retItem = items.find(ri => ri.itemId === poi.itemId || ri.itemCode === poi.itemCode);
+            if (retItem) {
+              return { ...poi, returnedQuantity: poi.returnedQuantity + retItem.quantity };
+            }
+            return poi;
+          });
+          return { ...po, items: updatedItems, updatedAt: timestamp };
+        }
+        return po;
+      }));
+    }
+
+    addAuditLog({
+      category: 'purchasing',
+      action: 'إنشاء إذن مرتجع مشتريات للمورد',
+      actionEn: 'Procurement Supplier Return Created',
+      target: returnNumber,
+      details: `المورد: ${newReturn.supplierName} | القيمة المستردة: ${totalRefundAmount.toLocaleString()} ج.م | السبب: ${newReturn.reason}`,
+      status: 'warning'
+    });
+
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}`,
+        type: 'supplier_return',
+        title: `🔄 مرتجع مشتريات للمورد (${newReturn.supplierName})`,
+        message: `تم تسجيل إذن مرتجع خامات تالفة بقيمة ${totalRefundAmount.toLocaleString()} ج.م برقم (${returnNumber}).`,
+        timestamp,
+        isRead: false,
+        targetModule: 'proc_returns',
+        targetId: newReturn.id
+      },
+      ...prev
+    ]);
+
+    showToast(`✓ تم تسجيل إذن المرتجع (${returnNumber}) وإخطار المخزن والحسابات`, 'success');
+    return newReturn;
+  };
+
+  const addSupplierItemPrice = (data: Partial<SupplierItemPrice>): SupplierItemPrice => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const existingIndex = supplierPriceLists.findIndex(
+      sp => sp.supplierId === data.supplierId && (sp.itemId === data.itemId || sp.itemCode === data.itemCode)
+    );
+
+    if (existingIndex >= 0) {
+      const existing = supplierPriceLists[existingIndex];
+      const updated: SupplierItemPrice = {
+        ...existing,
+        unitPrice: Number(data.unitPrice) || existing.unitPrice,
+        currency: data.currency || existing.currency,
+        minQuantity: data.minQuantity !== undefined ? Number(data.minQuantity) : existing.minQuantity,
+        leadTimeDays: data.leadTimeDays !== undefined ? Number(data.leadTimeDays) : existing.leadTimeDays,
+        paymentTerms: data.paymentTerms || existing.paymentTerms,
+        effectiveDate: data.effectiveDate || timestamp.substring(0, 10),
+        notes: data.notes || existing.notes,
+        priceHistory: [
+          ...(existing.priceHistory || []),
+          {
+            price: Number(data.unitPrice) || existing.unitPrice,
+            effectiveDate: timestamp.substring(0, 10),
+            changedByUserName: currentUser.fullName,
+            reason: data.notes || 'تحديث سعر الصنف للمورد'
+          }
+        ]
+      };
+      setSupplierPriceLists(prev => prev.map((item, idx) => idx === existingIndex ? updated : item));
+      return updated;
+    } else {
+      const newPrice: SupplierItemPrice = {
+        id: data.id || `sp-${Date.now()}`,
+        supplierId: data.supplierId || suppliers[0]?.id || 'sup-1',
+        supplierName: data.supplierName || suppliers[0]?.name || 'المورد',
+        itemId: data.itemId || 'item-1',
+        itemCode: data.itemCode || 'MAT-RAW',
+        itemName: data.itemName || 'خامة',
+        itemCategory: data.itemCategory || 'mdf',
+        uom: data.uom || 'لوح',
+        unitPrice: Number(data.unitPrice) || 0,
+        currency: data.currency || 'EGP',
+        minQuantity: Number(data.minQuantity) || 1,
+        leadTimeDays: Number(data.leadTimeDays) || 5,
+        paymentTerms: data.paymentTerms || 'آجل 30 يوم',
+        effectiveDate: data.effectiveDate || timestamp.substring(0, 10),
+        isActive: true,
+        notes: data.notes,
+        priceHistory: [
+          {
+            price: Number(data.unitPrice) || 0,
+            effectiveDate: timestamp.substring(0, 10),
+            changedByUserName: currentUser.fullName,
+            reason: 'سعر التعاقد الأولي المعتمد'
+          }
+        ]
+      };
+      setSupplierPriceLists(prev => [newPrice, ...prev]);
+      return newPrice;
+    }
+  };
+
+  const updateSupplierItemPrice = (priceId: string, newPrice: number, reason: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setSupplierPriceLists(prev => prev.map(sp => {
+      if (sp.id === priceId) {
+        return {
+          ...sp,
+          unitPrice: Number(newPrice),
+          effectiveDate: timestamp.substring(0, 10),
+          priceHistory: [
+            ...(sp.priceHistory || []),
+            {
+              price: Number(newPrice),
+              effectiveDate: timestamp.substring(0, 10),
+              changedByUserName: currentUser.fullName,
+              reason
+            }
+          ]
+        };
+      }
+      return sp;
+    }));
+    showToast('✓ تم تحديث سعر الصنف وحفظ التغيير بسجل الأسعار التاريخية', 'success');
+  };
+
+  const runThreeWayMatching = (poId: string): ThreeWayMatchingRecord => {
+    const targetPO = enterprisePurchaseOrders.find(p => p.id === poId || p.poNumber === poId);
+    if (!targetPO) {
+      throw new Error('PO not found');
+    }
+
+    const matchRecord = ProcurementService.evaluateThreeWayMatch(targetPO, goodsReceiptNotes, vendorBills);
+    setThreeWayMatches(prev => {
+      const filtered = prev.filter(m => m.poId !== targetPO.id);
+      return [matchRecord, ...filtered];
+    });
+
+    if (matchRecord.overallStatus !== 'matched') {
+      setNotifications(prev => [
+        {
+          id: `notif-${Date.now()}`,
+          type: matchRecord.overallStatus === 'price_mismatch' ? 'price_mismatch' : 'qty_mismatch',
+          title: `⚠️ عدم تطابق في المطابقة الثلاثية (${targetPO.poNumber})`,
+          message: `تنبيه: تم رصد ${matchRecord.overallStatus === 'price_mismatch' ? 'فرق سعر بالفاتورة عن أمر الشراء' : 'فرق كمية مستلمة عن المفوترة'} لأمر الشراء ${targetPO.poNumber}.`,
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+          isRead: false,
+          targetModule: 'proc_reports',
+          targetId: targetPO.id
+        },
+        ...prev
+      ]);
+    }
+
+    return matchRecord;
+  };
+
+  const convertProposalToProcurement = (proposal: SupplyProposal) => {
+    const pr = createPRFromPlanningProposal(proposal);
+    showToast(`🛒 تم تمرير المقترح بنجاح وإنشاء طلب شراء رسمي بالمشتريات (${pr.prNumber})!`, 'success');
+  };
+
+  const convertProposalToProduction = (proposal: SupplyProposal) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const moNumber = `MO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    // Create Production Order
+    const newMO: ProductionOrder = {
+      id: `mo-${Date.now()}`,
+      productionNumber: moNumber,
+      orderId: proposal.demandIds[0] || 'ord-int',
+      orderNumber: `ORD-${moNumber}`,
+      projectId: proposal.projectIds[0] || 'prj-internal',
+      projectNumber: proposal.projectNumbers[0] || 'PRJ-INT',
+      customerId: 'cust-int',
+      customerName: proposal.customerNames[0] || 'إنتاج داخلي للمخزون',
+      customerPhone: '01000000000',
+      branchId: 'b-main',
+      branchName: 'المصنع الرئيسي',
+      workshopLocation: 'ورشة التصنيع الرئيسية',
+      startDate: proposal.suggestedOrderDate,
+      expectedCompletionDate: proposal.requiredDate,
+      assignedTeam: ['فريق القص والتصنيع'],
+      status: 'pending',
+      notes: `أمر تشغيل ناتج عن مقترح التخطيط (${proposal.proposalNumber})`,
+      completionPhotos: [],
+      materials: [],
+      totalEstimatedMaterialCost: proposal.estimatedTotalCostEGP || 0,
+      totalActualMaterialCost: 0,
+      materialVariance: 0,
+      createdDate: timestamp
+    };
+
+    setProductionOrders(prev => [newMO, ...prev]);
+
+    // Update Proposal Status
+    setSupplyProposals(prev => prev.map(p => {
+      if (p.id === proposal.id) {
+        return {
+          ...p,
+          status: 'converted_to_mo',
+          convertedDocumentRef: moNumber
+        };
+      }
+      return p;
+    }));
+
+    addAuditLog({
+      category: 'production',
+      action: 'تحويل مقترح إنتاج إلى أمر تشغيل بالمصنع',
+      actionEn: 'Planning Proposal Converted to Production Order',
+      target: moNumber,
+      details: `المنتج: ${proposal.itemName} (${proposal.quantity} ${proposal.uom})`,
+      status: 'success'
+    });
+
+    showToast(`🔨 تم تمرير المقترح بنجاح وإصدار أمر تشغيل صالة الإنتاج (${moNumber})!`, 'success');
+  };
+
+  const cancelSupplyProposal = (proposalId: string) => {
+    setSupplyProposals(prev => prev.map(p => {
+      if (p.id === proposalId) {
+        return { ...p, status: 'cancelled' };
+      }
+      return p;
+    }));
+    showToast(`تم إلغاء مقترح التوريد`, 'info');
+  };
+
+  const rescheduleProjectTimeline = (projectId: string, newDeliveryDate: string, reason: string) => {
+    setProjectReadinessList(prev => prev.map(p => {
+      if (p.projectId === projectId) {
+        const prodStart = new Date(new Date(newDeliveryDate).getTime() - 16 * 86400000).toISOString().substring(0, 10);
+        const prodEnd = new Date(new Date(newDeliveryDate).getTime() - 4 * 86400000).toISOString().substring(0, 10);
+
+        return {
+          ...p,
+          targetDeliveryDate: newDeliveryDate,
+          plannedManufacturingStartDate: prodStart,
+          plannedManufacturingEndDate: prodEnd
+        };
+      }
+      return p;
+    }));
+
+    addAuditLog({
+      category: 'production',
+      action: 'إعادة جدولة المواعيد الزمنية للمشروع',
+      actionEn: 'Project Timeline Rescheduled',
+      target: projectId,
+      details: `الموعد الجديد: ${newDeliveryDate} | السبب: ${reason}`,
+      status: 'success'
+    });
+
+    showToast(`📅 تم تحديث الجدولة العكسية للمشروع (${newDeliveryDate}) بنجاح`, 'success');
+  };
+
+  const updateWorkCenterCapacityHours = (workCenterId: string, additionalHours: number) => {
+    setWorkCenterCapacities(prev => prev.map(wc => {
+      if (wc.id === workCenterId) {
+        const newCap = wc.totalCapacityWeeklyHours + additionalHours;
+        const newRate = Math.round((wc.allocatedHours / newCap) * 100);
+        return {
+          ...wc,
+          totalCapacityWeeklyHours: newCap,
+          availableHours: Math.max(0, newCap - wc.allocatedHours),
+          utilizationPercentage: newRate,
+          loadStatus: newRate >= 90 ? 'overloaded' : newRate >= 75 ? 'near_capacity' : 'optimal'
+        };
+      }
+      return wc;
+    }));
+
+    showToast(`✓ تم زيادة سعة مركز العمل بمقدار (+${additionalHours} ساعة)`, 'success');
+  };
+
+  const batchGenerateProposalsFromShortages = () => {
+    const netReqs = calculateNetRequirements(planningDemands);
+    const createdProposals = generateSupplyProposalsFromShortages(netReqs, currentUser.fullName, currentUser.id);
+    if (createdProposals.length > 0) {
+      setSupplyProposals(prev => [...createdProposals, ...prev]);
+      showToast(`✨ تم توليد (${createdProposals.length}) مقترح توريد لكافة بنود العجز بالمصنع!`, 'success');
+    } else {
+      showToast('لا توجد بنود عجز تتطلب إصدار مقترحات جديدة', 'info');
+    }
   };
 
   const signContract = (contractId: string) => {
@@ -3937,6 +6602,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         projectQuotations,
         projectTimelineEvents,
         customContracts,
+        projectHandovers,
         paymentReceipts,
         selectedProjectId,
         portalCurrentCustomerId,
@@ -3996,6 +6662,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addCustomerActivity,
         addCustomerReminder,
         toggleReminderCompleted,
+        addCustomerDocument,
+        deleteCustomerDocument,
         addCampaign,
         updateCampaign,
         setSelectedOrderId,
@@ -4033,9 +6701,33 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateQuotationStatus,
         acceptQuotation,
         createContractFromQuotation,
+        verifyContractDeposit,
+        submitProjectHandover,
+        acceptProjectHandover,
         signContract,
         convertQuotationToOrder,
         loginAsPortalCustomer,
+        technicalProjects,
+        technicalSurveys,
+        technicalDesigns,
+        technicalBOMs,
+        technicalReleases,
+        engineeringChangeRequests,
+        selectedTechnicalProjectId,
+        setSelectedTechnicalProjectId,
+        acceptTechnicalHandover,
+        rejectTechnicalHandover,
+        saveTechnicalSurvey,
+        verifyTechnicalSurvey,
+        addTechnicalDesignRevision,
+        approveTechnicalDesign,
+        saveTechnicalBOM,
+        approveTechnicalBOM,
+        createBOMRevision,
+        releaseTechnicalPackageToPlanning,
+        createEngineeringChangeRequest,
+        approveEngineeringChangeRequest,
+        rejectEngineeringChangeRequest,
         setSelectedProductionOrderId,
         createProductionOrderFromCustomOrder,
         reserveProductionMaterials,
@@ -4066,7 +6758,61 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createMaterialRequisition,
         approveMaterialRequisition,
         rejectMaterialRequisition,
-        confirmWarehouseTransfer
+        confirmWarehouseTransfer,
+        planningDemands,
+        supplyProposals,
+        workCenterCapacities,
+        projectReadinessList,
+        planningRuns,
+        mpsWeeklyBuckets,
+        mpsItems,
+        planningAuditLogs,
+        executeMRPRun,
+        createSupplyProposal,
+        approveSupplyProposal,
+        convertProposalToProcurement,
+        convertProposalToProduction,
+        cancelSupplyProposal,
+        rescheduleProjectTimeline,
+        updateWorkCenterCapacityHours,
+        batchGenerateProposalsFromShortages,
+        purchaseRequests,
+        rfqs,
+        supplierQuotations,
+        enterprisePurchaseOrders,
+        supplierPriceLists,
+        procurementSupplierReturns,
+        threeWayMatches,
+        selectedPRId,
+        selectedRFQId,
+        selectedPOId,
+        setSelectedPRId,
+        setSelectedRFQId,
+        setSelectedPOId,
+        createPurchaseRequest,
+        updatePurchaseRequest,
+        approvePurchaseRequest,
+        rejectPurchaseRequest,
+        cancelPurchaseRequest,
+        createPRFromPlanningProposal,
+        createRFQ,
+        sendRFQToSuppliers,
+        cancelRFQ,
+        recordSupplierQuotation,
+        updateSupplierQuotation,
+        selectWinningQuotation,
+        createEnterprisePurchaseOrder,
+        approveEnterprisePurchaseOrder,
+        rejectEnterprisePurchaseOrder,
+        sendPOToSupplier,
+        revisePurchaseOrder,
+        cancelEnterprisePurchaseOrder,
+        updatePOExpectedDeliveryDate,
+        recordProcurementReceipt,
+        createProcurementSupplierReturn,
+        addSupplierItemPrice,
+        updateSupplierItemPrice,
+        runThreeWayMatching
       }}
     >
       {children}

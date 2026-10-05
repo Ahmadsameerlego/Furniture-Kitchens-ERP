@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منظومة Furniture Land ERP — العرض التنفيذي الشامل للنشاط الصناعي والتجاري</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900;1000&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'Tajawal', 'sans-serif'],
+            heading: ['Tajawal', 'Cairo', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              950: '#120A06',
+              900: '#1E110B',
+              800: '#2A170F',
+              700: '#3D2216',
+              600: '#5C3421',
+              gold: '#C87A38',
+              'gold-light': '#E59B58',
+              'gold-dark': '#A65E24',
+              accent: '#D97706',
+              surface: '#FAF7F2',
+              card: '#FFFFFF'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+    
+    @media print {
+      body {
+        background: #FAF7F2 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .slide-page {
+        page-break-after: always !important;
+        break-after: page !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        min-height: 100vh !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 2.2rem 3rem !important;
+      }
+      .interactive-only {
+        display: none !important;
+      }
+      .print-visible {
+        display: block !important;
+      }
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #0E0704;
+      color: #1E293B;
+      overflow-x: hidden;
+    }
+
+    .slide-page {
+      background: #FAF7F2;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      padding: 2.5rem 3.5rem;
+      border-bottom: 2px solid #E2D9CE;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(200, 122, 56, 0.15);
+      box-shadow: 0 10px 25px -5px rgba(30, 17, 11, 0.05), 0 8px 10px -6px rgba(30, 17, 11, 0.03);
+    }
+
+    .gradient-gold {
+      background: linear-gradient(135deg, #C87A38 0%, #E59B58 50%, #A65E24 100%);
+    }
+
+    .gradient-dark {
+      background: linear-gradient(145deg, #1E110B 0%, #2A170F 50%, #160B06 100%);
+    }
+
+    .gradient-tech {
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    }
+
+    .gold-border-glow {
+      border: 1px solid rgba(200, 122, 56, 0.4);
+      box-shadow: 0 0 15px rgba(200, 122, 56, 0.15);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1E110B;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #C87A38;
+      border-radius: 3px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #C87A38;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="selection:bg-brand-gold selection:text-white">
+
+  <!-- TOP FLOATING CONTROL BAR (Non-printable presentation controls) -->
+  <header class="no-print fixed top-0 left-0 right-0 z-50 bg-[#160B06]/95 backdrop-blur-md border-b border-brand-gold/30 px-6 py-3 flex items-center justify-between text-white shadow-2xl">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl gradient-gold flex items-center justify-center font-black text-white text-lg shadow-md">
+          FL
+        </div>
+        <div>
+          <h1 class="font-black text-sm text-amber-200 leading-tight">Furniture Land ERP</h1>
+          <p class="text-[10px] text-amber-400/80">Executive Presentation Deck</p>
+        </div>
+      </div>
+      <span class="text-xs bg-white/10 text-amber-300 px-3 py-1 rounded-full font-bold border border-amber-500/20">
+        عرض المالك ومدير المصنع 2026
+      </span>
+    </div>
+
+    <!-- Quick Navigation Jump -->
+    <div class="hidden lg:flex items-center gap-2 text-xs">
+      <button onclick="goToSlide(0)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">1. الغلاف</button>
+      <button onclick="goToSlide(1)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">2. الرؤية وROI</button>
+      <button onclick="goToSlide(2)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">3. المبيعات وCRM</button>
+      <button onclick="goToSlide(3)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">4. المكتب الفني</button>
+      <button onclick="goToSlide(4)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">5. التخطيط وMRP</button>
+      <button onclick="goToSlide(5)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">6. المشتريات</button>
+      <button onclick="goToSlide(6)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">7. التصنيع والورش</button>
+      <button onclick="goToSlide(7)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">8. المخازن</button>
+      <button onclick="goToSlide(8)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">9. الحسابات 360°</button>
+      <button onclick="goToSlide(9)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">10. الحوكمة والأمان</button>
+      <button onclick="goToSlide(10)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">11. حاسبة الوفورات</button>
+      <button onclick="goToSlide(11)" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-brand-gold text-slate-300 hover:text-white transition-all font-bold">12. خطة التحول</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <button onclick="togglePresenterMode()" id="presenterModeBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition-all shadow-md">
+        <span>🎬 نمط العرض (Slides)</span>
+      </button>
+      <button onclick="window.print()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-brand-gold hover:bg-amber-500 text-white font-black text-xs transition-all shadow-md">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        <span>طباعة / حفظ PDF</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTAINER FOR SLIDES -->
+  <main class="w-full pt-14 no-print-pt">
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 1: COVER & EXECUTIVE TITLE -->
+    <!-- ==================================================================== -->
+    <section id="slide-0" class="slide-page !bg-[#1E110B] text-white relative overflow-hidden flex flex-col justify-between">
+      <!-- Background Ambient Glow & Elements -->
+      <div class="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-brand-gold/15 blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-amber-600/10 blur-3xl pointer-events-none"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(#C87A38_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+
+      <!-- Top Header -->
+      <div class="flex items-center justify-between border-b border-white/10 pb-4 relative z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl gradient-gold flex items-center justify-center font-black text-white text-2xl shadow-xl border border-amber-300/30">
+            FL
+          </div>
+          <div>
+            <span class="text-xl font-black text-amber-200 tracking-wider">FURNITURE LAND</span>
+            <p class="text-xs text-amber-400/80 font-medium">مصانع ومعارض الأثاث والمطابخ الفاخرة</p>
+          </div>
+        </div>
+        <div class="text-left">
+          <span class="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Enterprise Industrial ERP Solution • 2026
+          </span>
+          <p class="text-[11px] text-slate-400 mt-1">مستند استراتيجي مخصص لـ: المالك ومدير المصنع</p>
+        </div>
+      </div>
+
+      <!-- Hero Title & Value Statement -->
+      <div class="my-auto py-8 relative z-10 max-w-5xl">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/5 border border-brand-gold/30 text-amber-300 text-xs font-bold mb-5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          المنظومة الرقمية الشاملة والمتكاملة 100% لإدارة النشاط الصناعي والتجاري
+        </div>
+        <h1 class="text-4xl lg:text-5xl font-black leading-tight mb-4 text-slate-100">
+          من أول <span class="text-transparent bg-clip-text gradient-gold">الفرصة البيعية والرفع المساحي</span>..<br/>
+          إلى تفجير الـ BOM، التخطيط MRP، خطوط الإنتاج والتركيبات..<br/>
+          وصولاً إلى <span class="text-amber-300">الرقابة المالية والقوائم الختامية 360°</span>
+        </h1>
+        <p class="text-base text-slate-300 font-normal leading-relaxed max-w-4xl">
+          نظام متقدم صُمم خصيصاً ليتوافق مع ديناميكية <strong class="text-amber-200">صناعة الأثاث والمطابخ التفصيل والجاهزة</strong>. يقضي تماماً على أخطاء التصنيع، يحسب احتياجات الخامات بدقة متناهية، يربط المعارض بالمصنع لحظياً، ويمنح الإدارة العليا تحكماً كاملاً في هوامش الربحية والسيولة.
+        </p>
+      </div>
+
+      <!-- Twin Executive Value Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
+        <!-- For The Owner -->
+        <div class="bg-gradient-to-r from-white/10 to-white/5 border border-amber-500/30 rounded-2xl p-4 flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center shrink-0 text-amber-300 font-black text-lg">
+            👑
+          </div>
+          <div>
+            <div class="flex items-center justify-between">
+              <h3 class="font-black text-amber-200 text-sm">ما يجنيه مالك الشركة (The Owner)</h3>
+              <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">التحكم المالي والنمو</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1 leading-normal">
+              حماية هوامش الأرباح من التسريب، كشف فوري للسيولة والشيكات الآجلة (PDC)، إغلاق الفواتير والمطابقة الثلاثية (3-Way Match)، ورقابة لحظية على مبيعات الفروع وأداء الورش.
+            </p>
+          </div>
+        </div>
+
+        <!-- For The Factory Manager -->
+        <div class="bg-gradient-to-r from-white/10 to-white/5 border border-blue-500/30 rounded-2xl p-4 flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-blue-300 font-black text-lg">
+            ⚙️
+          </div>
+          <div>
+            <div class="flex items-center justify-between">
+              <h3 class="font-black text-blue-200 text-sm">ما يجنيه مدير المصنع (Factory Manager)</h3>
+              <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">الكفاءة وصفر أخطاء</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1 leading-normal">
+              تفجير آلي لقوائم التقطيع (CutLists & CNC)، محرك MRP يمنع توقف الخطوط لنقص الخامات، كروت تشغيل رقمية للورش، ومحاصرة الهدر والرجيع (Scrap) لأقل من 8%.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-4 text-slate-400 text-[11px] relative z-10">
+        <span>Furniture Land Industrial ERP Ecosystem • Confidential Presentation</span>
+        <span class="font-mono text-amber-400 font-bold">شريحة 01 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 2: STRATEGIC IMPACT & ROI MATRIX -->
+    <!-- ==================================================================== -->
+    <section id="slide-1" class="slide-page">
+      <!-- Section Header -->
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">02</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">مصفوفة التأثير الاستراتيجي والعائد على الاستثمار (ROI Matrix)</h2>
+            <p class="text-xs text-slate-500">مقارنة الوضع الحالي والوضع المستهدف بالأرقام والمؤشرات التشغيلية والمالية</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+          Executive Impact Matrix
+        </span>
+      </div>
+
+      <!-- 4 Core Measurable Pillars -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 my-4">
+        <div class="glass-card rounded-2xl p-4 border-r-4 border-r-emerald-500">
+          <span class="text-xs font-bold text-slate-500">تقليل هدر الأخشاب والخامات</span>
+          <div class="text-2xl font-black text-emerald-700 mt-1">20% - 25% ↓</div>
+          <p class="text-[11px] text-slate-600 mt-1 leading-tight">بفضل حساب مساحات الألواح وتوليد الـ CutLists آلياً لماكينات الـ CNC والـ Beam Saw.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border-r-4 border-r-blue-500">
+          <span class="text-xs font-bold text-slate-500">سرعة دورة تنفيذ المشروع</span>
+          <div class="text-2xl font-black text-blue-700 mt-1">35% أسرع ⚡</div>
+          <p class="text-[11px] text-slate-600 mt-1 leading-tight">القضاء على بطء تسليم المكتب الفني وتوفير متطلبات الخامات عبر محرك MRP المسبق.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border-r-4 border-r-purple-500">
+          <span class="text-xs font-bold text-slate-500">دقة مطابقة المشتريات والمخازن</span>
+          <div class="text-2xl font-black text-purple-700 mt-1">100% مطابقة ✓</div>
+          <p class="text-[11px] text-slate-600 mt-1 leading-tight">منظومة 3-Way Matching الآلية بين أمر الشراء (PO) وإذن الإضافة (GRN) وفاتورة المورد.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border-r-4 border-r-amber-500">
+          <span class="text-xs font-bold text-slate-500">صفر نواقص أثناء التركيب</span>
+          <div class="text-2xl font-black text-amber-700 mt-1">Zero Missing 🎯</div>
+          <p class="text-[11px] text-slate-600 mt-1 leading-tight">تغليف باركود لكل يونت ومفصلة واكسسوار مع محضر تسليم رقمي يوقعه العميل بالموقع.</p>
+        </div>
+      </div>
+
+      <!-- Comparative Table: Owner vs Factory Manager -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
+        <!-- Owner Strategic Perspective -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+              <span class="p-1.5 rounded-lg bg-amber-100 text-amber-800 font-bold text-xs">🏢 منظور الإدارة العليا والمالك</span>
+              <span class="text-xs font-black text-slate-800">الحوكمة والتحكم في رأس المال</span>
+            </div>
+            <ul class="space-y-2 text-xs text-slate-700">
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold mt-0.5">✓</span>
+                <span><strong>كشف فوري لتكلفة المشروع الحقيقية:</strong> معرفة تكلفة الخامات المباشرة، الأجور، ومصروفات التشغيل ومقارنتها بسعر البيع لحظياً.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold mt-0.5">✓</span>
+                <span><strong>إدارة أوراق القبض والدفع (الشيكات PDC):</strong> تتبع دورة حياة الشيك من الاستلام إلى التحصيل أو الارتداد لتجنب التعثر المالي.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold mt-0.5">✓</span>
+                <span><strong>منع التلاعب وتسريب الإيرادات:</strong> مصفوفة صلاحيات دقيقة وسجل مراجعة (Audit Log) غير قابل للتعديل لكل حركة.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold mt-0.5">✓</span>
+                <span><strong>بوابة متابعة العميل (Customer Portal):</strong> بناء علامة تجارية فاخرة تمنح العميل تجربة اعتماد المخططات وتتبع التصنيع أونلاين.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="mt-3 p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-bold flex items-center justify-between">
+            <span>النتيجة النهائية للمالك:</span>
+            <span class="text-amber-800">تحسين التدفق النقدي + زيادة صافي الربح السنوي بما لا يقل عن 18%</span>
+          </div>
+        </div>
+
+        <!-- Factory Manager Operational Perspective -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+              <span class="p-1.5 rounded-lg bg-blue-100 text-blue-800 font-bold text-xs">🏭 منظور مدير المصنع والإنتاج</span>
+              <span class="text-xs font-black text-slate-800">الاستقرار التشغيلي وصفر اختناقات</span>
+            </div>
+            <ul class="space-y-2 text-xs text-slate-700">
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
+                <span><strong>محضر تسليم فني ملزم من المبيعات:</strong> لا يدخل أمر للمصنع بدون رفع مساحي معتمد واعتماد 3D كامل وتأكيد سداد العربون.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
+                <span><strong>حساب دقيق لاحتياجات الخامات (MRP Engine):</strong> كشف النواقص (MDF, HPL, مفصلات Blum, إكسسوارات) وحجزها قبل بدء القص.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
+                <span><strong>مراقبة طاقة الماكينات وعنق الزجاجة:</strong> قياس نسبة إشغال مناشير التقطيع، ماكينات الـ CNC، وشريط الحرف (Edge Bander).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold mt-0.5">✓</span>
+                <span><strong>أوامر التعديل الهندسي (ECR):</strong> توثيق أي تعديل يطلبه العميل مع حساب فارق التكلفة والوقت قبل الشروع فيه.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="mt-3 p-2.5 bg-blue-50 rounded-xl border border-blue-200 text-[11px] text-blue-900 font-bold flex items-center justify-between">
+            <span>النتيجة لمدير المصنع:</span>
+            <span class="text-blue-800">اختفاء العمل المكرر (Rework) + تسليم 95%+ من الطلبات في موعدها الدقيق</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Strategic ROI & Executive Alignment</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 02 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 3: CRM, SHOWROOMS & CUSTOM PROJECTS PIPELINE -->
+    <!-- ==================================================================== -->
+    <section id="slide-2" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">03</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">دورة المبيعات، الصالات ومشاريع التفصيل (Sales & CRM Pipeline)</h2>
+            <p class="text-xs text-slate-500">إدارة الفرص البيعية، المعاينات الميدانية، عروض الأسعار، وصالة الأثاث الجاهز (POS)</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
+          Module 01: Sales & CRM
+        </span>
+      </div>
+
+      <!-- 18-Step Project Lifecycle Flow -->
+      <div class="my-3 p-3 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-black text-slate-700 block mb-2">مسار مشروع المطبخ / الأثاث التفصيل الرقمي (18 مرحلة مترابطة آلياً):</span>
+        <div class="grid grid-cols-6 gap-2 text-[10px] text-center font-bold">
+          <div class="p-2 rounded-xl bg-blue-50 text-blue-800 border border-blue-200">1. فرصة بيعية Lead</div>
+          <div class="p-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">2. معاينة ورفع مساحي</div>
+          <div class="p-2 rounded-xl bg-purple-50 text-purple-800 border border-purple-200">3. تصميم 3D وتعديلات</div>
+          <div class="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">4. اعتماد العميل للـ 3D</div>
+          <div class="p-2 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200">5. عرض السعر المالي</div>
+          <div class="p-2 rounded-xl bg-teal-50 text-teal-800 border border-teal-200">6. توقيع العقد والعربون</div>
+        </div>
+        <div class="grid grid-cols-6 gap-2 text-[10px] text-center font-bold mt-2">
+          <div class="p-2 rounded-xl bg-[#361D13] text-amber-300 border border-amber-500">7. تسليم المكتب الفني</div>
+          <div class="p-2 rounded-xl bg-orange-50 text-orange-800 border border-orange-200">8. تفجير الـ BOM والقص</div>
+          <div class="p-2 rounded-xl bg-cyan-50 text-cyan-800 border border-cyan-200">9. فحص تخطيط MRP</div>
+          <div class="p-2 rounded-xl bg-purple-50 text-purple-800 border border-purple-200">10. أوامر تشغيل المصنع</div>
+          <div class="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">11. الفحص والجودة QC</div>
+          <div class="p-2 rounded-xl bg-emerald-700 text-white font-black shadow-sm">12. التركيب والتسليم النهائي</div>
+        </div>
+      </div>
+
+      <!-- 3 Key Columns -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+        <!-- CRM & Lead Tracking -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-100">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+              <h3 class="font-black text-xs text-slate-800">إدارة علاقات العملاء (CRM)</h3>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>منع تكرار العملاء:</strong> خوارزمية فحص رقم الموبايل المصري تمنع تسجيل نفس العميل مرتين لأكثر من بائع.</li>
+              <li>• <strong>سجل المتابعات التفاعلي:</strong> توثيق المكالمات، الزيارات، أسباب الرفض ومعدلات التحويل (Conversion Rate).</li>
+              <li>• <strong>توزيع المهام والمعاينات:</strong> جدولة مواعيد مهندسي المعاينة على الخريطة ومتابعة إنجازها.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-500 font-medium">
+            تكامل كامل مع إعلانات السوشيال ميديا وحملات التسويق لكل فرع.
+          </div>
+        </div>
+
+        <!-- POS & Ready Showroom -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-100">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <h3 class="font-black text-xs text-slate-800">صالة العرض والأثاث الجاهز (POS)</h3>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>إصدار فواتير الكاش والتقسيط:</strong> إصدار فوري لأوامر بيع الأثاث الجاهز من الصالة أو مخزن المعرض.</li>
+              <li>• <strong>حجز البضاعة الفوري:</strong> تحويل حالة القطعة المباعة إلى "محجوزة" لمنع بيعها من معرض آخر.</li>
+              <li>• <strong>تتبع الشحن والتسليم المباشر:</strong> التنسيق التلقائي مع أسطول سيارات النقل وتسليمات المعرض.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 font-bold">
+            دعم كامل للفواتير الضريبية (VAT 14%) وطرق الدفع المتعددة (فيزا، كاش، شيك).
+          </div>
+        </div>
+
+        <!-- Customer Self-Service Portal -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-100">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <h3 class="font-black text-xs text-slate-800">بوابة العميل الرقمية (Customer Portal)</h3>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>رابط خاص لكل عميل:</strong> يتابع من خلاله مشروعه من الموبايل بدون الحاجة للاتصال المتكرر.</li>
+              <li>• <strong>اعتماد التصاميم 3D أونلاين:</strong> إمكانية تكبير صور التصميم، كتابة الملاحظات، أو الاعتماد بضغطة زر.</li>
+              <li>• <strong>جدول الدفعات والمستندات:</strong> عرض العقود، عروض الأسعار، والدفعات المسددة والمتبقية بشفافية.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-amber-50 rounded-xl text-[11px] text-amber-800 font-bold">
+            ميزة تنافسية كبرى تميز Furniture Land كبراند راقٍ وعصري.
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Sales, CRM & Customer Experience</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 03 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 4: TECHNICAL OFFICE & PARAMETRIC BOM EXPLOSION -->
+    <!-- ==================================================================== -->
+    <section id="slide-3" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">04</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">المكتب الفني، الرفع الهندسي وتفجير الـ BOM (Technical Office)</h2>
+            <p class="text-xs text-slate-500">حلقة الوصل الهندسية لتحويل التصميم إلى قوائم تقطيع CutList وكود تشغيل CNC دقيق</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-900 border border-purple-300">
+          Module 02: Engineering & BOM
+        </span>
+      </div>
+
+      <!-- 4 Technical Core Capabilities -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 my-3">
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-amber-700 font-black text-xs block mb-1">1. الرفع المساحي الميداني</span>
+          <p class="text-[11px] text-slate-600">تسجيل مقاسات الجدران، ارتفاعات السقف، نقاط الكهرباء، الصرف الصحي ومخارج الغاز بدقة ليزرية.</p>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-purple-700 font-black text-xs block mb-1">2. تفجير الـ BOM للوحدات</span>
+          <p class="text-[11px] text-slate-600">تفكيك كل يونت (سفلي، علوي، دريسنج) إلى أجزائه (أجناب، قيعان، ظهور، أرفف، درف) بأبعادها المليمترية.</p>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-blue-700 font-black text-xs block mb-1">3. تصدير OptiCut & CNC</span>
+          <p class="text-[11px] text-slate-600">توليد ملفات CSV جاهزة للتحميل الفوري على برامج الـ Nesting وماكينات القص والتخريم الآلية.</p>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-rose-700 font-black text-xs block mb-1">4. أوامر التعديل (ECR)</span>
+          <p class="text-[11px] text-slate-600">إدارة هندسية محكمة لأي تعديل بعد توقيع العقد، مع تقييم أثره المالي وتأخير المواعيد تلقائياً.</p>
+        </div>
+      </div>
+
+      <!-- Detailed Breakdown Box: Unit Cutting List & Yield Calculation -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
+        <!-- Cutting List Parameters -->
+        <div class="lg:col-span-2 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">مواصفات قائمة التقطيع والشريط (Cutting List Data Structure)</h3>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">جاهز للربط مع الماكينات</span>
+            </div>
+            
+            <div class="overflow-x-auto text-[11px]">
+              <table class="w-full text-right border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                    <th class="p-1.5 font-bold">الجزء (Part)</th>
+                    <th class="p-1.5 font-bold">الخامة</th>
+                    <th class="p-1.5 font-bold">الطول × العرض (مم)</th>
+                    <th class="p-1.5 font-bold">السمك</th>
+                    <th class="p-1.5 font-bold">الكمية</th>
+                    <th class="p-1.5 font-bold">اتجاه الثمرة</th>
+                    <th class="p-1.5 font-bold">شريط الحرف (Edge)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">جنب يمين وحدة حوض</td>
+                    <td class="p-1.5">MDF 18mm مقاوم رطوبة</td>
+                    <td class="p-1.5 font-mono">720 × 560</td>
+                    <td class="p-1.5 font-mono">18 مم</td>
+                    <td class="p-1.5 font-mono">2</td>
+                    <td class="p-1.5">طولي (Length)</td>
+                    <td class="p-1.5"><span class="text-amber-700 font-bold">2mm PVC أمامي</span></td>
+                  </tr>
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">قاع وحدة حوض</td>
+                    <td class="p-1.5">MDF 18mm مقاوم رطوبة</td>
+                    <td class="p-1.5 font-mono">864 × 560</td>
+                    <td class="p-1.5 font-mono">18 مم</td>
+                    <td class="p-1.5 font-mono">1</td>
+                    <td class="p-1.5">طولي (Length)</td>
+                    <td class="p-1.5"><span class="text-amber-700 font-bold">2mm PVC أمامي</span></td>
+                  </tr>
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">درفة خارجية علوية</td>
+                    <td class="p-1.5">HPL Glossy تركي</td>
+                    <td class="p-1.5 font-mono">715 × 445</td>
+                    <td class="p-1.5 font-mono">18 مم</td>
+                    <td class="p-1.5 font-mono">2</td>
+                    <td class="p-1.5">طولي (Length)</td>
+                    <td class="p-1.5"><span class="text-purple-700 font-bold">1mm تطابق لون 4 جهات</span></td>
+                  </tr>
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">ظهر الوحدة</td>
+                    <td class="p-1.5">MDF 6mm أبيض وجه واحد</td>
+                    <td class="p-1.5 font-mono">700 × 880</td>
+                    <td class="p-1.5 font-mono">6 مم</td>
+                    <td class="p-1.5 font-mono">1</td>
+                    <td class="p-1.5">بدون</td>
+                    <td class="p-1.5 text-slate-400">بدون شريط</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="mt-2 p-2 bg-slate-50 rounded-xl flex items-center justify-between text-[11px] text-slate-600">
+            <span>✓ التوليد يشمل كود التخريم لماكينات CNC (Drilling Pattern / Hinge Holes)</span>
+            <span class="font-bold text-brand-gold">CSV / DXF Compatible</span>
+          </div>
+        </div>
+
+        <!-- Material Yield & Hardware Summary -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-100">
+              <span class="p-1 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">حساب الهدر والألواح</span>
+              <h3 class="font-black text-xs text-slate-800">حساب كفاءة استغلال الألواح</h3>
+            </div>
+            
+            <div class="space-y-2 text-xs">
+              <div class="p-2 bg-amber-50 rounded-xl border border-amber-200">
+                <div class="flex justify-between font-bold text-amber-900">
+                  <span>MDF 18mm أخضر:</span>
+                  <span>4 ألواح (1.22×2.44)</span>
+                </div>
+                <div class="text-[10px] text-amber-700 mt-0.5">المساحة الصافية: 9.8 م² • نسبة الهدر: 8.5% فقط</div>
+              </div>
+
+              <div class="p-2 bg-purple-50 rounded-xl border border-purple-200">
+                <div class="flex justify-between font-bold text-purple-900">
+                  <span>HPL تركي درف:</span>
+                  <span>2 لوح</span>
+                </div>
+                <div class="text-[10px] text-purple-700 mt-0.5">المساحة الصافية: 4.6 م² • نسبة الهدر: 9.1%</div>
+              </div>
+
+              <div class="p-2 bg-blue-50 rounded-xl border border-blue-200">
+                <div class="flex justify-between font-bold text-blue-900">
+                  <span>إكسسوارات Blum نمساوية:</span>
+                  <span>14 مفصلة + 6 مجاري سوفت</span>
+                </div>
+                <div class="text-[10px] text-blue-700 mt-0.5">حصر آلي دقيق 100% بدون أي نسيان</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-2 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 font-bold text-center">
+            إفراج فني مشروط: لا يتم التحويل للتخطيط إلا بعد اعتماد الـ BOM بنسبة 100%
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Technical Office & Engineering Excellence</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 04 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 5: PLANNING & MRP ENGINE -->
+    <!-- ==================================================================== -->
+    <section id="slide-4" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">05</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">التخطيط المتقدم وسلاسل الإمداد ومحرك الـ MRP (Planning & MRP)</h2>
+            <p class="text-xs text-slate-500">حساب صافي الاحتياجات، مصفوفة النواقص، سعة مراكز العمل، والجدولة العكسية</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+          Module 03: MRP & Planning
+        </span>
+      </div>
+
+      <!-- MRP Engine Mathematical Formula Banner -->
+      <div class="my-3 p-3 bg-gradient-to-r from-slate-900 to-[#1E110B] text-white rounded-2xl border border-brand-gold/30 shadow-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-brand-gold text-white font-black text-[10px]">معادلة الـ MRP الآلية</span>
+            <span class="text-xs text-amber-200 font-bold">محرك حساب صافي الاحتياج لخامات الأثاث والمطابخ:</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">Net Requirements Calculation Algorithm</span>
+        </div>
+        <div class="mt-2 text-center font-mono text-sm md:text-base font-black text-amber-300 tracking-wide bg-white/5 py-2 rounded-xl border border-white/10">
+          [الاحتياج الإجمالي Gross] - ([المخزون الحر Free Stock] + [أوامر الشراء القادمة Incoming POs]) = <span class="text-rose-400">صافي العجز المطلوب شراؤه أو تصنيعه</span>
+        </div>
+      </div>
+
+      <!-- 3 Core Planning Features -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+        <!-- Material Shortage Matrix -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+              <h3 class="font-black text-xs text-slate-800">مصفوفة عجز الخامات (Shortages Matrix)</h3>
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">تصنيف فوري لحالة كل صنف قبل إطلاق أمر التشغيل:</p>
+            <div class="space-y-1.5 text-xs">
+              <div class="p-2 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 flex justify-between">
+                <span>🔴 عجز حرج (Critical Shortage):</span>
+                <span class="font-bold">يمنع بدء القص</span>
+              </div>
+              <div class="p-2 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 flex justify-between">
+                <span>🟡 خطر تأخر المورد (Date Risk):</span>
+                <span class="font-bold">تاريخ التوريد بعد الحاجة</span>
+              </div>
+              <div class="p-2 bg-orange-50 border border-orange-200 rounded-xl text-orange-900 flex justify-between">
+                <span>🟠 كسر حد الأمان (Safety Breach):</span>
+                <span class="font-bold">يطلب تعويض تلقائي</span>
+              </div>
+              <div class="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 flex justify-between">
+                <span>🟢 مغطى ومتاح (Fully Covered):</span>
+                <span class="font-bold">جاهز للصرف للورشة</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-600 font-bold">
+            توليد تلقائي لمقترحات الشراء (PR) ومقترحات التشغيل (MO) بضغطة زر واحدة.
+          </div>
+        </div>
+
+        <!-- Work Centers Capacity & Bottleneck -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+              <h3 class="font-black text-xs text-slate-800">طاقة وسعة مراكز العمل (Capacity Load)</h3>
+              <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">مراقبة الورش</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">رصد نسبة التحميل لكل خط إنتاج لمنع تراكم الشغل:</p>
+            
+            <div class="space-y-2 text-xs">
+              <div>
+                <div class="flex justify-between font-bold text-slate-700 mb-1">
+                  <span>منشار القص والـ Beam Saw:</span>
+                  <span class="text-emerald-700">65% (آمن)</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full" style="width: 65%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-bold text-slate-700 mb-1">
+                  <span>ماكينة الـ CNC والتخريم:</span>
+                  <span class="text-amber-700">82% (إشغال مرتفع)</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="bg-amber-500 h-full" style="width: 82%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-bold text-slate-700 mb-1">
+                  <span>ماكينة شريط الحرف (Edge Bander):</span>
+                  <span class="text-rose-700">92% (عنق زجاجة ⚠️)</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="bg-rose-500 h-full" style="width: 92%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-bold text-slate-700 mb-1">
+                  <span>قسم التجميع والتركيب المبدئي:</span>
+                  <span class="text-emerald-700">55% (متاح)</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full" style="width: 55%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-2 bg-blue-50 rounded-xl text-[11px] text-blue-900 font-bold">
+            يوصي النظام تلقائياً بتشغيل وردية إضافية لماكينات عنق الزجاجة لتجنب التأخير.
+          </div>
+        </div>
+
+        <!-- Backward Scheduling Gantt -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+              <h3 class="font-black text-xs text-slate-800">الجدولة العكسية (Backward Gantt)</h3>
+              <span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">حساب التواريخ</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">النظام يبدأ من <strong>تاريخ التسليم للعميل</strong> ويحسب تواريخ كل مرحلة للخلف:</p>
+
+            <ul class="space-y-1.5 text-xs text-slate-700">
+              <li class="flex items-center justify-between p-1.5 bg-slate-50 rounded-lg">
+                <span>1. موعد تركيب العميل:</span>
+                <span class="font-bold font-mono text-slate-900">25 أكتوبر</span>
+              </li>
+              <li class="flex items-center justify-between p-1.5 bg-slate-50 rounded-lg">
+                <span>2. انتهاء التجميع والتغليف:</span>
+                <span class="font-bold font-mono text-slate-900">22 أكتوبر (-3 أيام)</span>
+              </li>
+              <li class="flex items-center justify-between p-1.5 bg-slate-50 rounded-lg">
+                <span>3. انتهاء القص والـ CNC:</span>
+                <span class="font-bold font-mono text-slate-900">18 أكتوبر (-4 أيام)</span>
+              </li>
+              <li class="flex items-center justify-between p-1.5 bg-slate-50 rounded-lg">
+                <span>4. أقصى موعد لتوريد الخامات:</span>
+                <span class="font-bold font-mono text-rose-700">12 أكتوبر (-6 أيام)</span>
+              </li>
+              <li class="flex items-center justify-between p-1.5 bg-amber-50 rounded-lg text-amber-900 font-bold">
+                <span>5. تاريخ إصدار أمر الشراء (PO):</span>
+                <span class="font-mono">05 أكتوبر (اليوم)</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="p-2 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 font-bold text-center">
+            ضمان تسليم المشاريع في موعدها الدقيق بنسبة التزام تتجاوز 95%
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Advanced MRP & Capacity Planning</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 05 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 6: PROCUREMENT & 3-WAY MATCHING -->
+    <!-- ==================================================================== -->
+    <section id="slide-5" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">06</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">المشتريات، الموردين والرقابة الثلاثية (Procurement & 3-Way Matching)</h2>
+            <p class="text-xs text-slate-500">طلبات الشراء PR، استدراج عروض الأسعار RFQ، أوامر الشراء PO، ومطابقة GR/IR المحاسبية</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+          Module 04: Procurement Sourcing
+        </span>
+      </div>
+
+      <!-- 3-Way Matching Workflow Visual -->
+      <div class="my-3 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-black text-xs text-slate-800">منظومة المطابقة الثلاثية الذكية (Automated 3-Way Match Security Protocol)</h3>
+          <span class="text-[10px] bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full font-bold">حماية ضد الفواتير الوهمية وفروق الأسعار</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-center">
+          <div class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900">
+            <span class="text-[10px] font-bold block text-blue-600">المستند الأول</span>
+            <div class="text-sm font-black mt-0.5">أمر الشراء المعتمد (PO)</div>
+            <p class="text-[10px] text-slate-600 mt-1">الكميات والأسعار المتفق عليها رسمياً مع المورد</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+            <span class="text-[10px] font-bold block text-amber-600">المستند الثاني</span>
+            <div class="text-sm font-black mt-0.5">إذن الإضافة الفعلي (GRN)</div>
+            <p class="text-[10px] text-slate-600 mt-1">الكميات المستلمة فعلياً بالمخزن بعد الفحص والجودة</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-900">
+            <span class="text-[10px] font-bold block text-purple-600">المستند الثالث</span>
+            <div class="text-sm font-black mt-0.5">فاتورة المورد (Vendor Bill)</div>
+            <p class="text-[10px] text-slate-600 mt-1">المطالبة المالية المقدمة من المورد للحسابات</p>
+          </div>
+        </div>
+
+        <div class="mt-3 p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-950 font-bold">
+          <span>✓ قرار الصرف المالي الآلي:</span>
+          <span class="text-emerald-800">لا يتم ترحيل الفاتورة ولا صرف أي شيك إلا إذا تطابقت الـ 3 مستندات بنسبة 100% بدون أي تباين في السعر أو الكمية</span>
+        </div>
+      </div>
+
+      <!-- 2 Supporting Pillars: RFQ Comparison & Price History -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+        <!-- RFQ Comparison Matrix -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">مصفوفة مقارنة عروض الأسعار (RFQ Comparison)</h3>
+              <span class="text-[10px] bg-brand-gold text-white px-2 py-0.5 rounded font-bold">اختيار أفضل مورد</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">مقارنة تلقائية متعددة المعايير لاختيار العرض الأنسب:</p>
+            <ul class="space-y-1.5 text-xs text-slate-700">
+              <li class="flex items-start gap-2">
+                <span class="text-brand-gold font-bold">1.</span>
+                <span><strong>مقارنة سعر الوحدة والخصم:</strong> رصد السعر الصافي بعد الخصم وضريبة الـ VAT.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-brand-gold font-bold">2.</span>
+                <span><strong>مدة التوريد (Lead Time):</strong> تقييم سرعة المورد وتأثيرها على خطة إنتاج المصنع.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-brand-gold font-bold">3.</span>
+                <span><strong>شروط وتسهيلات السداد:</strong> (نقدي، آجل 30 يوم، شيكات مقسطة).</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-600 font-bold">
+            تحويل العرض الفائز إلى أمر شراء رسمي (Enterprise PO) بضغطة زر واحدة.
+          </div>
+        </div>
+
+        <!-- Supplier Price History & Intelligence -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">سجل وتاريخ أسعار الموردين (Price Intelligence)</h3>
+              <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">تتبع تقلبات الأسعار</span>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">أرشيف كامل لتاريخ أسعار الخامات (ألواح، مفصلات، رخام، دهانات):</p>
+            <ul class="space-y-1.5 text-xs text-slate-700">
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold">✓</span>
+                <span><strong>تنبيهات ارتفاع الأسعار:</strong> تحذير مسؤول المشتريات إذا زاد سعر الخامة عن آخر شراء.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold">✓</span>
+                <span><strong>تقييم أداء الموردين (Vendor Rating):</strong> حساب معدل الالتزام بالمواعيد وجودة الخامات المستلمة.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold">✓</span>
+                <span><strong>إدارة مرتجعات المشتريات:</strong> توثيق خروج الخامات المرفوضة وإصدار إشعار الخصم المالي المدين.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-2 bg-blue-50 rounded-xl text-[11px] text-blue-900 font-bold">
+            وفر سنوي مباشر في فاتورة المشتريات بنسبة 6% إلى 10% بفضل التفاوض المبني على بيانات دقيقة.
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Procurement Governance & 3-Way Matching</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 06 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 7: MANUFACTURING & SHOP FLOOR EXECUTION -->
+    <!-- ==================================================================== -->
+    <section id="slide-6" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">07</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">التصنيع، خطوط الإنتاج والتركيبات بالموقع (Shop Floor & Field Ops)</h2>
+            <p class="text-xs text-slate-500">كروت التشغيل الرقمية، مراحل الورش، فحص الجودة، وأسطول التركيب والتسليم الميداني</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-900 border border-purple-300">
+          Module 05: Manufacturing & Field Ops
+        </span>
+      </div>
+
+      <!-- Workshop Stages & Kanban Progression -->
+      <div class="my-3 p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-black text-slate-700 block mb-2">تتبع مراحل الإنتاج الرقمية داخل صالة المصنع (Workshop Kanban Stages):</span>
+        <div class="grid grid-cols-6 gap-2 text-[11px] text-center font-bold">
+          <div class="p-2.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-300">
+            <span class="block text-[9px] text-slate-500">المرحلة 1</span>
+            1. منشار القص والتقطيع
+          </div>
+          <div class="p-2.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200">
+            <span class="block text-[9px] text-purple-500">المرحلة 2</span>
+            2. ماكينات الـ CNC والتخريم
+          </div>
+          <div class="p-2.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+            <span class="block text-[9px] text-amber-500">المرحلة 3</span>
+            3. ماكينة شريط الحرف
+          </div>
+          <div class="p-2.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-200">
+            <span class="block text-[9px] text-blue-500">المرحلة 4</span>
+            4. التجميع المبدئي والتجهيز
+          </div>
+          <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200">
+            <span class="block text-[9px] text-indigo-500">المرحلة 5</span>
+            5. التشطيب والدهان / الرخام
+          </div>
+          <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <span class="block text-[9px] text-emerald-500">المرحلة 6</span>
+            6. فحص الجودة والتغليف
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Operational Capabilities -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+        <!-- Digital Workshop Job Card -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">كارت التشغيل الرقمي (Job Card)</h3>
+              <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">لكل ورشة</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>مرفقات كاملة:</strong> طباعة أو عرض كارت التشغيل متضمناً قائمة التقطيع، أبعاد الشريط، ومخطط الـ 3D التوضيحي.</li>
+              <li>• <strong>حجز وصرف الخامات آلياً:</strong> يخصم الخامات (MDF، مفصلات) من مخزن الخام بمجرد بدء أمر الشغل.</li>
+              <li>• <strong>تسجيل الفاقد والهدر:</strong> رصد أي قطعة تلفت أثناء التشغيل وسبب التلف لتحميل التكلفة بدقة.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-600 font-bold">
+            كل فني ومسؤول ورشة يعرف التارجت اليومي المطلوب منه بدقة.
+          </div>
+        </div>
+
+        <!-- Quality Control & Packaging -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">بوابات الجودة والتغليف (QC & Pack)</h3>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">فحص صارم</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>قائمة فحص الجودة (Checklist):</strong> التأكد من سلامة الزوايا، جودة الشريط، ونعومة حركة المفصلات والأدراج.</li>
+              <li>• <strong>توليد باركود لكل يونت وكرتونة:</strong> لصق استيكر باركود يوضح رقم المشروع، رقم الوحدة، ومحتويات الكرتونة.</li>
+              <li>• <strong>منع خروج الطلب الناقص:</strong> النظام يمنع إصدار إذن خروج إلا بعد اكتمال جميع وحدات المشروع بنسبة 100%.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 font-bold">
+            صفر قطع مفقودة أو تالفة أثناء النقل والتحميل.
+          </div>
+        </div>
+
+        <!-- Installation & Site Delivery -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">التركيبات والتسليم بالموقع (Field Ops)</h3>
+              <span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">تسليم العميل</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>جدولة أطقم التركيب:</strong> تخصيص فنيي وسيارات التركيب ومتابعة موقعهم عبر خريطة المواعيد.</li>
+              <li>• <strong>محضر استلام إلكتروني:</strong> توقيع العميل بالموقع على التابلت/الموبايل بعد انتهاء التركيب والمعاينة.</li>
+              <li>• <strong>إقفال المشروع مالياً:</strong> تحويل حالة المشروع إلى "مكتمل" وإصدار فاتورة التسوية والمطالبة بالدفعة الأخيرة.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-purple-50 rounded-xl text-[11px] text-purple-900 font-bold">
+            إشعار فوري للإدارة والحسابات بانتهاء التركيب وسداد الدفعة النهائية.
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Factory Production & Field Installation</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 07 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 8: INVENTORY & MULTI-WAREHOUSE MANAGEMENT -->
+    <!-- ==================================================================== -->
+    <section id="slide-7" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">08</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">المخازن والمستودعات المتعددة وتقييم المخزون (Inventory Master)</h2>
+            <p class="text-xs text-slate-500">كروت الأصناف، أذونات الإضافة والصرف، كارت الصنف وسجل الحركات، والجرد الدوري</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+          Module 06: Inventory Management
+        </span>
+      </div>
+
+      <!-- Multi-Warehouse Structure -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 my-3">
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-black text-slate-800 mb-1">
+            <span>مخزن الخامات والأخشاب</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-mono">WH-RAW</span>
+          </div>
+          <p class="text-[11px] text-slate-500">ألواح MDF، HPL، قشرة طبيعية، خشب زان وموسكي بالأمتار المكعبة والألواح.</p>
+        </div>
+
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-black text-slate-800 mb-1">
+            <span>مخزن الإكسسوار والمفصلات</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-mono">WH-ACC</span>
+          </div>
+          <p class="text-[11px] text-slate-500">مفصلات سوفت، مجاري أدراج، مقابض، ليد بروفايل، ومسامير بالعدد والطقم.</p>
+        </div>
+
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-black text-slate-800 mb-1">
+            <span>مخازن صالات العرض</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-mono">WH-SHOWROOM</span>
+          </div>
+          <p class="text-[11px] text-slate-500">قطع الأثاث الجاهز المتاحة للعرض والبيع الفوري بمعارض القاهرة والشيخ زايد.</p>
+        </div>
+
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-black text-slate-800 mb-1">
+            <span>مخزن السكراب والفضلات</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-mono">WH-SCRAP</span>
+          </div>
+          <p class="text-[11px] text-slate-500">فضلات الألواح الصالحة للاستخدام في الوحدات الصغيرة أو البيع كخردة.</p>
+        </div>
+      </div>
+
+      <!-- 3 Core Inventory Engine Columns -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+        <!-- Stock Ledger & Movement Cards -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">كارت الصنف وسجل الحركات (Stock Ledger)</h3>
+              <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">تتبع 100%</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>تتبع تاريخي لكل قطعة:</strong> معرفة مصدر كل حركة (استلام شراء، صرف تشغيل لطلب معين، تحويل، أو تسوية).</li>
+              <li>• <strong>الرصيد المحجوز vs الرصيد الحر:</strong> التمييز اللحظي بين الخامات الموجودة بالمخزن ولكنها محجوزة لمشاريع مفتوحة.</li>
+              <li>• <strong>تنبيهات حد الطلب والأمان:</strong> إشعار آلي قبل نفاد أي صنف رئيسي لإعادة الشراء في الوقت المناسب.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-600 font-bold">
+            تقييم المخزون المستمر بطريقة المتوسط المرجح (Weighted Average Cost).
+          </div>
+        </div>
+
+        <!-- GRN & GIN Operations -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">أذونات الإضافة والصرف (GRN & GIN)</h3>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">مستندي ورقمي</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>إذن الإضافة (GRN):</strong> مرتبط حتماً برقم أمر الشراء (PO)، مع تسجيل الكمية المقبولة والمرفوضة ورقم الباتش.</li>
+              <li>• <strong>إذن الصرف (GIN/MRN):</strong> لا يتم الصرف إلا بكود كارت تشغيل أو أمر صيانة معتمد من مدير المصنع.</li>
+              <li>• <strong>التحويلات بين الفروع:</strong> دورة تحويل محكمة (طلب تحويل -> شحن -> تأكيد استلام) تمنع فقدان أي بضاعة في الطريق.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 font-bold">
+            إلغاء الصرف العشوائي بالورش ووقف تسريب الإكسسوارات تماماً.
+          </div>
+        </div>
+
+        <!-- Stocktaking & Inventory Adjustments -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">الجرد الدوري والتسويات (Stocktaking)</h3>
+              <span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">مطابقة فعلية</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>جرد دوري بدون تعطيل العمل:</strong> إمكانية جرد مخزن معين أو فئة أصناف محددة بالباركود.</li>
+              <li>• <strong>كشف فروق الجرد آلياً:</strong> حساب الفارق بين الرصيد الدفتري والفعلي وتحديد نسبة التباين.</li>
+              <li>• <strong>التسويات الجردية والقيود:</strong> ترحيل قيود العجز أو الزيادة تلقائياً إلى حسابات الأرباح والخسائر بعد اعتماد الإدارة.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-purple-50 rounded-xl text-[11px] text-purple-900 font-bold">
+            مطابقة المخزون الدفتري مع الواقع الفعلي بنسبة تتجاوز 99.5%.
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Multi-Warehouse Governance & Inventory Control</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 08 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 9: FINANCIAL BACKBONE & ACCOUNTING 360° -->
+    <!-- ==================================================================== -->
+    <section id="slide-8" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">09</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">الحسابات العامة والرقابة المالية 360° (Accounting & Finance)</h2>
+            <p class="text-xs text-slate-500">شجرة الحسابات الصناعية، قيود اليومية الآلية، مراكز تكلفة الورش، والشيكات الآجلة PDC</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+          Module 07: Financial Backbone
+        </span>
+      </div>
+
+      <!-- Auto Double-Entry Highlights Banner -->
+      <div class="my-3 p-3 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-black text-slate-800 block mb-1.5">القيود المحاسبية التلقائية المترابطة مع العمليات التشغيلية (100% Automated Double-Entry):</span>
+        <div class="grid grid-cols-4 gap-2 text-[11px]">
+          <div class="p-2 rounded-xl bg-blue-50 border border-blue-200">
+            <span class="font-bold text-blue-900 block">عربون العميل:</span>
+            <span class="text-slate-600 text-[10px]">من حـ/ الخزينة/البنك → إلى حـ/ دفعات مقدمة عملاء</span>
+          </div>
+          <div class="p-2 rounded-xl bg-emerald-50 border border-emerald-200">
+            <span class="font-bold text-emerald-900 block">فاتورة المبيعات والضريبة:</span>
+            <span class="text-slate-600 text-[10px]">من حـ/ العملاء → إلى حـ/ المبيعات + حـ/ ضريبة القيمة المضافة 14%</span>
+          </div>
+          <div class="p-2 rounded-xl bg-purple-50 border border-purple-200">
+            <span class="font-bold text-purple-900 block">استلام الخامات (GR/IR):</span>
+            <span class="text-slate-600 text-[10px]">من حـ/ مخزن الخامات → إلى حـ/ وسيط استلام البضاعة GR/IR</span>
+          </div>
+          <div class="p-2 rounded-xl bg-amber-50 border border-amber-200">
+            <span class="font-bold text-amber-900 block">صرف التشغيل للمصنع:</span>
+            <span class="text-slate-600 text-[10px]">من حـ/ تشغيل تحت التنفيذ (WIP) → إلى حـ/ مخزن الخامات</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Core Financial Management Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+        <!-- Cost Centers & Project Profitability -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">مراكز التكلفة وربحية المشاريع</h3>
+              <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">Cost Centers</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>مركز تكلفة لكل مشروع وورشة:</strong> ربط كل مصروف خامات، عمالة مباشرة، ومصروفات تركيب برقم المشروع.</li>
+              <li>• <strong>تحليل هامش الربح الحقيقي:</strong> مقارنة الإيراد المحصل بالتكلفة الفعلية المنفذة بدقة قرش بقرش.</li>
+              <li>• <strong>مراكز تكلفة الفروع والصالات:</strong> قياس ربحية كل فرع معرض على حدة بعد خصم الإيجار والمرتبات.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-amber-50 rounded-xl text-[11px] text-amber-900 font-bold">
+            كشف فوري لأي مشروع يتعرض لتجاوز في التكلفة قبل تسليمه للعميل.
+          </div>
+        </div>
+
+        <!-- PDC Checks Lifecycle Management -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">أوراق القبض والدفع (الشيكات PDC)</h3>
+              <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">الرقابة على السيولة</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>دورة حياة الشيك بالكامل:</strong> (شيك تحت التحصيل بالخزينة → مرسل للبنك برسم التحصيل → محصل بالحساب → أو مرتد).</li>
+              <li>• <strong>تنبيهات استحقاق الشيكات:</strong> جدول زمني بمواعيد شيكات الموردين المستحقة لتأمين السيولة في البنك.</li>
+              <li>• <strong>معالجة الشيك المرتد:</strong> إعادة فتح المديونية على حساب العميل وتوليد القيد العكسي فورياً.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-blue-50 rounded-xl text-[11px] text-blue-900 font-bold">
+            حماية كاملة من التعثر المالي وإدارة محترفة وموثوقة لتدفقات النقدية.
+          </div>
+        </div>
+
+        <!-- Financial Statements & Aging Reports -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">التقارير والقوائم المالية الختامية</h3>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">قرارات استراتيجية</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>• <strong>قائمة الدخل والأرباح والخسائر (P&L):</strong> رصد المبيعات، تكلفة البضاعة المباعة (COGS)، والمصاريف الإدارية والعمومية.</li>
+              <li>• <strong>الميزانية العمومية والمركز المالي:</strong> رصد الأصول المتداولة والثابتة، التزامات الموردين، وحقوق الملكية.</li>
+              <li>• <strong>أعمار الديون (AR/AP Aging):</strong> تصنيف مديونيات العملاء والموردين (0-30، 31-60، 61-90، +90 يوم).</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 font-bold">
+            إقفال شهري وسنوي معتمد بضغطة زر مع ترحيل الأرصدة الافتتاحية.
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Comprehensive Financial Accounting & Governance</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 09 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 10: GOVERNANCE, SECURITY & MULTI-BRANCH RBAC -->
+    <!-- ==================================================================== -->
+    <section id="slide-9" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">10</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">الحوكمة المؤسسية، سجل المراجعة والأمان (Security & Multi-Branch)</h2>
+            <p class="text-xs text-slate-500">هيكل الفروع والمقرات، مصفوفة الصلاحيات (RBAC)، وسجل التدقيق غير القابل للتعديل</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/30">
+          Module 08: Security & Governance
+        </span>
+      </div>
+
+      <!-- 4 Core Governance Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 my-3">
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-amber-700 font-black text-xs block mb-1">1. هيكل الفروع والمقرات</span>
+          <p class="text-[11px] text-slate-600">فصل ومشاركة البيانات بين المعارض (القاهرة، التجمع، الشيخ زايد) والمصنع المركزي بسهولة.</p>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-blue-700 font-black text-xs block mb-1">2. مصفوفة الصلاحيات (RBAC)</span>
+          <p class="text-[11px] text-slate-600">صلاحيات دقيقة على مستوى كل شاشة وزر (عرض، إنشاء، تعديل، حذف، اعتماد، ترحيل).</p>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-purple-700 font-black text-xs block mb-1">3. سجل التدقيق (Audit Log)</span>
+          <p class="text-[11px] text-slate-600">توثيق 100% لكل حركة باسم المستخدم وتاريخها ورقم الـ IP والقيمة السابقة والجديدة.</p>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-emerald-700 font-black text-xs block mb-1">4. فحص الأمان واختراق الـ API</span>
+          <p class="text-[11px] text-slate-600">منصة فحص أمان مدمجة تفحص ثغرات الـ API وصلاحيات المستخدمين المشبوهة تلقائياً.</p>
+        </div>
+      </div>
+
+      <!-- Security Table & RBAC Preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
+        <!-- Roles Permissions Matrix -->
+        <div class="lg:col-span-2 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">مصفوفة الصلاحيات حسب الدور الوظيفي (Role Permissions Sample)</h3>
+              <span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">Strict Role Separation</span>
+            </div>
+
+            <div class="overflow-x-auto text-[11px]">
+              <table class="w-full text-right border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                    <th class="p-1.5 font-bold">الدور الوظيفي</th>
+                    <th class="p-1.5 font-bold">المبيعات وCRM</th>
+                    <th class="p-1.5 font-bold">المكتب الفني</th>
+                    <th class="p-1.5 font-bold">التخطيط MRP</th>
+                    <th class="p-1.5 font-bold">المشتريات</th>
+                    <th class="p-1.5 font-bold">المصنع</th>
+                    <th class="p-1.5 font-bold">الحسابات والقيود</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">المالك / المدير العام</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">كامل الصلاحيات</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">كامل الصلاحيات</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">كامل الصلاحيات</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">كامل الصلاحيات</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">كامل الصلاحيات</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">كامل الصلاحيات</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">مدير المصنع</td>
+                    <td class="p-1.5 text-slate-400">عرض المشروعات</td>
+                    <td class="p-1.5 text-blue-600 font-bold">اعتماد الـ BOM</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">تحكم كامل</td>
+                    <td class="p-1.5 text-amber-600 font-bold">اعتماد طلب الشراء</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">إدارة الورش 100%</td>
+                    <td class="p-1.5 text-slate-400">عرض مراكز التكلفة</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">مهندس المكتب الفني</td>
+                    <td class="p-1.5 text-slate-400">عرض المعاينات</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">إنشاء المخططات والـ BOM</td>
+                    <td class="p-1.5 text-slate-400">عرض الاحتياجات</td>
+                    <td class="p-1.5 text-slate-300">ممنوع</td>
+                    <td class="p-1.5 text-slate-400">عرض أوامر الشغل</td>
+                    <td class="p-1.5 text-slate-300">ممنوع</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1.5 font-bold text-slate-900">بائع صالة العرض</td>
+                    <td class="p-1.5 text-emerald-600 font-bold">إنشاء طلبات وفواتير POS</td>
+                    <td class="p-1.5 text-slate-300">ممنوع</td>
+                    <td class="p-1.5 text-slate-300">ممنوع</td>
+                    <td class="p-1.5 text-slate-300">ممنوع</td>
+                    <td class="p-1.5 text-slate-300">ممنوع</td>
+                    <td class="p-1.5 text-slate-400">قبض عربون فقط</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="mt-2 p-2 bg-slate-50 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
+            <span>🔒 حماية تامة ضد التلاعب بالأسعار أو تعديل الفواتير بعد ترحيلها</span>
+            <span class="font-bold text-emerald-700">Enterprise Security Level</span>
+          </div>
+        </div>
+
+        <!-- Audit Log Sample -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <h3 class="font-black text-xs text-slate-800">سجل التدقيق الحي (Live Audit Trail)</h3>
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            </div>
+            <p class="text-xs text-slate-500 mb-2">تسجيل تلقائي مشفر لكل حركة إدارية أو مالية:</p>
+
+            <div class="space-y-1.5 text-[10px]">
+              <div class="p-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="flex justify-between font-bold text-slate-800">
+                  <span>اعتماد أمر شراء PO-2026-104</span>
+                  <span class="text-slate-400 font-mono">10:45 AM</span>
+                </div>
+                <div class="text-slate-500">المستخدم: م. أحمد سمير (مدير المصنع) • IP: 192.168.1.15</div>
+              </div>
+
+              <div class="p-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="flex justify-between font-bold text-slate-800">
+                  <span>ترحيل قيد يومية JE-2026-883</span>
+                  <span class="text-slate-400 font-mono">11:12 AM</span>
+                </div>
+                <div class="text-slate-500">المستخدم: أ. سارة محمود (رئيس الحسابات)</div>
+              </div>
+
+              <div class="p-1.5 bg-rose-50 rounded-lg border border-rose-200 text-rose-900">
+                <div class="flex justify-between font-bold">
+                  <span>محاولة تعديل سعر بيع محظورة ⚠️</span>
+                  <span class="text-rose-600 font-mono">11:30 AM</span>
+                </div>
+                <div class="text-rose-700">تم حظر المحاولة وإرسال إشعار للمالك تلقائياً</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-2 bg-slate-900 text-amber-300 rounded-xl text-[11px] font-bold text-center">
+            أمان بنكي 100% وحماية كاملة للبيانات والنسخ الاحتياطي السحابي
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Governance, Security & Audit Trail</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 10 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 11: INTERACTIVE FACTORY SAVINGS & ROI CALCULATOR -->
+    <!-- ==================================================================== -->
+    <section id="slide-10" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">11</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">حاسبة محاكاة الوفورات المباشرة لمصنع Furniture Land (Live ROI Calculator)</h2>
+            <p class="text-xs text-slate-500">أداة محاكاة تفاعلية لحساب الوفر المالي الفعلي من تقليل الهدر وزيادة سرعة الإنتاج</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-brand-gold text-white shadow-sm">
+          Interactive ROI Simulation
+        </span>
+      </div>
+
+      <!-- Interactive Calculator Container -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 my-4 flex-1 items-stretch">
+        <!-- Input Parameters Form -->
+        <div class="lg:col-span-5 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 pb-2 border-b border-slate-100 mb-3">
+              <span class="w-2.5 h-2.5 rounded-full bg-brand-gold"></span>
+              <h3 class="font-black text-xs text-slate-800">بيانات مصنع Furniture Land التقديرية:</h3>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">متوسط عدد ألواح الخشب المستهلكة شهرياً:</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="sheetsRange" min="200" max="2500" step="50" value="800" oninput="updateROICalculation()" class="flex-1 accent-amber-600">
+                  <span id="sheetsVal" class="font-bold font-mono text-slate-900 bg-slate-100 px-2 py-1 rounded w-16 text-center">800</span>
+                  <span class="text-slate-500 text-[11px]">لوح/شهر</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">متوسط سعر لوح الخشب (MDF/HPL/أكريليك):</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="sheetPriceRange" min="800" max="3500" step="100" value="1600" oninput="updateROICalculation()" class="flex-1 accent-amber-600">
+                  <span id="sheetPriceVal" class="font-bold font-mono text-slate-900 bg-slate-100 px-2 py-1 rounded w-20 text-center">1,600</span>
+                  <span class="text-slate-500 text-[11px]">ج.م/لوح</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">نسبة الهدر الحالية قبل الـ ERP:</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="currentScrapRange" min="15" max="35" step="1" value="22" oninput="updateROICalculation()" class="flex-1 accent-rose-600">
+                  <span id="currentScrapVal" class="font-bold font-mono text-rose-700 bg-rose-50 px-2 py-1 rounded w-14 text-center">22%</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">نسبة الهدر المستهدفة بعد الـ ERP:</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="targetScrapRange" min="5" max="15" step="1" value="8" oninput="updateROICalculation()" class="flex-1 accent-emerald-600">
+                  <span id="targetScrapVal" class="font-bold font-mono text-emerald-700 bg-emerald-50 px-2 py-1 rounded w-14 text-center">8%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-medium">
+            حرك المؤشرات لتعديل حجم الإنتاج ومعاينة الوفر المالي والسنوي التلقائي.
+          </div>
+        </div>
+
+        <!-- Real-Time Calculated ROI Results -->
+        <div class="lg:col-span-7 bg-gradient-to-br from-[#1E110B] to-[#2A170F] text-white rounded-2xl p-5 border border-brand-gold/30 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+              <div>
+                <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Estimated Financial Savings</span>
+                <h3 class="text-base font-black text-white">نتائج الوفر المالي المباشر لمصنع Furniture Land</h3>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
+                عائد استثمار استثنائي
+              </span>
+            </div>
+
+            <!-- Big Stat Blocks -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div class="p-3.5 bg-white/5 rounded-xl border border-white/10">
+                <span class="text-xs text-slate-400 font-bold block">الوفر الشهري في الأخشاب فقط:</span>
+                <div id="monthlySavingsVal" class="text-2xl font-black text-amber-300 mt-1 font-mono">179,200 ج.م</div>
+                <span id="sheetsSavedMonth" class="text-[11px] text-emerald-400 mt-0.5 block font-bold">وفر ~ 112 لوح خشب شهرياً</span>
+              </div>
+
+              <div class="p-3.5 bg-white/5 rounded-xl border border-white/10">
+                <span class="text-xs text-slate-400 font-bold block">إجمالي الوفر السنوي المباشر:</span>
+                <div id="annualSavingsVal" class="text-2xl font-black text-emerald-400 mt-1 font-mono">2,150,400 ج.م</div>
+                <span class="text-[11px] text-slate-300 mt-0.5 block">أكثر من 2.15 مليون جنيه سنوياً 💰</span>
+              </div>
+            </div>
+
+            <!-- Additional Soft Savings -->
+            <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+              <div class="p-2 bg-white/5 rounded-lg border border-white/5">
+                <span class="text-slate-400 block text-[10px]">وفر أخطاء إعادة التصنيع</span>
+                <span class="text-amber-200 font-bold font-mono">+ 280,000 ج.م/سنة</span>
+              </div>
+              <div class="p-2 bg-white/5 rounded-lg border border-white/5">
+                <span class="text-slate-400 block text-[10px]">وفر خصومات المشتريات 3WM</span>
+                <span class="text-amber-200 font-bold font-mono">+ 340,000 ج.م/سنة</span>
+              </div>
+              <div class="p-2 bg-white/5 rounded-lg border border-white/5">
+                <span class="text-slate-400 block text-[10px]">فترة استرداد تكلفة النظام</span>
+                <span class="text-emerald-300 font-bold font-mono">< 3 أشهر فقط</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-brand-gold/20 rounded-xl border border-brand-gold/30 text-xs text-amber-200 font-bold flex items-center justify-between mt-3">
+            <span>الخلاصة التنفيذية للاستثمار:</span>
+            <span class="text-white">النظام يسدد تكلفته الاستثمارية بالكامل خلال أول ربع سنوي تشغيلي!</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Return on Investment Simulation</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 11 / 12</span>
+      </div>
+    </section>
+
+
+    <!-- ==================================================================== -->
+    <!-- SLIDE 12: IMPLEMENTATION ROADMAP & EXECUTIVE DECISION -->
+    <!-- ==================================================================== -->
+    <section id="slide-11" class="slide-page">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-[#361D13] text-amber-300 font-black flex items-center justify-center text-xs">12</span>
+          <div>
+            <h2 class="text-xl font-black text-[#1E110B]">خطة التحول الرقمي وقرار الانطلاق (Implementation & Next Steps)</h2>
+            <p class="text-xs text-slate-500">خارطة طريق مدروسة ومجربة لنقل مصنع ومعارض Furniture Land إلى التشغيل الرقمي الكامل في 12 أسبوعاً</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+          Ready to Deploy • 2026
+        </span>
+      </div>
+
+      <!-- 4 Implementation Phases -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 my-4 flex-1">
+        <!-- Phase 1 -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold">الأسابيع 1 - 3</span>
+              <span class="text-xs font-black text-slate-800">المرحلة الأولى</span>
+            </div>
+            <h4 class="font-black text-xs text-blue-900 mb-2">التأسيس وقواعد البيانات</h4>
+            <ul class="space-y-1.5 text-[11px] text-slate-600">
+              <li>• تهيئة شجرة الحسابات والفروع والمخازن.</li>
+              <li>• تكويد كروت الخامات والإكسسوارات.</li>
+              <li>• بناء مكتبة قوالب الـ BOM للوحدات النمطية.</li>
+              <li>• إنشاء حسابات المستخدمين ومصفوفة الـ RBAC.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-blue-50 rounded-xl text-[10px] text-blue-800 font-bold text-center">
+            مخرجات: نظام جاهز للبيانات
+          </div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">الأسابيع 4 - 6</span>
+              <span class="text-xs font-black text-slate-800">المرحلة الثانية</span>
+            </div>
+            <h4 class="font-black text-xs text-amber-900 mb-2">المبيعات والمكتب الفني والـ MRP</h4>
+            <ul class="space-y-1.5 text-[11px] text-slate-600">
+              <li>• تدريب مسؤولي الصالات على الـ CRM والـ POS.</li>
+              <li>• إطلاق بروتوكول تسليم المعاينات للمكتب الفني.</li>
+              <li>• تشغيل تفجير الـ BOM وتوليد ملفات الـ CutList.</li>
+              <li>• تفعيل محرك الـ MRP ومقترحات الشراء.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-amber-50 rounded-xl text-[10px] text-amber-800 font-bold text-center">
+            مخرجات: ربط المعارض بالهندسة
+          </div>
+        </div>
+
+        <!-- Phase 3 -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[10px] font-bold">الأسابيع 7 - 9</span>
+              <span class="text-xs font-black text-slate-800">المرحلة الثالثة</span>
+            </div>
+            <h4 class="font-black text-xs text-purple-900 mb-2">المصنع والمخازن والتركيبات</h4>
+            <ul class="space-y-1.5 text-[11px] text-slate-600">
+              <li>• تفعيل كروت التشغيل الرقمية بالورش.</li>
+              <li>• تطبيق دورة أذونات الصرف والإضافة (GRN/GIN).</li>
+              <li>• تشغيل طباعة واستيكرات الباركود للوحدات.</li>
+              <li>• تدريب أطقم التركيب على محاضر التسليم بالموقع.</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-purple-50 rounded-xl text-[10px] text-purple-800 font-bold text-center">
+            مخرجات: تشغيل المصنع 100% بالـ ERP
+          </div>
+        </div>
+
+        <!-- Phase 4 -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">الأسابيع 10 - 12</span>
+              <span class="text-xs font-black text-slate-800">المرحلة الرابعة</span>
+            </div>
+            <h4 class="font-black text-xs text-emerald-900 mb-2">الرقابة المالية والـ Go-Live</h4>
+            <ul class="space-y-1.5 text-[11px] text-slate-600">
+              <li>• أتمتة المطابقة الثلاثية وفواتير الموردين.</li>
+              <li>• تفعيل دورة الشيكات الآجلة ومراكز التكلفة.</li>
+              <li>• استخراج موازين المراجعة وقوائم الأرباح والخسائر.</li>
+              <li>• الإطلاق الرسمي الكامل (Full Go-Live).</li>
+            </ul>
+          </div>
+          <div class="p-2 bg-emerald-50 rounded-xl text-[10px] text-emerald-800 font-bold text-center">
+            مخرجات: تحول رقمي مؤسسي كامل 360°
+          </div>
+        </div>
+      </div>
+
+      <!-- Executive Commitment Box -->
+      <div class="bg-gradient-to-r from-[#1E110B] via-[#2A170F] to-[#160B06] text-white rounded-2xl p-4 border border-brand-gold/40 shadow-lg flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl gradient-gold flex items-center justify-center font-black text-white text-2xl shadow-md">
+            🚀
+          </div>
+          <div>
+            <h3 class="font-black text-amber-200 text-sm">الخطوة القادمة: بدء ورشة عمل الإعداد الفني والتنصيب</h3>
+            <p class="text-xs text-slate-300 mt-0.5">جاهزون للانطلاق الفوري وتخصيص النظام لهيكل مصنع ومعارض Furniture Land بالكامل.</p>
+          </div>
+        </div>
+        <div class="text-left font-mono">
+          <span class="text-xs text-amber-400 font-bold block">FURNITURE LAND ERP</span>
+          <span class="text-[10px] text-slate-400">Enterprise Ready • 2026</span>
+        </div>
+      </div>
+
+      <!-- Slide Footer -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-3 text-slate-400 text-[11px]">
+        <span>Furniture Land ERP • Implementation Roadmap & Next Steps</span>
+        <span class="font-mono text-[#361D13] font-bold">شريحة 12 / 12</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Interactive Slide Navigation & Calculation Logic -->
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 12;
+
+    function updateROICalculation() {
+      const sheets = parseFloat(document.getElementById('sheetsRange').value);
+      const price = parseFloat(document.getElementById('sheetPriceRange').value);
+      const currentScrap = parseFloat(document.getElementById('currentScrapRange').value);
+      const targetScrap = parseFloat(document.getElementById('targetScrapRange').value);
+
+      document.getElementById('sheetsVal').innerText = sheets.toLocaleString('en-US');
+      document.getElementById('sheetPriceVal').innerText = price.toLocaleString('en-US');
+      document.getElementById('currentScrapVal').innerText = currentScrap + '%';
+      document.getElementById('targetScrapVal').innerText = targetScrap + '%';
+
+      const scrapDiffPercent = (currentScrap - targetScrap) / 100;
+      const sheetsSavedMonth = Math.round(sheets * scrapDiffPercent);
+      const monthlySavings = sheetsSavedMonth * price;
+      const annualSavings = monthlySavings * 12;
+
+      document.getElementById('monthlySavingsVal').innerText = monthlySavings.toLocaleString('en-US') + ' ج.م';
+      document.getElementById('annualSavingsVal').innerText = annualSavings.toLocaleString('en-US') + ' ج.م';
+      document.getElementById('sheetsSavedMonth').innerText = 'وفر ~ ' + sheetsSavedMonth + ' لوح خشب شهرياً';
+    }
+
+    function goToSlide(index) {
+      if (index >= 0 && index < totalSlides) {
+        currentSlide = index;
+        const target = document.getElementById('slide-' + index);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }
+
+    function togglePresenterMode() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log('Fullscreen error:', err);
+        });
+        document.getElementById('presenterModeBtn').innerHTML = '<span>✕ خروج من العرض</span>';
+      } else {
+        document.exitFullscreen();
+        document.getElementById('presenterModeBtn').innerHTML = '<span>🎬 نمط العرض (Slides)</span>';
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+        if (currentSlide < totalSlides - 1) {
+          goToSlide(currentSlide + 1);
+        }
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+        if (currentSlide > 0) {
+          goToSlide(currentSlide - 1);
+        }
+      }
+    });
+
+    // Run initial calc
+    window.addEventListener('DOMContentLoaded', () => {
+      updateROICalculation();
+    });
+  </script>
+</body>
+</html>
