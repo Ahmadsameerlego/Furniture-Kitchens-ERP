@@ -43,7 +43,7 @@ export const initialTechnicalProjects: TechnicalProject[] = [
     salesProjectNumber: 'PRJ-2026-002',
     projectName: 'غرفة نوم ماستر كابتونيه شامبين',
     customerId: 'cust-2',
-    customerName: 'أحمد محمود',
+    customerName: 'أحمد سمير',
     customerPhone: '01112223344',
     contractId: 'cnt-102',
     contractNumber: 'CNT-2026-002',

@@ -245,3 +245,162 @@ export const exportJournalEntriesToExcel = (entries: any[]) => {
     flattenedRows
   );
 };
+
+/**
+ * 8. CRM Customers Master Exporter (تصدير سجل العملاء الشامل)
+ */
+export const exportCustomersToExcel = (customers: any[]) => {
+  exportToExcel(
+    'سجل_العملاء_رواق_ERP',
+    [
+      { header: 'كود العميل', render: r => r.code || r.id },
+      { header: 'نوع العميل', render: r => r.customerType === 'commercial' ? 'تجاري / شركات' : 'فردي' },
+      { header: 'اسم العميل / الشركة', render: r => r.fullName },
+      { header: 'الاسم التجاري للمنشأة', render: r => r.companyName || '' },
+      { header: 'الشخص المسؤول / المفوض', render: r => r.contactPerson || '' },
+      { header: 'المسمى الوظيفي للمسؤول', render: r => r.contactRole || '' },
+      { header: 'الرقم الضريبي', render: r => r.taxId || '' },
+      { header: 'السجل التجاري', render: r => r.commercialRegister || '' },
+      { header: 'رقم الهاتف الأساسي (WhatsApp)', render: r => r.phone },
+      { header: 'رقم الهاتف الإضافي', render: r => r.altPhone || '' },
+      { header: 'البريد الإلكتروني', render: r => r.email || '' },
+      { header: 'المحافظة / المدينة', render: r => r.city },
+      { header: 'المنطقة / الحي', render: r => r.area },
+      { header: 'العنوان التفصيلي', render: r => r.address || '' },
+      { header: 'نوع الاهتمام', render: r => r.interestType === 'kitchens' || r.interestType === 'custom' ? 'تفصيل وعمولة' : r.interestType === 'furniture' ? 'أثاث جاهز' : 'جاهز + تفصيل' },
+      { header: 'حالة العميل (CRM Status)', render: r => r.status },
+      { header: 'طريقة الفوترة المفضلة', render: r => r.billingMethod === 'electronic_tax' ? 'فاتورة إلكترونية ضريبية' : r.billingMethod === 'email' ? 'بريد إلكتروني PDF' : r.billingMethod === 'whatsapp' ? 'واتساب رقمي' : 'فاتورة ورقية مطبوعة' },
+      { header: 'تصنيف العميل (Tier)', render: r => r.tier === 'vip' ? 'عميل VIP' : r.tier === 'wholesale' ? 'مشروعات / جملة' : 'عادي' },
+      { header: 'مصدر الوصول', render: r => r.source },
+      { header: 'الحملة الإعلانية', render: r => r.campaignName || '' },
+      { header: 'الفرع المسؤول', render: r => r.branchName },
+      { header: 'الموظف المسؤول', render: r => r.responsibleUserName || '' },
+      { header: 'تاريخ التسجيل', render: r => r.createdDate },
+      { header: 'آخر نشاط', render: r => r.lastActivityDate || '' },
+      { header: 'إجمالي المشتريات (EGP)', render: r => r.orderAmount || r.quotationAmount || 0 },
+      { header: 'ملاحظات العميل', render: r => r.notes || '' }
+    ],
+    customers
+  );
+};
+
+/**
+ * 9. Download Customer Import Sample CSV Template
+ */
+export const downloadCustomerImportTemplate = () => {
+  const headers = [
+    'نوع_العميل(فردي/تجاري)',
+    'اسم_العميل',
+    'الاسم_التجاري(للشركات)',
+    'اسم_المسؤول',
+    'رقم_الهاتف',
+    'هاتف_إضافي',
+    'البريد_الإلكتروني',
+    'المدينة',
+    'المنطقة',
+    'العنوان',
+    'نوع_الاهتمام(تفصيل/جاهز/كلاهما)',
+    'طريقة_الفوترة(مطبوعة/إيميل/واتساب/ضريبية)',
+    'المصدر',
+    'ملاحظات'
+  ];
+
+  const sampleRows = [
+    [
+      'فردي',
+      'حسام عبد العزيز',
+      '',
+      '',
+      '01012345678',
+      '01298765432',
+      'hossam@example.com',
+      'القاهرة',
+      'التجمع الخامس',
+      'شارع التسعين الشمالي',
+      'تفصيل',
+      'واتساب',
+      'instagram',
+      'مهتم بمطبخ مودرن بولاريس رمادي'
+    ],
+    [
+      'تجاري',
+      'شركة النور للتشطيبات',
+      'مجموعة النور للهندسة والديكور',
+      'م. خالد سليم',
+      '01122334455',
+      '0224567890',
+      'info@alnoor-eg.com',
+      'الجيزة',
+      'الشيخ زايد',
+      'مجمع البنوك مبنى 3',
+      'كلاهما',
+      'ضريبية',
+      'referral',
+      'طلب توريد وحدات غرف نوم ومطابخ لمشروع كمبوند'
+    ]
+  ];
+
+  const csvRows = [
+    headers.map(h => `"${h}"`).join(','),
+    ...sampleRows.map(row => row.map(val => `"${val}"`).join(','))
+  ];
+
+  const csvContent = '\uFEFF' + csvRows.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'نموذج_استيراد_العملاء_رواق_ERP.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+/**
+ * 10. Simple Robust CSV String Parser
+ */
+export const parseCSVContent = (text: string): string[][] => {
+  const lines: string[][] = [];
+  let row: string[] = [];
+  let currentVal = '';
+  let inQuotes = false;
+
+  // Normalize line endings and strip BOM
+  const cleanedText = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  for (let i = 0; i < cleanedText.length; i++) {
+    const char = cleanedText[i];
+    const nextChar = cleanedText[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentVal += '"';
+        i++; // skip next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(currentVal.trim());
+      currentVal = '';
+    } else if (char === '\n' && !inQuotes) {
+      row.push(currentVal.trim());
+      if (row.some(val => val.length > 0)) {
+        lines.push(row);
+      }
+      row = [];
+      currentVal = '';
+    } else {
+      currentVal += char;
+    }
+  }
+
+  if (currentVal.length > 0 || row.length > 0) {
+    row.push(currentVal.trim());
+    if (row.some(val => val.length > 0)) {
+      lines.push(row);
+    }
+  }
+
+  return lines;
+};

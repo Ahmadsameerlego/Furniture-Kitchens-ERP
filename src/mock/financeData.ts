@@ -58,7 +58,7 @@ export const initialCompanyExpenses: CompanyExpense[] = [
     branchName: 'معرض القاهرة الرئيسي',
     paymentMethod: 'bank_transfer',
     accountName: 'حساب البنك الأهلي المصري',
-    recordedByUserName: 'أحمد محمود (المالية)',
+    recordedByUserName: 'أحمد سمير (المالية)',
     notes: 'تم التحويل لحساب المالك وسداد الإيجار الشهري'
   },
   {
@@ -73,7 +73,7 @@ export const initialCompanyExpenses: CompanyExpense[] = [
     branchName: 'معرض القاهرة الرئيسي',
     paymentMethod: 'bank_transfer',
     accountName: 'حساب البنك الأهلي المصري',
-    recordedByUserName: 'أحمد محمود',
+    recordedByUserName: 'أحمد سمير',
     notes: 'صرف مرتبات كادر المبيعات والورشة والمحاسبة'
   },
   {
@@ -88,7 +88,7 @@ export const initialCompanyExpenses: CompanyExpense[] = [
     branchName: 'معرض القاهرة الرئيسي',
     paymentMethod: 'card',
     accountName: 'حساب البنك الأهلي المصري',
-    recordedByUserName: 'أحمد محمود',
+    recordedByUserName: 'أحمد سمير',
     notes: 'ميزانية إعلانات شهر أغسطس'
   },
   {
@@ -103,7 +103,7 @@ export const initialCompanyExpenses: CompanyExpense[] = [
     branchName: 'معرض القاهرة الرئيسي',
     paymentMethod: 'cash',
     accountName: 'خزينة المعرض الرئيسي',
-    recordedByUserName: 'أحمد محمود',
+    recordedByUserName: 'أحمد سمير',
     notes: 'سداد كهرباء ومياه الورشة'
   },
   {
@@ -118,7 +118,7 @@ export const initialCompanyExpenses: CompanyExpense[] = [
     branchName: 'معرض القاهرة الرئيسي',
     paymentMethod: 'cash',
     accountName: 'خزينة الورشة والمصنع',
-    recordedByUserName: 'أحمد محمود',
+    recordedByUserName: 'أحمد سمير',
     notes: 'صيانة دورية للمعدات'
   },
   {
@@ -135,7 +135,7 @@ export const initialCompanyExpenses: CompanyExpense[] = [
     accountName: 'خزينة المعرض الرئيسي',
     projectId: 'prj-101',
     projectNumber: 'PRJ-2026-001',
-    recordedByUserName: 'أحمد محمود',
+    recordedByUserName: 'أحمد سمير',
     notes: 'مصروفات مباشرة خاصة بمشروع مطبخ محمد حسن المباشر'
   }
 ];
@@ -160,7 +160,7 @@ export const initialFinancialTransactions: FinancialTransaction[] = [
     orderNumber: 'ORD-2026-0018',
     projectId: 'prj-101',
     projectNumber: 'PRJ-2026-001',
-    createdByUserName: 'أحمد محمود (المالية)',
+    createdByUserName: 'أحمد سمير (المالية)',
     notes: 'تحويل بنكي بالدفعة المقدمة'
   },
   {
@@ -178,7 +178,7 @@ export const initialFinancialTransactions: FinancialTransaction[] = [
     accountName: 'حساب البنك الأهلي المصري',
     supplierId: 'sup-1',
     supplierName: 'شركة الرواد لخامات الأثاث',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     notes: 'دفعة سداد حساب لشحنة ألواح MDF'
   },
   {
@@ -194,7 +194,7 @@ export const initialFinancialTransactions: FinancialTransaction[] = [
     branchName: 'معرض القاهرة الرئيسي',
     accountId: 'acc-3',
     accountName: 'حساب البنك الأهلي المصري',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     notes: 'سداد الإيجار الشهري'
   },
   {
@@ -210,7 +210,7 @@ export const initialFinancialTransactions: FinancialTransaction[] = [
     branchName: 'معرض القاهرة الرئيسي',
     accountId: 'acc-3',
     accountName: 'حساب البنك الأهلي المصري',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     notes: 'صرف أجور شهر أغسطس'
   },
   {
@@ -228,7 +228,7 @@ export const initialFinancialTransactions: FinancialTransaction[] = [
     accountName: 'خزينة المعرض الرئيسي',
     toAccountId: 'acc-3',
     toAccountName: 'حساب البنك الأهلي المصري',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     notes: 'إيداع نقدية المعرض بالبنك الأهلي'
   }
 ];

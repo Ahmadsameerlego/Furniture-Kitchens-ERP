@@ -116,7 +116,7 @@ export const initialCustomContracts: CustomContract[] = [
     projectId: 'prj-103',
     projectNumber: 'PRJ-2026-003',
     customerId: 'cust-2',
-    customerName: 'أحمد محمود',
+    customerName: 'أحمد سمير',
     quotationId: 'qte-503',
     quotationVersion: 1,
     contractDate: '2026-08-26',
@@ -191,7 +191,7 @@ export const initialPaymentReceipts: PaymentReceipt[] = [
     paymentDate: '2026-08-25 19:00',
     paymentMethod: 'bank_transfer',
     paymentType: 'deposit',
-    receivedByUserName: 'أحمد محمود (المالية)',
+    receivedByUserName: 'أحمد سمير (المالية)',
     notes: 'إيصال استلام الدفعة المقدمة لحساب أمر المطبخ'
   },
   {
@@ -205,7 +205,7 @@ export const initialPaymentReceipts: PaymentReceipt[] = [
     paymentDate: '2026-08-24 15:00',
     paymentMethod: 'card',
     paymentType: 'deposit',
-    receivedByUserName: 'أحمد محمود',
+    receivedByUserName: 'أحمد سمير',
     notes: 'مقدم عقد غرفة نوم ماستر'
   },
   {
@@ -219,7 +219,7 @@ export const initialPaymentReceipts: PaymentReceipt[] = [
     paymentDate: '2026-08-25 11:00',
     paymentMethod: 'cash',
     paymentType: 'installment',
-    receivedByUserName: 'أحمد محمود',
+    receivedByUserName: 'أحمد سمير',
     notes: 'تحصيل القسط الأول لغرفة النوم'
   }
 ];

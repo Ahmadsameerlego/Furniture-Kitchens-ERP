@@ -44,7 +44,9 @@ import {
   Gauge,
   SlidersHorizontal,
   CalendarRange,
-  Send
+  Send,
+  Zap,
+  Printer
 } from 'lucide-react';
 
 interface SubMenuItem {
@@ -66,17 +68,29 @@ interface MenuGroup {
 
 const menuGroups: MenuGroup[] = [
   {
-    id: 'sales_crm',
-    title: 'العملاء والمبيعات',
-    titleEn: 'Sales & CRM',
+    id: 'crm',
+    title: 'إدارة علاقات العملاء (CRM)',
+    titleEn: 'CRM & Customer Relations',
     icon: Users,
     permissionCheck: 'customers',
     items: [
-      { id: 'customers', label: 'العملاء وإدارة المتابعة (CRM)', labelEn: 'Customers & Leads', icon: Users },
-      { id: 'custom_projects', label: 'مشاريع المطابخ والتفصيل', labelEn: 'Custom Projects Pipeline', icon: Ruler },
-      { id: 'sales', label: 'صالة الأثاث الجاهز (POS)', labelEn: 'Ready Furniture & POS', icon: ShoppingBag },
-      { id: 'portal', label: 'بوابة متابعة العميل (Portal)', labelEn: 'Customer Portal', icon: Globe },
-      { id: 'campaigns', label: 'الحملات التسويقية', labelEn: 'Marketing Campaigns', icon: Sparkles }
+      { id: 'customers', label: 'دليل وسجل العملاء (Directory)', labelEn: 'Customers & Leads', icon: Users },
+      { id: 'portal', label: 'بوابة متابعة العميل (Portal)', labelEn: 'Customer Portal', icon: Globe }
+    ]
+  },
+  {
+    id: 'sales_projects',
+    title: 'المبيعات والمشاريع (Sales)',
+    titleEn: 'Sales & Custom Projects',
+    icon: ShoppingBag,
+    permissionCheck: 'sales',
+    items: [
+      { id: 'sales_dashboard', label: 'لوحة تحكم ومؤشرات المبيعات', labelEn: 'Sales Dashboard & KPIs', icon: LayoutDashboard },
+      { id: 'custom_projects', label: 'مشاريع التفصيل والعمولة', labelEn: 'Custom & Bespoke Projects', icon: Ruler },
+      { id: 'sales_quotations', label: 'عروض الأسعار والمقايسات الفنية', labelEn: 'Quotations & BOQ', icon: FileSpreadsheet },
+      { id: 'sales_contracts', label: 'العقود والاتفاقيات وجدول الدفعات', labelEn: 'Contracts & Milestone Terms', icon: FileText },
+      { id: 'sales_change_orders', label: 'أوامر التغيير والتعديلات (Variation)', labelEn: 'Variation & Change Orders', icon: History },
+      { id: 'sales', label: 'صالة الأثاث الجاهز ونقاط البيع (POS)', labelEn: 'Ready Furniture & POS', icon: ShoppingBag }
     ]
   },
   {
@@ -132,16 +146,19 @@ const menuGroups: MenuGroup[] = [
   },
   {
     id: 'operations',
-    title: 'التصنيع والعمليات',
-    titleEn: 'Manufacturing & Ops',
+    title: 'إدارة الورش والتصنيع',
+    titleEn: 'Manufacturing & Workshops',
     icon: Factory,
     permissionCheck: 'production',
     items: [
-      { id: 'production', label: 'أوامر الإنتاج والورش', labelEn: 'Production & Factory', icon: Factory },
-      { id: 'installation', label: 'التركيبات والتسليم بالموقع', labelEn: 'Installation & Delivery', icon: Truck },
-      { id: 'products', label: 'كتالوج المنتجات الجاهزة', labelEn: 'Products Catalog', icon: Package },
-      { id: 'materials', label: 'مكتبة الخامات والمستلزمات', labelEn: 'Materials Library', icon: Layers },
-      { id: 'suppliers', label: 'الموردين وأوامر الشراء', labelEn: 'Suppliers & Vendors', icon: Building2 }
+      { id: 'mfg_dashboard', label: 'لوحة تحكم ومؤشرات الإنتاج', labelEn: 'Manufacturing Dashboard', icon: LayoutDashboard },
+      { id: 'mfg_orders', label: 'أوامر التصنيع والمشاريع (MOs)', labelEn: 'Manufacturing Orders', icon: Boxes },
+      { id: 'mfg_work_orders', label: 'مراكز العمل والماكينات (WOs)', labelEn: 'Work Centers & Stations', icon: Cpu },
+      { id: 'mfg_shopfloor', label: 'كشك الورشة الميداني (Kiosk)', labelEn: 'Shopfloor Tablet Kiosk', icon: Zap },
+      { id: 'mfg_job_cards', label: 'كروت التشغيل والطرود', labelEn: 'Job Cards & Packaging', icon: Printer },
+      { id: 'mfg_scrap', label: 'الهدر والتوالف وإرجاع الفضلات', labelEn: 'Scrap & Off-cuts Return', icon: AlertTriangle },
+      { id: 'mfg_qc', label: 'بوابات الجودة والاعتماد (QC)', labelEn: 'Quality Gates Inspection', icon: ShieldCheck },
+      { id: 'installation', label: 'التركيبات والتسليم بالموقع', labelEn: 'Installation & Delivery', icon: Truck }
     ]
   },
   {
@@ -212,15 +229,17 @@ export const Sidebar: React.FC = () => {
     const initialState: Record<string, boolean> = {};
     menuGroups.forEach(group => {
       const hasActiveChild = group.items.some(item => item.id === activeModule) ||
+        (group.id === 'operations' && (activeModule === 'production' || activeModule.startsWith('mfg_') || activeModule === 'installation')) ||
+        (group.id === 'sales_projects' && (activeModule === 'sales' || activeModule === 'custom_projects' || activeModule.startsWith('sales_'))) ||
         (group.id === 'procurement' && (activeModule === 'procurement' || activeModule.startsWith('proc_'))) ||
         (group.id === 'accounting' && (activeModule === 'finance' || activeModule.startsWith('acc_'))) ||
         (group.id === 'inventory' && (activeModule === 'inventory' || activeModule.startsWith('inv_'))) ||
         (group.id === 'tech_office' && (activeModule === 'tech_office' || activeModule.startsWith('tech_')));
       initialState[group.id] = hasActiveChild;
     });
-    // Default open sales_crm if nothing else is open
+    // Default open crm if nothing else is open
     if (!Object.values(initialState).some(Boolean)) {
-      initialState['sales_crm'] = true;
+      initialState['crm'] = true;
     }
     return initialState;
   });
@@ -229,6 +248,8 @@ export const Sidebar: React.FC = () => {
   useEffect(() => {
     menuGroups.forEach(group => {
       const isGroupActive = group.items.some(item => item.id === activeModule) ||
+        (group.id === 'operations' && (activeModule === 'production' || activeModule.startsWith('mfg_') || activeModule === 'installation')) ||
+        (group.id === 'sales_projects' && (activeModule === 'sales' || activeModule === 'custom_projects' || activeModule.startsWith('sales_'))) ||
         (group.id === 'procurement' && (activeModule === 'procurement' || activeModule.startsWith('proc_'))) ||
         (group.id === 'accounting' && (activeModule === 'finance' || activeModule.startsWith('acc_'))) ||
         (group.id === 'inventory' && (activeModule === 'inventory' || activeModule.startsWith('inv_'))) ||
@@ -277,6 +298,7 @@ export const Sidebar: React.FC = () => {
   }).filter((g): g is MenuGroup => g !== null);
 
   const isDashboardActive = activeModule === 'dashboard';
+  const isAnalyticsActive = activeModule === 'analytics';
 
   return (
     <aside
@@ -325,7 +347,7 @@ export const Sidebar: React.FC = () => {
       )}
 
       {/* Navigation List */}
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-2 custom-scrollbar text-xs">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-1.5 custom-scrollbar text-xs">
         
         {/* DIRECT DASHBOARD BUTTON */}
         <button
@@ -335,11 +357,34 @@ export const Sidebar: React.FC = () => {
               ? 'bg-[#C87A38] text-white shadow-md font-black'
               : 'text-slate-300 hover:bg-white/5 hover:text-white'
           }`}
-          title={isSidebarCollapsed ? 'لوحة التحكم والمؤشرات' : undefined}
+          title={isSidebarCollapsed ? 'لوحة القيادة والعمليات' : undefined}
         >
           <div className="flex items-center gap-2.5">
             <LayoutDashboard className={`w-4 h-4 shrink-0 ${isDashboardActive ? 'text-white' : 'text-amber-400'}`} />
-            {!isSidebarCollapsed && <span>لوحة التحكم والمؤشرات</span>}
+            {!isSidebarCollapsed && <span>لوحة القيادة والعمليات</span>}
+          </div>
+        </button>
+
+        {/* DIRECT ANALYTICS & STATISTICS BUTTON */}
+        <button
+          onClick={() => setActiveModule('analytics')}
+          className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+            isAnalyticsActive
+              ? 'bg-[#C87A38] text-white shadow-md font-black'
+              : 'text-slate-300 hover:bg-white/5 hover:text-white'
+          }`}
+          title={isSidebarCollapsed ? 'التحليلات والإحصائيات والذكاء التشغيلي' : undefined}
+        >
+          <div className="flex items-center gap-2.5 flex-1">
+            <BarChart3 className={`w-4 h-4 shrink-0 ${isAnalyticsActive ? 'text-white' : 'text-emerald-400'}`} />
+            {!isSidebarCollapsed && (
+              <div className="flex items-center justify-between flex-1">
+                <span>التحليلات والإحصائيات</span>
+                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded-md border border-emerald-500/30">
+                  BI
+                </span>
+              </div>
+            )}
           </div>
         </button>
 

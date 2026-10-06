@@ -10,7 +10,7 @@ export class BackendSecurityService {
 
     // Ready-Made only business -> Disable custom manufacturing modules
     if (businessModel === 'ready_made') {
-      if (module === 'custom_projects' || module === 'materials' || module === 'production' || module === 'installation') {
+      if (module === 'custom_projects' || module === 'materials' || module === 'production' || module.startsWith('mfg_') || module === 'installation') {
         return false;
       }
     }
@@ -46,7 +46,14 @@ export class BackendSecurityService {
       return { isAllowed: true, reason: 'صلاحيات المدير الفائق (Super Admin).' };
     }
 
-    const modulePerms = role.permissions[module] || (module.startsWith('acc_') ? role.permissions['finance'] : undefined);
+    const modulePerms = role.permissions[module] 
+      || (module.startsWith('mfg_') ? role.permissions['production'] : undefined)
+      || (module.startsWith('acc_') ? role.permissions['finance'] : undefined)
+      || (module.startsWith('sales_') ? (role.permissions['sales'] || role.permissions['custom_projects']) : undefined)
+      || (module.startsWith('tech_') ? role.permissions['production'] : undefined)
+      || (module.startsWith('plan_') ? role.permissions['production'] : undefined)
+      || (module.startsWith('inv_') ? role.permissions['inventory'] : undefined)
+      || (module.startsWith('proc_') ? role.permissions['inventory'] : undefined);
     if (!modulePerms) {
       return {
         isAllowed: false,

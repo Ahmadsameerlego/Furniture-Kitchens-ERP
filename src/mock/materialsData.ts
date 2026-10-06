@@ -466,7 +466,7 @@ export const initialPurchaseOrders: PurchaseOrder[] = [
     balanceDue: 15000,
     receivingStatus: 'fully_received',
     paymentStatus: 'partially_paid',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     notes: 'أمر توريد 20 لوح MDF أبيض اسباني للمخزن الرئيسي'
   }
 ];
@@ -487,7 +487,7 @@ export const initialStockMovements: StockMovement[] = [
     referenceNumber: 'PO-2026-001',
     timestamp: '2026-08-22 11:30',
     userId: 'user-1',
-    userName: 'أحمد محمود',
+    userName: 'أحمد سمير',
     notes: 'استلام فواتير توريد 20 لوح MDF من أمر الشراء PO-2026-001'
   }
 ];
@@ -509,8 +509,8 @@ export const initialStockTransfers: StockTransfer[] = [
     receivedDate: '2026-08-25 09:00',
     requestedByUserId: 'user-4',
     requestedByUserName: 'عمر فاروق',
-    approvedByUserName: 'أحمد محمود',
-    receivedByUserName: 'أحمد محمود',
+    approvedByUserName: 'أحمد سمير',
+    receivedByUserName: 'أحمد سمير',
     notes: 'تحويل خامات خشب لمشروع ركنة مودرن بالورشة'
   }
 ];

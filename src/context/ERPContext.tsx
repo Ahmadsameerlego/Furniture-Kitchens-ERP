@@ -45,6 +45,7 @@ import {
   DesignStatus,
   QuotationStatus,
   CustomContract,
+  CustomContractStatus,
   PaymentMilestone,
   ProjectHandoverProtocol,
   PaymentReceipt,
@@ -127,6 +128,8 @@ import {
   initialPaymentReceipts,
   initialCommercialPaymentSchedules
 } from '../mock/commercialData';
+import { initialVariationOrders } from '../mock/salesData';
+import { VariationOrder } from '../types/sales';
 import {
   initialProductionOrders,
   initialInstallationRecords
@@ -295,6 +298,14 @@ interface ERPContextType {
   selectedProjectId: string | null;
   portalCurrentCustomerId: string;
 
+  // Sales & Variation Orders State & Actions
+  variationOrders: VariationOrder[];
+  createVariationOrder: (data: Omit<VariationOrder, 'id' | 'orderNumber' | 'status'>) => VariationOrder;
+  approveVariationOrder: (id: string, approverName: string, notes?: string) => void;
+  rejectVariationOrder: (id: string, approverName: string, notes?: string) => void;
+  updateContractStatus: (contractId: string, status: CustomContractStatus) => void;
+  recordMilestonePayment: (contractId: string, milestoneId: string, amount: number, paymentMethod: string, notes?: string) => void;
+
   // Technical Office & Engineering State
   technicalProjects: TechnicalProject[];
   technicalSurveys: TechnicalSiteSurvey[];
@@ -436,6 +447,7 @@ interface ERPContextType {
   // CRM Actions
   setSelectedCustomerId: (id: string | null) => void;
   addCustomer: (customerData: Omit<Customer, 'id' | 'createdDate' | 'lastActivityDate' | 'hasPurchased' | 'isAfterSales'>) => Customer;
+  importCustomers: (newCustomers: Customer[]) => void;
   updateCustomer: (customerId: string, updates: Partial<Customer>) => void;
   updateCustomerStatus: (customerId: string, status: CustomerStatus, lostReason?: LostReason, lostNote?: string) => void;
   addCustomerActivity: (customerId: string, type: CustomerActivity['type'], title: string, note: string) => void;
@@ -624,6 +636,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [customContracts, setCustomContracts] = useState<CustomContract[]>(initialCustomContracts);
   const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(initialProjectHandovers);
   const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(initialPaymentReceipts);
+  const [variationOrders, setVariationOrders] = useState<VariationOrder[]>(initialVariationOrders);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [portalCurrentCustomerId, setPortalCurrentCustomerId] = useState<string>('cust-1');
 
@@ -692,9 +705,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // URL Hash to ModuleId Mapping
   const moduleToRouteMap: Record<ModuleId, string> = {
     dashboard: '/dashboard',
+    analytics: '/analytics',
     customers: '/crm/customers',
     campaigns: '/crm/campaigns',
     sales: '/sales/ready-orders',
+    sales_dashboard: '/sales/dashboard',
+    sales_quotations: '/sales/quotations',
+    sales_contracts: '/sales/contracts',
+    sales_change_orders: '/sales/change-orders',
     custom_projects: '/sales/custom-projects',
     tech_office: '/tech/dashboard',
     tech_dashboard: '/tech/dashboard',
@@ -739,6 +757,13 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     proc_prices: '/procurement/prices',
     proc_reports: '/procurement/reports',
     production: '/operations/production',
+    mfg_dashboard: '/operations/manufacturing/dashboard',
+    mfg_orders: '/operations/manufacturing/orders',
+    mfg_work_orders: '/operations/manufacturing/work-orders',
+    mfg_shopfloor: '/operations/manufacturing/shopfloor',
+    mfg_job_cards: '/operations/manufacturing/job-cards',
+    mfg_scrap: '/operations/manufacturing/scrap',
+    mfg_qc: '/operations/manufacturing/qc',
     installation: '/operations/installation',
     finance: '/accounting/dashboard',
     acc_dashboard: '/accounting/dashboard',
@@ -759,12 +784,21 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const routeToModuleMap: Record<string, ModuleId> = {
     '/dashboard': 'dashboard',
+    '/analytics': 'analytics',
     '/crm/customers': 'customers',
     '/customers': 'customers',
     '/crm/campaigns': 'campaigns',
-    '/campaigns': 'campaigns',
     '/sales/ready-orders': 'sales',
     '/sales': 'sales',
+    '/sales/dashboard': 'sales_dashboard',
+    '/sales_dashboard': 'sales_dashboard',
+    '/sales/quotations': 'sales_quotations',
+    '/sales_quotations': 'sales_quotations',
+    '/sales/contracts': 'sales_contracts',
+    '/sales_contracts': 'sales_contracts',
+    '/sales/change-orders': 'sales_change_orders',
+    '/sales/change_orders': 'sales_change_orders',
+    '/sales_change_orders': 'sales_change_orders',
     '/sales/custom-projects': 'custom_projects',
     '/custom_projects': 'custom_projects',
     '/tech': 'tech_dashboard',
@@ -811,6 +845,20 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     '/procurement/reports': 'proc_reports',
     '/operations/production': 'production',
     '/production': 'production',
+    '/operations/manufacturing/dashboard': 'mfg_dashboard',
+    '/mfg_dashboard': 'mfg_dashboard',
+    '/operations/manufacturing/orders': 'mfg_orders',
+    '/mfg_orders': 'mfg_orders',
+    '/operations/manufacturing/work-orders': 'mfg_work_orders',
+    '/mfg_work_orders': 'mfg_work_orders',
+    '/operations/manufacturing/shopfloor': 'mfg_shopfloor',
+    '/mfg_shopfloor': 'mfg_shopfloor',
+    '/operations/manufacturing/job-cards': 'mfg_job_cards',
+    '/mfg_job_cards': 'mfg_job_cards',
+    '/operations/manufacturing/scrap': 'mfg_scrap',
+    '/mfg_scrap': 'mfg_scrap',
+    '/operations/manufacturing/qc': 'mfg_qc',
+    '/mfg_qc': 'mfg_qc',
     '/operations/installation': 'installation',
     '/installation': 'installation',
     '/operations/suppliers': 'suppliers',
@@ -1212,10 +1260,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addCustomer = (customerData: Omit<Customer, 'id' | 'createdDate' | 'lastActivityDate' | 'hasPurchased' | 'isAfterSales'>): Customer => {
     const today = new Date().toISOString().substring(0, 10);
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const code = customerData.code || CrmService.generateCustomerCode(customers);
 
     const newCustomer: Customer = {
       ...customerData,
       id: `cust-${Date.now()}`,
+      code,
+      customerType: customerData.customerType || 'individual',
+      billingMethod: customerData.billingMethod || 'printed',
+      tier: customerData.tier || (customerData.customerType === 'commercial' ? 'wholesale' : 'standard'),
       createdDate: today,
       lastActivityDate: timestamp,
       hasPurchased: customerData.status === 'won' || customerData.status === 'customer' || customerData.status === 'completed',
@@ -1229,12 +1282,29 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       action: 'تسجيل عميل جديد',
       actionEn: 'Customer Registered',
       target: newCustomer.fullName,
-      details: `تم تسجيل ملف العميل برقم هاتف (${newCustomer.phone}) - الفرع: ${newCustomer.branchName} - نوع الاهتمام: ${newCustomer.interestType === 'kitchens' ? 'تفصيل' : newCustomer.interestType === 'furniture' ? 'جاهز' : 'جاهز وتفصيل'}`,
+      details: `تم تسجيل ملف العميل [${newCustomer.code}] (${newCustomer.phone}) - النوع: ${newCustomer.customerType === 'commercial' ? 'تجاري' : 'فردي'} - الفرع: ${newCustomer.branchName}`,
       status: 'success'
     });
 
-    showToast(`تمت إضافة العميل ${newCustomer.fullName} بنجاح`, 'success');
+    showToast(`تمت إضافة العميل ${newCustomer.fullName} بنجاح بالكود [${newCustomer.code}]`, 'success');
     return newCustomer;
+  };
+
+  const importCustomers = (newCustomers: Customer[]) => {
+    if (!newCustomers || newCustomers.length === 0) return;
+
+    setCustomers(prev => [...newCustomers, ...prev]);
+
+    addAuditLog({
+      category: 'customer',
+      action: 'استيراد قائمة عملاء إكسل',
+      actionEn: 'Excel Customers Batch Imported',
+      target: `عدد ${newCustomers.length} عميل`,
+      details: `تم استيراد ${newCustomers.length} عميل مجمعاً عبر ملف Excel/CSV بنجاح وتوليد الأكواد الخاصة بهم.`,
+      status: 'success'
+    });
+
+    showToast(`تم بنجاح استيراد ${newCustomers.length} عميل جديد إلى قاعدة البيانات`, 'success');
   };
 
   const updateCustomer = (customerId: string, updates: Partial<Customer>) => {
@@ -1816,6 +1886,69 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newProject;
   };
 
+  const syncSalesProjectToTechnicalOffice = (
+    projectId: string,
+    handoverId?: string,
+    status: 'pending_handover' | 'site_survey_in_progress' | 'cad_design_in_progress' | 'bom_explosion_in_progress' | 'technically_approved' | 'released_to_planning' | 'ecr_in_progress' = 'site_survey_in_progress',
+    engineerId?: string,
+    engineerName?: string
+  ) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const salesPrj = customProjects.find(p => p.id === projectId);
+    const contract = customContracts.find(c => c.projectId === projectId);
+    const quote = projectQuotations.find(q => q.projectId === projectId && q.status === 'accepted') || projectQuotations.find(q => q.projectId === projectId);
+    const design = projectDesigns.find(d => d.projectId === projectId && d.status === 'approved') || projectDesigns.find(d => d.projectId === projectId);
+
+    const engId = engineerId || currentUser.id;
+    const engName = engineerName || currentUser.fullName;
+
+    setTechnicalProjects(prev => {
+      const existing = prev.find(tp => tp.salesProjectId === projectId);
+      if (existing) {
+        return prev.map(tp => tp.id === existing.id ? {
+          ...tp,
+          status,
+          responsibleEngineerId: engId,
+          responsibleEngineerName: engName,
+          lastUpdatedDate: timestamp,
+          contractId: contract?.id || tp.contractId,
+          contractNumber: contract?.contractNumber || tp.contractNumber,
+          handoverId: handoverId || tp.handoverId
+        } : tp);
+      }
+
+      const newTechPrj: TechnicalProject = {
+        id: `tech-${Date.now()}`,
+        projectNumber: `TECH-2026-${Math.floor(100 + Math.random() * 900)}`,
+        salesProjectId: projectId,
+        salesProjectNumber: salesPrj ? salesPrj.projectNumber : `PRJ-${projectId}`,
+        projectName: salesPrj ? salesPrj.projectName : 'مشروع تفصيل جديد',
+        customerId: salesPrj ? salesPrj.customerId : 'cust-1',
+        customerName: salesPrj ? salesPrj.customerName : 'عميل',
+        customerPhone: salesPrj ? salesPrj.customerPhone : '',
+        contractId: contract?.id,
+        contractNumber: contract?.contractNumber,
+        branchId: salesPrj ? salesPrj.branchId : currentBranch.id,
+        branchName: salesPrj ? salesPrj.branchName : currentBranch.name,
+        projectType: salesPrj ? salesPrj.projectType : 'kitchen',
+        status,
+        priority: 'high',
+        responsibleEngineerId: engId,
+        responsibleEngineerName: engName,
+        createdDate: timestamp.substring(0, 10),
+        lastUpdatedDate: timestamp,
+        targetReleaseDate: new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
+        activeDesignVersion: design?.version || 1,
+        activeBomRevision: 'REV-01',
+        handoverId,
+        technicalNotes: 'تم تحويل واستلام ملف المشروع من المبيعات للمكتب الفني تلقائياً ومطابقة بيانات المقايسة والتصميم.',
+        commercialScopeSummary: contract ? `عقد بقيمة ${contract.totalValue.toLocaleString('ar-EG')} ج.م` : 'عقد معتمد'
+      };
+
+      return [newTechPrj, ...prev];
+    });
+  };
+
   const updateProjectStatus = (projectId: string, newStatus: ProjectStatus) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     setCustomProjects(prev => prev.map(p => {
@@ -1824,6 +1957,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return p;
     }));
+
+    if (newStatus === 'handed_over_to_tech_office') {
+      syncSalesProjectToTechnicalOffice(projectId, undefined, 'site_survey_in_progress');
+    } else if (newStatus === 'ready_for_handover') {
+      syncSalesProjectToTechnicalOffice(projectId, undefined, 'pending_handover');
+    }
 
     const statusMeta = CustomProjectService.getProjectStatusMeta(newStatus);
     addTimelineEvent(projectId, `تحديث حالة المشروع إلى "${statusMeta.label}"`, `تم تغيير مرحلة المشروع بموافقة وتتبع النظام`, 'system');
@@ -2132,6 +2271,119 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`✓ تم التحقق المالي من سداد العربون (${rNumber}) وإيداعه بحسابات الشركة`, 'success');
   };
 
+  const createVariationOrder = (data: Omit<VariationOrder, 'id' | 'orderNumber' | 'status'>): VariationOrder => {
+    const orderNumber = `VAR-2026-${String(variationOrders.length + 1).padStart(3, '0')}`;
+    const newVO: VariationOrder = {
+      ...data,
+      id: `var-${Date.now()}`,
+      orderNumber,
+      status: 'pending_approval'
+    };
+    setVariationOrders(prev => [newVO, ...prev]);
+    addTimelineEvent(data.projectId, `طلب أمر تغيير جديد (${orderNumber})`, `تم تقديم طلب أمر تغيير بتكلفة ${data.totalPriceImpact >= 0 ? '+' : ''}${data.totalPriceImpact.toLocaleString('ar-EG')} ج.م`, 'system');
+    showToast(`تم إنشاء أمر التغيير (${orderNumber}) بنجاح وقيد مراجعة الاعتماد`, 'success');
+    return newVO;
+  };
+
+  const approveVariationOrder = (id: string, approverName: string, notes?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetVO = variationOrders.find(v => v.id === id);
+    if (!targetVO) return;
+
+    setVariationOrders(prev => prev.map(v => v.id === id ? {
+      ...v,
+      status: 'approved',
+      approvedDate: timestamp,
+      approvedByName: approverName,
+      notes: notes ? `${v.notes || ''} | ${notes}` : v.notes
+    } : v));
+
+    // Update the associated Contract's totalValue
+    setCustomContracts(prev => prev.map(c => {
+      if (c.id === targetVO.contractId || c.projectId === targetVO.projectId) {
+        const newTotal = c.totalValue + targetVO.totalPriceImpact;
+        return {
+          ...c,
+          totalValue: newTotal,
+          notes: `${c.notes || ''} [مُعدل بأمر تغيير ${targetVO.orderNumber}: +${targetVO.totalPriceImpact} ج.م]`
+        };
+      }
+      return c;
+    }));
+
+    addTimelineEvent(targetVO.projectId, `اعتماد أمر التغيير (${targetVO.orderNumber})`, `تم اعتماد أمر التغيير وتعديل قيمة المشروع والعقد بفرق (${targetVO.totalPriceImpact >= 0 ? '+' : ''}${targetVO.totalPriceImpact.toLocaleString('ar-EG')} ج.م)`, 'approval');
+    showToast(`✓ تم اعتماد أمر التغيير (${targetVO.orderNumber}) وتحديث قيمة العقد والتشغيل`, 'success');
+  };
+
+  const rejectVariationOrder = (id: string, approverName: string, notes?: string) => {
+    const targetVO = variationOrders.find(v => v.id === id);
+    if (!targetVO) return;
+
+    setVariationOrders(prev => prev.map(v => v.id === id ? {
+      ...v,
+      status: 'rejected',
+      notes: notes ? `${v.notes || ''} [مرفوض: ${notes}]` : v.notes
+    } : v));
+
+    addTimelineEvent(targetVO.projectId, `رفض أمر التغيير (${targetVO.orderNumber})`, `تم رفض أمر التغيير: ${notes || 'بناء على المراجعة الفنية/المالية'}`, 'system');
+    showToast(`تم رفض أمر التغيير (${targetVO.orderNumber})`, 'warning');
+  };
+
+  const updateContractStatus = (contractId: string, status: CustomContractStatus) => {
+    setCustomContracts(prev => prev.map(c => c.id === contractId ? { ...c, status } : c));
+    showToast(`تم تحديث حالة العقد إلى (${status})`, 'info');
+  };
+
+  const recordMilestonePayment = (contractId: string, milestoneId: string, amount: number, paymentMethod: string, notes?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const rNumber = `RCP-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    setCustomContracts(prev => prev.map(c => {
+      if (c.id === contractId) {
+        const updatedMilestones = c.milestones.map(m => {
+          if (m.id === milestoneId) {
+            const currentPaid = m.paidAmount || 0;
+            const newPaid = currentPaid + amount;
+            const isFullyPaid = newPaid >= m.amount;
+            return {
+              ...m,
+              paidAmount: newPaid,
+              status: (isFullyPaid ? 'verified_in_finance' : 'partially_paid') as any,
+              financialReceiptRef: rNumber,
+              paymentDate: timestamp,
+              notes: notes || m.notes
+            };
+          }
+          return m;
+        });
+        return { ...c, milestones: updatedMilestones };
+      }
+      return c;
+    }));
+
+    const targetContract = customContracts.find(c => c.id === contractId);
+    if (targetContract) {
+      const newReceipt: PaymentReceipt = {
+        id: `rcp-${Date.now()}`,
+        receiptNumber: rNumber,
+        orderId: `ord-${targetContract.projectNumber}`,
+        orderNumber: targetContract.projectNumber,
+        customerId: targetContract.customerId,
+        customerName: targetContract.customerName,
+        amount,
+        paymentDate: timestamp,
+        paymentMethod: paymentMethod as any,
+        paymentType: 'installment',
+        receivedByUserName: currentUser.fullName,
+        notes: notes || `سداد دفعة مرحلية لعقد ${targetContract.contractNumber}`
+      };
+      setPaymentReceipts(prev => [newReceipt, ...prev]);
+      addTimelineEvent(targetContract.projectId, `تحصيل دفعة مرحلية (${rNumber})`, `تم تحصيل مبلغ ${amount.toLocaleString('ar-EG')} ج.م بالخزينة/الحساب`, 'payment');
+    }
+
+    showToast(`✓ تم تسجيل تحصيل الدفعة (${rNumber}) بقيمة ${amount.toLocaleString('ar-EG')} ج.م بنجاح`, 'success');
+  };
+
   const submitProjectHandover = (projectId: string, checklist: any, notesForTechOffice?: string): ProjectHandoverProtocol => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetProject = customProjects.find(p => p.id === projectId);
@@ -2151,6 +2403,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setProjectHandovers(prev => [newHandover, ...prev.filter(h => h.projectId !== projectId)]);
     updateProjectStatus(projectId, 'ready_for_handover');
+    syncSalesProjectToTechnicalOffice(projectId, newHandover.id, 'pending_handover');
+
     addTimelineEvent(projectId, 'تقديم محضر تسليم المشروع للمكتب الفني', 'تم تجهيز واستيفاء كامل الشروط التعاقدية والفنية وتسليم الملف للمكتب الفني', 'handover');
     showToast(`تم تقديم محضر تسليم المشروع (${targetProject.projectNumber}) للمكتب الفني`, 'success');
     return newHandover;
@@ -2174,6 +2428,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
 
     updateProjectStatus(targetHandover.projectId, 'handed_over_to_tech_office');
+    syncSalesProjectToTechnicalOffice(targetHandover.projectId, handoverId, 'site_survey_in_progress', currentUser.id, `${currentUser.fullName} (المكتب الفني)`);
+
     addTimelineEvent(targetHandover.projectId, 'اعتماد واستلام المشروع بالمكتب الفني', 'تم قبول ملف المشروع والبدء في أعمال تفجير الـ BOM وقوائم التقطيع الهندسية', 'handover');
     showToast(`🎉 تم اعتماد استلام المشروع بمكتب الهندسة والـ BOM (${targetHandover.projectNumber})`, 'success');
   };
@@ -2203,54 +2459,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
 
     updateProjectStatus(targetHandover.projectId, 'handed_over_to_tech_office');
-    
-    // Check or create Technical Project
-    let existingTech = technicalProjects.find(tp => tp.salesProjectId === targetHandover.projectId);
-    if (!existingTech) {
-      const salesPrj = customProjects.find(p => p.id === targetHandover.projectId);
-      const contract = customContracts.find(c => c.projectId === targetHandover.projectId);
-      const newTechPrj: TechnicalProject = {
-        id: `tech-${Date.now()}`,
-        projectNumber: `TECH-2026-${Math.floor(100 + Math.random() * 900)}`,
-        salesProjectId: targetHandover.projectId,
-        salesProjectNumber: targetHandover.projectNumber,
-        projectName: salesPrj ? salesPrj.projectName : 'مشروع تفصيل جديد',
-        customerId: salesPrj ? salesPrj.customerId : 'cust-1',
-        customerName: targetHandover.customerName,
-        customerPhone: salesPrj ? salesPrj.customerPhone : '',
-        contractId: contract?.id,
-        contractNumber: contract?.contractNumber,
-        branchId: salesPrj ? salesPrj.branchId : currentBranch.id,
-        branchName: salesPrj ? salesPrj.branchName : currentBranch.name,
-        projectType: salesPrj ? salesPrj.projectType : 'kitchen',
-        status: 'site_survey_in_progress',
-        priority: 'high',
-        responsibleEngineerId: engineerId,
-        responsibleEngineerName: engineerName,
-        createdDate: timestamp.substring(0, 10),
-        lastUpdatedDate: timestamp,
-        targetReleaseDate: new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
-        activeDesignVersion: 1,
-        activeBomRevision: 'REV-01',
-        handoverId: handoverId,
-        technicalNotes: 'تم قبول محضر التسليم الهندسي بنجاح وجاري إعداد الرفع المساحي والـ BOM.',
-        commercialScopeSummary: contract ? `عقد بقيمة ${contract.totalValue.toLocaleString('ar-EG')} ج.م` : 'عقد معتمد'
-      };
-      setTechnicalProjects(prev => [newTechPrj, ...prev]);
-    } else {
-      setTechnicalProjects(prev => prev.map(tp => {
-        if (tp.id === existingTech!.id) {
-          return {
-            ...tp,
-            status: 'site_survey_in_progress',
-            responsibleEngineerId: engineerId,
-            responsibleEngineerName: engineerName,
-            lastUpdatedDate: timestamp
-          };
-        }
-        return tp;
-      }));
-    }
+    syncSalesProjectToTechnicalOffice(targetHandover.projectId, handoverId, 'site_survey_in_progress', engineerId, engineerName);
 
     addTimelineEvent(targetHandover.projectId, 'قبول المشروع بالمكتب الفني', `تم قبول محضر التسليم وتعيين المهندس المسؤول: ${engineerName}`, 'handover');
     
@@ -5998,7 +6207,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'posted',
       journalEntryId: postResult.entry?.id,
       createdByUserName: currentUser.fullName,
-      approvedByUserName: 'أحمد محمود (المالية)',
+      approvedByUserName: 'أحمد سمير (المالية)',
       notes: data.notes
     };
 
@@ -6604,6 +6813,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         customContracts,
         projectHandovers,
         paymentReceipts,
+        variationOrders,
+        createVariationOrder,
+        approveVariationOrder,
+        rejectVariationOrder,
+        updateContractStatus,
+        recordMilestonePayment,
         selectedProjectId,
         portalCurrentCustomerId,
         productionOrders,
@@ -6657,6 +6872,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         removeToast,
         setSelectedCustomerId,
         addCustomer,
+        importCustomers,
         updateCustomer,
         updateCustomerStatus,
         addCustomerActivity,

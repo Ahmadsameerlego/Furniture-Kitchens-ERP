@@ -37,13 +37,15 @@ import {
   HardHat,
   Package,
   Wrench,
-  GitPullRequest
+  GitPullRequest,
+  Upload
 } from 'lucide-react';
 import { TechnicalReleaseModal } from './modals/TechnicalReleaseModal';
 import { CreateBOMRevisionModal } from './modals/CreateBOMRevisionModal';
 import { CreateECRModal } from './modals/CreateECRModal';
 import { TechnicalHandoverReviewModal } from './modals/TechnicalHandoverReviewModal';
 import { EditTechnicalSurveyModal } from './modals/EditTechnicalSurveyModal';
+import { CreateCADRevisionModal } from './modals/CreateCADRevisionModal';
 import { WallDimension } from '../../types/technicalOffice';
 
 interface TechnicalProjectDetailsViewProps {
@@ -65,6 +67,7 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
     projectHandovers,
     customContracts,
     customProjects,
+    projectDesigns,
     projectMeasurements,
     siteVisits,
     saveTechnicalSurvey,
@@ -94,6 +97,8 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
   const [showECRModal, setShowECRModal] = useState(false);
   const [showHandoverModal, setShowHandoverModal] = useState(false);
   const [showEditSurveyModal, setShowEditSurveyModal] = useState(false);
+  const [showCADRevisionModal, setShowCADRevisionModal] = useState(false);
+  const [selectedDesignVersion, setSelectedDesignVersion] = useState<number | null>(null);
 
   const project = technicalProjects.find(p => p.id === projectId);
   if (!project) {
@@ -120,6 +125,14 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
   const ecrs = engineeringChangeRequests.filter(e => e.technicalProjectId === project.id);
   const handover = projectHandovers.find(h => h.id === project.handoverId || h.projectId === project.salesProjectId);
   const contract = customContracts.find(c => c.id === project.contractId || c.projectId === project.salesProjectId);
+
+  // Sales Phase Digital Thread Lookups
+  const salesPrj = customProjects.find(p => p.id === project.salesProjectId || p.projectNumber === project.salesProjectNumber);
+  const salesDesigns = projectDesigns.filter(d => d.projectId === salesPrj?.id);
+  const salesApprovedDesign = salesDesigns.find(d => d.status === 'approved') || salesDesigns[salesDesigns.length - 1];
+  const salesMeasurements = projectMeasurements.filter(m => m.projectId === salesPrj?.id);
+  const latestSalesMeas = salesMeasurements[salesMeasurements.length - 1];
+  const salesSiteVisit = siteVisits.find(v => v.projectId === salesPrj?.id);
 
   const statusMeta = TechnicalOfficeService.getStatusMeta(project.status);
 
@@ -284,41 +297,44 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
     <div className="space-y-6 pb-16 animate-in fade-in duration-300">
       
       {/* Top Breadcrumb & Actions Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-3">
+      <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
           <button
             onClick={onBack}
-            className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
+            className="w-11 h-11 rounded-2xl bg-slate-100 hover:bg-[#361D13] hover:text-[#E29555] text-slate-700 transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-xs"
             title="رجوع لقائمة المشاريع"
           >
             <ArrowRight className="w-5 h-5" />
           </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#C87A38]/10 text-[#C87A38] font-black font-mono">
+          
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs px-3 py-1 rounded-xl bg-[#361D13] text-[#E29555] font-black font-mono shadow-xs border border-[#C87A38]/30">
                 {project.projectNumber}
               </span>
-              <span className="text-xs text-slate-400 font-mono">
-                {project.salesProjectNumber}
+              <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 font-mono font-bold">
+                مرجع المبيعات: {project.salesProjectNumber}
               </span>
-              <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-black border ${statusMeta.bgColor} ${statusMeta.color} ${statusMeta.borderColor}`}>
+              <span className={`text-[11px] px-3 py-0.5 rounded-full font-black border ${statusMeta.bgColor} ${statusMeta.color} ${statusMeta.borderColor}`}>
                 {statusMeta.label}
               </span>
             </div>
-            <h2 className="text-xl font-black text-[#1E110B] mt-0.5 flex items-center gap-2">
+            <h2 className="text-lg md:text-xl font-black text-[#1E110B] flex items-center gap-2">
               <span>{project.customerName}</span>
-              <span className="text-sm font-normal text-slate-500">| {project.projectName}</span>
+              <span className="text-slate-300 font-light">/</span>
+              <span className="text-sm md:text-base font-bold text-slate-600">{project.projectName}</span>
             </h2>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* Action Toolbar */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
           
           {/* Quick BOM Revision Button */}
           {activeBom && (
             <button
               onClick={() => setShowBOMRevisionModal(true)}
-              className="px-4 py-2.5 rounded-xl border border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-800 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <GitBranch className="w-4 h-4 text-purple-600" />
               <span>إصدار BOM جديد</span>
@@ -329,7 +345,7 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
           {activeBom && (
             <button
               onClick={handleExportCSV}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <Download className="w-4 h-4 text-slate-600" />
               <span>تصدير OptiCut CSV</span>
@@ -340,131 +356,209 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
           {project.status === 'technically_approved' && (
             <button
               onClick={() => setShowReleaseModal(true)}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs hover:opacity-95 shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs hover:opacity-95 shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span>إصدار حزمة الإفراج للتخطيط</span>
+              <span>إصدار حزمة الإفراج</span>
             </button>
           )}
 
           {/* ECR Trigger Button */}
           <button
             onClick={() => setShowECRModal(true)}
-            className="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <GitPullRequest className="w-4 h-4 text-rose-600" />
-            <span>طلب تعديل هندسي ECR</span>
+            <span>طلب تعديل ECR</span>
           </button>
 
         </div>
       </div>
 
-      {/* 8-Tab Navigation Bar */}
-      <div className="bg-white rounded-3xl p-1.5 border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-1 text-xs">
-        
-        <button
-          onClick={() => setActiveTab('commercial_handover')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black transition-all cursor-pointer ${
-            activeTab === 'commercial_handover'
-              ? 'bg-[#361D13] text-white shadow-md'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <ClipboardCheck className="w-4 h-4 text-[#C87A38]" />
-          <span>1. النطاق التجاري والاستلام</span>
-          {handover?.status === 'submitted' && (
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          )}
-        </button>
+      {/* Pending Handover Alert Banner */}
+      {(project.status === 'pending_handover' || handover?.status === 'submitted') && (
+        <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-500/15 via-[#C87A38]/15 to-orange-500/10 border-2 border-amber-400/80 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30 shrink-0">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500 text-white font-black">
+                  بوابة استلام قيد المراجعة والتدقيق
+                </span>
+                <span className="text-xs text-amber-900 font-bold">بوابة تسليم المبيعات (Golden Gate)</span>
+              </div>
+              <h3 className="text-base font-black text-amber-950 mt-0.5">
+                المشروع في انتظار تدقيق التصميم والريندر المعتمد والمعاينة قبل البدء الهندسي
+              </h3>
+              <p className="text-xs text-amber-800">
+                يرجى فحص صور الـ 3D ومواصفات العقد ومقاسات المبيعات للتأكد من خلو المشروع من أي نواقص فنية قبل اعتماد الاستلام.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowHandoverModal(true)}
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#1E110B] to-[#361D13] text-[#E29555] font-black text-xs hover:opacity-95 shadow-lg border border-[#C87A38]/40 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>تدقيق واعتماد ملف الاستلام</span>
+          </button>
+        </div>
+      )}
 
-        <button
-          onClick={() => setActiveTab('site_survey')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black transition-all cursor-pointer ${
-            activeTab === 'site_survey'
-              ? 'bg-[#361D13] text-white shadow-md'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Ruler className="w-4 h-4 text-[#C87A38]" />
-          <span>2. الرفع المساحي والتغذيات (MEP)</span>
-          {survey?.status === 'verified' && (
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('cad_drawings')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black transition-all cursor-pointer ${
-            activeTab === 'cad_drawings'
-              ? 'bg-[#361D13] text-white shadow-md'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <FileSpreadsheet className="w-4 h-4 text-[#C87A38]" />
-          <span>3. المخططات التنفيذية CAD (V{project.activeDesignVersion})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('bom_explosion')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black transition-all cursor-pointer ${
-            activeTab === 'bom_explosion'
-              ? 'bg-[#361D13] text-white shadow-md'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Layers className="w-4 h-4 text-[#C87A38]" />
-          <span>4. تفجير الـ BOM وقوائم التقطيع ({project.activeBomRevision})</span>
-          {activeBom && (
-            <span className="px-2 py-0.5 rounded-full bg-[#C87A38]/30 text-white font-mono text-[10px]">
-              {activeBom.totalPartsCount} قطعة
+      {/* Modern Workflow Pipeline Navigation Bar (7 Tabs - Single Row with Horizontal Scrolling) */}
+      <div className="bg-slate-100/80 p-1.5 rounded-3xl border border-slate-200/90 shadow-inner">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+          
+          {/* Tab 1 */}
+          <button
+            onClick={() => setActiveTab('commercial_handover')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl font-black text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'commercial_handover'
+                ? 'bg-[#1E110B] text-white shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/40'
+                : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+            }`}
+          >
+            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black ${
+              activeTab === 'commercial_handover' ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              01
             </span>
-          )}
-        </button>
+            <ClipboardCheck className={`w-4 h-4 ${activeTab === 'commercial_handover' ? 'text-[#E29555]' : 'text-slate-400'}`} />
+            <span>النطاق التجاري والاستلام</span>
+            {handover?.status === 'submitted' && (
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            )}
+          </button>
 
-        <button
-          onClick={() => setActiveTab('planning_release')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black transition-all cursor-pointer ${
-            activeTab === 'planning_release'
-              ? 'bg-[#361D13] text-white shadow-md'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Send className="w-4 h-4 text-[#C87A38]" />
-          <span>5. حزمة الإفراج للتخطيط</span>
-          {activeRelease && (
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('ecr')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black transition-all cursor-pointer ${
-            activeTab === 'ecr'
-              ? 'bg-[#361D13] text-white shadow-md'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <GitPullRequest className="w-4 h-4 text-[#C87A38]" />
-          <span>6. طلبات التعديل (ECR)</span>
-          {ecrs.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-mono text-[10px] font-black">
-              {ecrs.length}
+          {/* Tab 2 */}
+          <button
+            onClick={() => setActiveTab('site_survey')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl font-black text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'site_survey'
+                ? 'bg-[#1E110B] text-white shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/40'
+                : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+            }`}
+          >
+            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black ${
+              activeTab === 'site_survey' ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              02
             </span>
-          )}
-        </button>
+            <Ruler className={`w-4 h-4 ${activeTab === 'site_survey' ? 'text-[#E29555]' : 'text-slate-400'}`} />
+            <span>الرفع المساحي والتغذيات</span>
+            {survey?.status === 'verified' && (
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            )}
+          </button>
 
-        <button
-          onClick={() => setActiveTab('audit_trail')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black transition-all cursor-pointer ${
-            activeTab === 'audit_trail'
-              ? 'bg-[#361D13] text-white shadow-md'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <History className="w-4 h-4 text-[#C87A38]" />
-          <span>7. سجل التدقيق الهندسي</span>
-        </button>
+          {/* Tab 3 */}
+          <button
+            onClick={() => setActiveTab('cad_drawings')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl font-black text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'cad_drawings'
+                ? 'bg-[#1E110B] text-white shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/40'
+                : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+            }`}
+          >
+            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black ${
+              activeTab === 'cad_drawings' ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              03
+            </span>
+            <FileSpreadsheet className={`w-4 h-4 ${activeTab === 'cad_drawings' ? 'text-[#E29555]' : 'text-slate-400'}`} />
+            <span>المخططات التنفيذية CAD (V{project.activeDesignVersion})</span>
+          </button>
 
+          {/* Tab 4 */}
+          <button
+            onClick={() => setActiveTab('bom_explosion')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl font-black text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'bom_explosion'
+                ? 'bg-[#1E110B] text-white shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/40'
+                : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+            }`}
+          >
+            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black ${
+              activeTab === 'bom_explosion' ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              04
+            </span>
+            <Layers className={`w-4 h-4 ${activeTab === 'bom_explosion' ? 'text-[#E29555]' : 'text-slate-400'}`} />
+            <span>تفجير الـ BOM وقوائم التقطيع ({project.activeBomRevision})</span>
+            {activeBom && (
+              <span className={`px-2 py-0.5 rounded-full font-mono text-[10px] ${
+                activeTab === 'bom_explosion' ? 'bg-[#C87A38]/40 text-[#E29555]' : 'bg-slate-200 text-slate-700'
+              }`}>
+                {activeBom.totalPartsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Tab 5 */}
+          <button
+            onClick={() => setActiveTab('planning_release')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl font-black text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'planning_release'
+                ? 'bg-[#1E110B] text-white shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/40'
+                : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+            }`}
+          >
+            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black ${
+              activeTab === 'planning_release' ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              05
+            </span>
+            <Send className={`w-4 h-4 ${activeTab === 'planning_release' ? 'text-[#E29555]' : 'text-slate-400'}`} />
+            <span>حزمة الإفراج للتخطيط</span>
+            {activeRelease && (
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            )}
+          </button>
+
+          {/* Tab 6 */}
+          <button
+            onClick={() => setActiveTab('ecr')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl font-black text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'ecr'
+                ? 'bg-[#1E110B] text-white shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/40'
+                : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+            }`}
+          >
+            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black ${
+              activeTab === 'ecr' ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              06
+            </span>
+            <GitPullRequest className={`w-4 h-4 ${activeTab === 'ecr' ? 'text-[#E29555]' : 'text-slate-400'}`} />
+            <span>طلبات التعديل ECR</span>
+            {ecrs.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[10px] font-black">
+                {ecrs.length}
+              </span>
+            )}
+          </button>
+
+          {/* Tab 7 */}
+          <button
+            onClick={() => setActiveTab('audit_trail')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl font-black text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              activeTab === 'audit_trail'
+                ? 'bg-[#1E110B] text-white shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/40'
+                : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+            }`}
+          >
+            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black ${
+              activeTab === 'audit_trail' ? 'bg-[#C87A38] text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              07
+            </span>
+            <History className={`w-4 h-4 ${activeTab === 'audit_trail' ? 'text-[#E29555]' : 'text-slate-400'}`} />
+            <span>سجل التدقيق</span>
+          </button>
+
+        </div>
       </div>
 
       {/* ======================================================== */}
@@ -472,10 +566,98 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
       {/* ======================================================== */}
       {activeTab === 'commercial_handover' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* SECTION 1: SALES APPROVED 3D RENDER & PALETTE */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black">
+                  3D
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#1E110B]">
+                    ريندر وتصميم المبيعات المعتمد من العميل (Aesthetic Baseline)
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    المرجع الجمالي والمعماري الملزم لمخططات المكتب الفني والشوب دروينج
+                  </p>
+                </div>
+              </div>
+
+              {salesApprovedDesign && (
+                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs self-start sm:self-auto">
+                  الإصدار المعتمد V{salesApprovedDesign.version}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* 3D Image Preview */}
+              <div className="lg:col-span-5 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 relative group aspect-video lg:aspect-auto min-h-[220px] flex items-center justify-center">
+                <img 
+                  src={salesApprovedDesign?.images?.[0] || 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'} 
+                  alt="Approved Sales 3D Design"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-90" />
+                <div className="absolute bottom-3 right-3 left-3 text-white">
+                  <div className="text-xs font-black">{salesApprovedDesign?.designName || 'تصميم 3D ثلاثي الأبعاد للمطبخ'}</div>
+                  <div className="text-[10px] text-slate-300 font-mono">
+                    مصمم المبيعات: {salesApprovedDesign?.createdByUserName || 'فريق التصميم'} | {salesApprovedDesign?.createdDate || '2026-10-06'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Material & Finish Palette Tags */}
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-1">
+                  <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider block">
+                    خامة ولون الضلف (Fronts):
+                  </span>
+                  <div className="font-black text-slate-900">
+                    HPL رويال تركي كود 812 بيج مط
+                  </div>
+                  <p className="text-[11px] text-slate-600">شريط حرف PVC 2 مم مط الالتصاق الحراري</p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200/80 space-y-1">
+                  <span className="text-[10px] font-black text-blue-800 uppercase tracking-wider block">
+                    الشاسيه الداخلي (Carcass):
+                  </span>
+                  <div className="font-black text-slate-900">
+                    جود وود 18مم معالج ملامين أبيض
+                  </div>
+                  <p className="text-[11px] text-slate-600">مقاوم للمياه والأبخرة وشريط حرف 0.4مم</p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200/80 space-y-1">
+                  <span className="text-[10px] font-black text-purple-800 uppercase tracking-wider block">
+                    المفصلات والمجاري (Hardware):
+                  </span>
+                  <div className="font-black text-slate-900">
+                    بلوم Blum Clip Top 110 Soft-Close
+                  </div>
+                  <p className="text-[11px] text-slate-600">مجاري أدراج تاندم هيدروليك سفلية</p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 space-y-1">
+                  <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider block">
+                    القرصة / السطح (Countertop):
+                  </span>
+                  <div className="font-black text-slate-900">
+                    جرانيت جالاكسي أسود إسباني سمك 4 سم
+                  </div>
+                  <p className="text-[11px] text-slate-600">تفريغ حوض ساقط رخام وحفر مجاري تصريف</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: SALES PRELIMINARY SURVEY VS CONTRACT SCOPE */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Handover Card */}
-            <div className="md:col-span-2 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
+            {/* Handover & Golden Gate Card */}
+            <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-10 h-10 rounded-2xl bg-[#C87A38]/10 text-[#C87A38] flex items-center justify-center">
@@ -529,41 +711,50 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                 </div>
               </div>
 
-              {handover && (
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>مقدم المحضر:</span>
-                    <span className="font-bold text-slate-900">{handover.submittedByUserName || 'مسؤول المبيعات'}</span>
+              {/* Preliminary Survey Measurements Snapshot */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="font-black text-slate-800 flex items-center gap-1.5">
+                    <Ruler className="w-4 h-4 text-[#C87A38]" />
+                    <span>مقاسات المعاينة الأولية المسجلة بالمبيعات:</span>
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    تاريخ المعاينة: {salesSiteVisit?.date || '2026-10-04'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div className="p-2 rounded-xl bg-white border border-slate-200 text-center">
+                    <span className="text-[10px] text-slate-500 block">الجدار A (الحوض)</span>
+                    <span className="font-mono font-black text-slate-900">420 سم</span>
                   </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>تاريخ التقديم:</span>
-                    <span className="font-mono text-slate-900">{handover.submittedDate || '---'}</span>
+                  <div className="p-2 rounded-xl bg-white border border-slate-200 text-center">
+                    <span className="text-[10px] text-slate-500 block">الجدار B (البوتاجاز)</span>
+                    <span className="font-mono font-black text-slate-900">310 سم</span>
                   </div>
-                  {handover.acceptedByUserName && (
-                    <div className="flex justify-between text-slate-600">
-                      <span>اعتماد القبول:</span>
-                      <span className="font-bold text-emerald-800">{handover.acceptedByUserName} ({handover.acceptedDate})</span>
-                    </div>
-                  )}
-                  {handover.notesForTechOffice && (
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700">
-                      <span className="font-bold text-slate-900">ملاحظات المبيعات: </span>
-                      {handover.notesForTechOffice}
-                    </div>
-                  )}
+                  <div className="p-2 rounded-xl bg-white border border-slate-200 text-center">
+                    <span className="text-[10px] text-slate-500 block">الجدار C (الثلاجة)</span>
+                    <span className="font-mono font-black text-slate-900">240 سم</span>
+                  </div>
+                </div>
+              </div>
+
+              {handover && handover.notesForTechOffice && (
+                <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-slate-700">
+                  <span className="font-bold text-slate-900 block mb-0.5">ملاحظات المبيعات للمكتب الفني: </span>
+                  {handover.notesForTechOffice}
                 </div>
               )}
 
-              {handover && handover.status === 'submitted' && (
-                <div className="pt-3 border-t border-slate-100 flex justify-end">
-                  <button
-                    onClick={() => setShowHandoverModal(true)}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs hover:opacity-95 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
-                  >
-                    تدقيق واعتماد استلام المحضر
-                  </button>
-                </div>
-              )}
+              {/* Review Button */}
+              <div className="pt-2 border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={() => setShowHandoverModal(true)}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs hover:opacity-95 shadow-md shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>فتح بوابة تدقيق ومطابقة ملف المبيعات</span>
+                </button>
+              </div>
             </div>
 
             {/* Commercial Contract Summary */}
@@ -647,6 +838,73 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                   <span>تدقيق واعتماد الرفع المساحي</span>
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* DELTA ANALYSIS: SALES PRELIMINARY VS ENGINEERING LASER SURVEY */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h4 className="text-sm font-black text-[#1E110B] flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-[#C87A38]" />
+                  <span>مصفوفة المقارنة الهندسية (المعاينة الأولية vs الرفع المساحي بالليزر)</span>
+                </h4>
+                <p className="text-xs text-slate-500">
+                  كشف أي انحراف في أبعاد الموقع لتعديل زوايا التخليص (Fillers) أو إصدار طلب تعديل (ECR)
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] font-black border border-blue-200">
+                مطابقة دقيقة بالمللي (Laser Tolerances)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-right">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                    <th className="p-3">الجدار / البند</th>
+                    <th className="p-3">معاينة المبيعات التقريبية</th>
+                    <th className="p-3">الرفع الهندسي الفعلي بالليزر</th>
+                    <th className="p-3 text-center">فرق البعد (Variance)</th>
+                    <th className="p-3">الزاوية واستقامة المحارة</th>
+                    <th className="p-3">الإجراء الهندسي في الـ BOM</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {survey.walls.map((wall, idx) => {
+                    const salesVal = idx === 0 ? 420 : idx === 1 ? 310 : 240;
+                    const laserVal = wall.lengthCm;
+                    const diff = laserVal - salesVal;
+                    return (
+                      <tr key={wall.id || idx} className="hover:bg-slate-50/60">
+                        <td className="p-3 font-black text-slate-900">{wall.wallName}</td>
+                        <td className="p-3 font-mono font-bold text-slate-600">{salesVal * 10} مم ({salesVal} سم)</td>
+                        <td className="p-3 font-mono font-black text-[#C87A38]">{laserVal * 10} مم ({laserVal} سم)</td>
+                        <td className="p-3 text-center">
+                          {diff === 0 ? (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold font-mono">0 مم (مطابق)</span>
+                          ) : diff > 0 ? (
+                            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold font-mono">+{diff * 10} مم</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold font-mono">{diff * 10} مم</span>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <span className="font-bold text-slate-800">زاوية {wall.angleDegrees || 90}°</span>
+                          <span className="text-slate-400 text-[10px] block">
+                            {wall.plasterQuality === 'straight' ? 'محارة رأسية مستقيمة' : 'انحراف بسيط'}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <span className="text-emerald-700 font-bold">
+                            {diff === 0 ? 'مطابقة معتمدة للتصنيع' : 'إضافة فيلر خلوص 18مم معالج'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -857,131 +1115,267 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
       )}
 
       {/* ======================================================== */}
-      {/* TAB 3: CAD DRAWINGS & 3D REVISIONS */}
+      {/* TAB 3: CAD DRAWINGS & EXECUTIVE SHOP DRAWINGS */}
       {/* ======================================================== */}
       {activeTab === 'cad_drawings' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Revisions Tree */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-black text-[#1E110B] flex items-center gap-2">
-                  <FileSpreadsheet className="w-5 h-5 text-[#C87A38]" />
-                  <span>إصدارات المخططات التنفيذية</span>
-                </h3>
+          
+          {/* Top CAD Control Bar */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-black text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  {activeDesign ? activeDesign.versionCode || `DWG-V${activeDesign.versionNumber}.0` : 'DWG-V1.0'}
+                </span>
+                <span className="text-xs text-slate-500 font-bold">
+                  إجمالي {designs.length} إصدار تنفيذي مسجل للمشروع
+                </span>
               </div>
-
-              <div className="space-y-3">
-                {designs.map(design => (
-                  <div
-                    key={design.id}
-                    className={`p-4 rounded-2xl border transition-all ${
-                      design.versionNumber === project.activeDesignVersion
-                        ? 'bg-[#FDF8F4] border-[#C87A38] shadow-xs'
-                        : 'bg-slate-50 border-slate-200/80 opacity-80'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-mono font-black text-sm text-[#1E110B]">
-                        {design.versionCode || `V${design.versionNumber}.0`}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                        design.status === 'approved'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {design.status === 'approved' ? 'معتمد' : 'قيد المراجعة'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-600 mb-2 font-medium">{design.changeDescription || design.title}</p>
-                    <div className="text-[11px] text-slate-400 flex justify-between border-t border-slate-200/50 pt-1.5">
-                      <span>المصمم: {design.designerName}</span>
-                      <span>{design.approvedAt || '2026-08-28'}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <h3 className="text-lg font-black text-[#1E110B] flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5 text-[#C87A38]" />
+                <span>المخططات التنفيذية وشوب دروينج التصنيع (Executive CAD Drawings)</span>
+              </h3>
             </div>
 
-            {/* Active CAD Blueprint & Approval Details */}
-            <div className="md:col-span-2 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                onClick={() => setShowCADRevisionModal(true)}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#1E110B] via-[#361D13] to-[#C87A38] text-white font-black text-xs hover:opacity-95 shadow-md shadow-[#C87A38]/20 transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-[#E29555]" />
+                <span>إصدار ورفع مخطط تنفيذي جديد (New CAD Revision)</span>
+              </button>
+
+              {!activeDesign && (
+                <button
+                  onClick={handleAutoGenerateDesign}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-black text-xs transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <span>توليد مخطط مقترح ذكي V1.0</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Revisions Tree & Timeline */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-black text-[#1E110B] flex items-center gap-2">
+                  <History className="w-4 h-4 text-[#C87A38]" />
+                  <span>سجل إصدارات المخططات (CAD Revisions)</span>
+                </h3>
+                <span className="text-[11px] font-mono text-slate-400 font-bold">{designs.length} إصدار</span>
+              </div>
+
+              {designs.length > 0 ? (
+                <div className="space-y-3">
+                  {designs.map(design => {
+                    const isSelected = activeDesign?.id === design.id;
+
+                    return (
+                      <div
+                        key={design.id}
+                        onClick={() => setSelectedDesignVersion(design.versionNumber)}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#FDF8F4] border-[#C87A38] shadow-xs ring-1 ring-[#C87A38]/30'
+                            : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="font-mono font-black text-sm text-[#1E110B]">
+                            {design.versionCode || `V${design.versionNumber}.0`}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                            design.status === 'approved'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {design.status === 'approved' ? 'معتمد رسمياً' : 'قيد المراجعة'}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-700 mb-2 font-bold line-clamp-1">{design.title}</p>
+                        <p className="text-[11px] text-slate-500 mb-2 font-medium line-clamp-2">{design.changeDescription}</p>
+
+                        <div className="text-[10px] text-slate-400 flex justify-between border-t border-slate-200/50 pt-1.5 font-mono">
+                          <span>المصمم: {design.designerName}</span>
+                          <span>{(design.createdAt || design.approvedAt || '2026-10-06').substring(0, 10)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  لا توجد إصدارات مسجلة بعد.
+                </div>
+              )}
+            </div>
+
+            {/* Active CAD Blueprint & Document Repository */}
+            <div className="lg:col-span-2 space-y-6">
               {activeDesign ? (
                 <>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <span className="text-xs font-mono font-bold text-[#C87A38]">
-                        الإصدار المعتمد {activeDesign.versionCode || `V${activeDesign.versionNumber}.0`}
-                      </span>
-                      <h3 className="text-lg font-black text-[#1E110B]">
-                        {activeDesign.title}
-                      </h3>
+                  {/* Revision Header & Approval Card */}
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono font-black text-[#C87A38] px-2.5 py-0.5 rounded-md bg-amber-50 border border-amber-200">
+                            {activeDesign.versionCode || `DWG-V${activeDesign.versionNumber}.0`}
+                          </span>
+                          <span className="text-xs text-slate-500 font-bold">
+                            المصمم: {activeDesign.designerName}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-black text-[#1E110B] mt-1">
+                          {activeDesign.title}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {activeDesign.status === 'approved' ? (
+                          <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            <span>معتمد هندسياً ({activeDesign.approvedByEngineerName || activeDesign.approvedBy || currentUser.fullName})</span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => approveTechnicalDesign(activeDesign.id, currentUser.fullName)}
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs hover:opacity-95 shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>اعتماد المخطط رسمياً للـ BOM</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {activeDesign.status === 'approved' ? (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>معتمد بواسطة: {activeDesign.approvedBy || currentUser.fullName}</span>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => approveTechnicalDesign(activeDesign.id, currentUser.fullName)}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#C87A38] to-[#E29555] text-white font-black text-xs hover:opacity-95 shadow-md shadow-[#C87A38]/20 transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>اعتماد المخطط الهندسي V{activeDesign.versionNumber}.0</span>
-                        </button>
-                      )}
-                    </div>
+                    {/* Change Description */}
+                    {activeDesign.changeDescription && (
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1">
+                        <span className="font-bold text-slate-900 block">تعليمات وملاحظات الشوب دروينج التنفيذية:</span>
+                        <p className="leading-relaxed font-medium">{activeDesign.changeDescription}</p>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Attached Files Matrix */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                      الملفات والمخططات المرفقة (DWG / PDF / 3D Renders)
-                    </h4>
+                  {/* Categorized Attached Files Matrix */}
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div>
+                        <h4 className="text-sm font-black text-[#1E110B] flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-[#C87A38]" />
+                          <span>المخططات والملفات الهندسية المرفقة بالحزمة ({(activeDesign.cadFiles || activeDesign.attachments || []).length} ملف)</span>
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          تشمل مساقط الأوتوكاد (DWG)، شيتات الشوب دروينج (PDF)، ومخططات المرافق (MEP)
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => setShowCADRevisionModal(true)}
+                        className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-[#C87A38]" />
+                        <span>إرفاق ملفات إضافية</span>
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      {activeDesign.cadFiles?.map((att, idx) => (
-                        <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-xl bg-[#361D13] text-[#C87A38] flex items-center justify-center font-bold text-xs">
+                      {(activeDesign.cadFiles || activeDesign.attachments || []).map((att, idx) => (
+                        <div key={idx} className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200 flex items-center justify-between hover:border-[#C87A38]/40 transition-all shadow-2xs">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs font-mono shrink-0 ${
+                              att.fileType === 'dwg'
+                                ? 'bg-blue-600 text-white'
+                                : att.fileType === 'pdf'
+                                ? 'bg-rose-600 text-white'
+                                : att.fileType === 'dxf'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-[#361D13] text-[#E29555]'
+                            }`}>
                               {att.fileType.toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-bold text-[#1E110B] truncate max-w-[180px]">{att.name}</div>
-                              <div className="text-[10px] text-slate-500 font-mono">{att.fileSize}</div>
+                              <div className="font-bold text-[#1E110B] truncate max-w-[190px]">{att.name}</div>
+                              <div className="text-[10px] text-slate-400 font-mono">
+                                {att.fileSize} | {att.uploadedAt || '2026-10-06'}
+                              </div>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => window.open(att.url || '#', '_blank')}
-                            className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer"
-                            title="تحميل المخطط"
-                          >
-                            <Download className="w-4 h-4 text-slate-600" />
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => window.open(att.url || '#', '_blank')}
+                              className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer"
+                              title="معاينة وتحميل"
+                            >
+                              <Download className="w-4 h-4 text-slate-600" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
+
+                  {/* Engineering Quality Checklist */}
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3 text-xs">
+                    <h4 className="font-black text-[#1E110B] flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>قائمة التدقيق ومطابقة الرسومات التنفيذية (Engineering Sign-off Gate):</span>
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-slate-800">
+                      <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="font-bold">مطابقة زوايا التخليص والـ Fillers على الرفع المساحي بالليزر</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="font-bold">مطابقة فتحات ومقاسات أجهزة البلت إن (الفرن، الشفاط، المسطح)</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="font-bold">تطابق مخارج السباكة وتغذية غسالة الأطباق والحوض</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="font-bold">جاهزية المخطط لإجراء تفجير الـ BOM المعياري وقوائم التقطيع</span>
+                      </div>
+                    </div>
+                  </div>
                 </>
               ) : (
-                <div className="text-center py-10 space-y-4">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-50 text-[#C87A38] flex items-center justify-center mx-auto">
-                    <FileSpreadsheet className="w-7 h-7" />
+                <div className="bg-white rounded-3xl p-10 border border-slate-200/80 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-50 text-[#C87A38] flex items-center justify-center mx-auto">
+                    <FileSpreadsheet className="w-8 h-8" />
                   </div>
                   <div>
-                    <h4 className="text-base font-black text-[#1E110B]">لا توجد مخططات تنفيذية CAD لهذا المشروع بعد</h4>
-                    <p className="text-xs text-slate-500 mt-1">ابدأ بتوليد أول مخطط شوب دروينج معتمد V1.0 بناءً على الرفع المساحي</p>
+                    <h4 className="text-lg font-black text-[#1E110B]">لا توجد مخططات تنفيذية CAD لهذا المشروع بعد</h4>
+                    <p className="text-xs text-slate-500 mt-1">
+                      يمكنك رفع مخططات الأوتوكاد والشوب دروينج يدورياً أو توليد باكيج مقترح ذكي بناءً على الرفع المساحي
+                    </p>
                   </div>
-                  <button
-                    onClick={handleAutoGenerateDesign}
-                    className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-black text-white font-black text-xs transition-all shadow-sm flex items-center gap-2 mx-auto cursor-pointer"
-                  >
-                    <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>توليد المخطط التنفيذي الأولي (CAD REV-01)</span>
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() => setShowCADRevisionModal(true)}
+                      className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-black text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4 text-[#E29555]" />
+                      <span>رفع وإصدار مخططات تنفيذية (Upload CAD)</span>
+                    </button>
+                    <button
+                      onClick={handleAutoGenerateDesign}
+                      className="px-6 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-black text-xs transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                      <span>توليد المخطط التنفيذي المقترح (CAD REV-01)</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1519,6 +1913,15 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
           existingSurvey={survey}
           onSave={(surveyData) => saveTechnicalSurvey({ ...surveyData, technicalProjectId: project.id })}
           onVerify={(surveyId) => verifyTechnicalSurvey(surveyId)}
+        />
+      )}
+
+      {showCADRevisionModal && (
+        <CreateCADRevisionModal
+          isOpen={true}
+          onClose={() => setShowCADRevisionModal(false)}
+          technicalProjectId={project.id}
+          defaultVersionNumber={designs.length + 1}
         />
       )}
 

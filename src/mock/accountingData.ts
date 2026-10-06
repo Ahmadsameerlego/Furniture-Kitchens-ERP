@@ -212,7 +212,7 @@ export const initialJournals: Journal[] = [
 ];
 
 export const initialFiscalPeriods: FiscalPeriod[] = [
-  { id: 'per-2026-07', year: 2026, periodNumber: 7, name: 'يوليو 2026', startDate: '2026-07-01', endDate: '2026-07-31', isClosed: true, closedAt: '2026-08-05 14:00', closedByUserName: 'أحمد محمود (المدير المالي)' },
+  { id: 'per-2026-07', year: 2026, periodNumber: 7, name: 'يوليو 2026', startDate: '2026-07-01', endDate: '2026-07-31', isClosed: true, closedAt: '2026-08-05 14:00', closedByUserName: 'أحمد سمير (المدير المالي)' },
   { id: 'per-2026-08', year: 2026, periodNumber: 8, name: 'أغسطس 2026', startDate: '2026-08-01', endDate: '2026-08-31', isClosed: false },
   { id: 'per-2026-09', year: 2026, periodNumber: 9, name: 'سبتمبر 2026', startDate: '2026-09-01', endDate: '2026-09-30', isClosed: false },
   { id: 'per-2026-10', year: 2026, periodNumber: 10, name: 'أكتوبر 2026', startDate: '2026-10-01', endDate: '2026-10-31', isClosed: false }
@@ -278,7 +278,7 @@ export const initialCustomerAdvances: CustomerAdvance[] = [
     journalEntryId: 'je-adv-101',
     status: 'active',
     notes: 'عربون مقدم تعاقد تصنيع مطبخ رويال HPL',
-    receivedByUserName: 'أحمد محمود (المالية)'
+    receivedByUserName: 'أحمد سمير (المالية)'
   }
 ];
 
@@ -398,9 +398,9 @@ export const initialJournalEntries: JournalEntry[] = [
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
     createdAt: '2026-08-25 12:00:00',
-    createdByUserName: 'أحمد محمود (المالية)',
+    createdByUserName: 'أحمد سمير (المالية)',
     postedAt: '2026-08-25 12:00:00',
-    postedByUserName: 'أحمد محمود (المالية)'
+    postedByUserName: 'أحمد سمير (المالية)'
   },
   // 1. Initial Advance from Customer (محمد حسن 100,000)
   {
@@ -443,9 +443,9 @@ export const initialJournalEntries: JournalEntry[] = [
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
     createdAt: '2026-08-25 10:00:00',
-    createdByUserName: 'أحمد محمود (المالية)',
+    createdByUserName: 'أحمد سمير (المالية)',
     postedAt: '2026-08-25 10:00:00',
-    postedByUserName: 'أحمد محمود (المالية)'
+    postedByUserName: 'أحمد سمير (المالية)'
   },
 
   // 2. Initial Raw Material Goods Receipt (MDF 100,000)
@@ -491,7 +491,7 @@ export const initialJournalEntries: JournalEntry[] = [
     createdAt: '2026-08-20 11:30:00',
     createdByUserName: 'مسؤول المخازن',
     postedAt: '2026-08-20 11:30:00',
-    postedByUserName: 'أحمد محمود (المالية)'
+    postedByUserName: 'أحمد سمير (المالية)'
   },
 
   // 3. Vendor Bill Posting (Clearing GR/IR + Input VAT + AP)
@@ -544,9 +544,9 @@ export const initialJournalEntries: JournalEntry[] = [
     branchId: 'branch-1',
     branchName: 'المخزن الرئيسي ومصنع العبور',
     createdAt: '2026-08-20 14:00:00',
-    createdByUserName: 'أحمد محمود (المالية)',
+    createdByUserName: 'أحمد سمير (المالية)',
     postedAt: '2026-08-20 14:00:00',
-    postedByUserName: 'أحمد محمود (المالية)'
+    postedByUserName: 'أحمد سمير (المالية)'
   },
 
   // 4. Material Issue to WIP (MDF 70k + Accessories 20k = 90k)
@@ -591,7 +591,7 @@ export const initialJournalEntries: JournalEntry[] = [
     createdAt: '2026-08-22 09:00:00',
     createdByUserName: 'مدير الإنتاج',
     postedAt: '2026-08-22 09:00:00',
-    postedByUserName: 'أحمد محمود (المالية)'
+    postedByUserName: 'أحمد سمير (المالية)'
   },
 
   // 5. Direct Labor Allocation to WIP (30,000)
@@ -634,9 +634,9 @@ export const initialJournalEntries: JournalEntry[] = [
     branchId: 'branch-1',
     branchName: 'ورشة تصنيع العبور',
     createdAt: '2026-08-24 16:00:00',
-    createdByUserName: 'أحمد محمود (المالية)',
+    createdByUserName: 'أحمد سمير (المالية)',
     postedAt: '2026-08-24 16:00:00',
-    postedByUserName: 'أحمد محمود (المالية)'
+    postedByUserName: 'أحمد سمير (المالية)'
   },
 
   // 6. Monthly Rent Expense Posting (40,000)
@@ -679,8 +679,8 @@ export const initialJournalEntries: JournalEntry[] = [
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
     createdAt: '2026-08-01 10:00:00',
-    createdByUserName: 'أحمد محمود (المالية)',
+    createdByUserName: 'أحمد سمير (المالية)',
     postedAt: '2026-08-01 10:00:00',
-    postedByUserName: 'أحمد محمود (المالية)'
+    postedByUserName: 'أحمد سمير (المالية)'
   }
 ];

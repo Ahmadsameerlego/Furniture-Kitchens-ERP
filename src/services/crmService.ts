@@ -211,4 +211,72 @@ export class CrmService {
     }
     return `https://wa.me/${intlPhone}`;
   }
+
+  /**
+   * Generates 2-letter Initials from Customer Name (Arabic & English)
+   */
+  static getInitials(name?: string): string {
+    if (!name || !name.trim()) return 'ع';
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 1) {
+      return words[0].substring(0, 2);
+    }
+    return (words[0].charAt(0) + ' ' + words[1].charAt(0)).trim();
+  }
+
+  /**
+   * Human-readable label & styling for Customer Type
+   */
+  static getCustomerTypeLabel(type?: string): { label: string; bgClass: string; textClass: string; borderClass: string } {
+    if (type === 'commercial') {
+      return {
+        label: 'عميل تجاري / شركات',
+        bgClass: 'bg-indigo-50',
+        textClass: 'text-indigo-800',
+        borderClass: 'border-indigo-200'
+      };
+    }
+    return {
+      label: 'عميل فردي (B2C)',
+      bgClass: 'bg-emerald-50',
+      textClass: 'text-emerald-800',
+      borderClass: 'border-emerald-200'
+    };
+  }
+
+  /**
+   * Human-readable label for Billing Methods
+   */
+  static getBillingMethodLabel(method?: string): { label: string; icon: string; desc: string } {
+    switch (method) {
+      case 'printed':
+        return { label: 'فاتورة ورقية مطبوعة', icon: 'FileText', desc: 'تسليم فاتورة مطبوعة مع عقد الاستلام' };
+      case 'email':
+        return { label: 'بريد إلكتروني (E-Invoice PDF)', icon: 'Mail', desc: 'إرسال فاتورة PDF رسمية للإيميل' };
+      case 'whatsapp':
+        return { label: 'إشعار واتساب إلكتروني', icon: 'MessageSquare', desc: 'إرسال رابط الفاتورة والإيصال عبر الواتساب' };
+      case 'electronic_tax':
+        return { label: 'فاتورة إلكترونية ضريبية (ETA)', icon: 'Building2', desc: 'إصدار فاتورة إلكترونية عبر مصلحة الضرائب' };
+      default:
+        return { label: 'فاتورة ورقية مطبوعة', icon: 'FileText', desc: 'تسليم فاتورة مطبوعة' };
+    }
+  }
+
+  /**
+   * Generates a unique Customer Code e.g. "CUST-2026-0001"
+   */
+  static generateCustomerCode(customers: Customer[]): string {
+    const year = new Date().getFullYear();
+    const count = (customers?.length || 0) + 1;
+    const nextSeq = String(count).padStart(4, '0');
+    let code = `CUST-${year}-${nextSeq}`;
+    
+    // Ensure uniqueness
+    let counter = count;
+    while (customers.some(c => c.code === code)) {
+      counter++;
+      code = `CUST-${year}-${String(counter).padStart(4, '0')}`;
+    }
+    return code;
+  }
 }

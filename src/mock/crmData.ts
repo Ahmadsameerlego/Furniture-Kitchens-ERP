@@ -85,9 +85,11 @@ export const initialCampaigns: MarketingCampaign[] = [
 ];
 
 export const initialCustomers: Customer[] = [
-  // 1. Mohamed Hassan (Demo Scenario 1)
+  // 1. Mohamed Hassan (Individual B2C)
   {
     id: 'cust-1',
+    code: 'CUST-2026-0001',
+    customerType: 'individual',
     fullName: 'محمد حسن',
     phone: '01009876543',
     altPhone: '0122114455',
@@ -97,6 +99,8 @@ export const initialCustomers: Customer[] = [
     address: 'فيلا 14 - شارع النرجس الرئيسي',
     interestType: 'kitchens',
     status: 'interested',
+    billingMethod: 'whatsapp',
+    tier: 'vip',
     source: 'instagram',
     campaignId: 'cmp-1',
     campaignName: 'حملة المطابخ الصيفية 2026',
@@ -105,7 +109,24 @@ export const initialCustomers: Customer[] = [
     responsibleUserId: 'user-4',
     responsibleUserName: 'عمر فاروق',
     notes: 'مهتم بمطبخ HPL مودرن حرف L بمساحة 4x3متر. طلب كتالوج الألوان وعينات الخشب.',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+    initialAttachments: [
+      {
+        id: 'att-1',
+        name: 'كروكي_مساحة_المطبخ_الأولي.jpg',
+        url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=800',
+        type: 'image/jpeg',
+        size: '1.8 MB',
+        uploadedAt: '2026-08-20'
+      },
+      {
+        id: 'att-2',
+        name: 'ستايل_مودرن_مطلوب_بنترست.jpg',
+        url: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&q=80&w=800',
+        type: 'image/jpeg',
+        size: '2.4 MB',
+        uploadedAt: '2026-08-20'
+      }
+    ],
     createdDate: '2026-08-20',
     lastActivityDate: '2026-08-26 18:30',
     hasPurchased: false,
@@ -113,10 +134,12 @@ export const initialCustomers: Customer[] = [
     measurementDate: '2026-08-28'
   },
 
-  // 2. Ahmed Mahmoud (Demo Scenario 2 - Complete History 360)
+  // 2. Ahmed Samir (Individual B2C - Completed Project)
   {
     id: 'cust-2',
-    fullName: 'أحمد محمود',
+    code: 'CUST-2026-0002',
+    customerType: 'individual',
+    fullName: 'أحمد سمير',
     phone: '01112223344',
     altPhone: '01004455667',
     email: 'ahmed.mahmoud.eng@yahoo.com',
@@ -125,15 +148,16 @@ export const initialCustomers: Customer[] = [
     address: 'عمارة 8 - شقة 12',
     interestType: 'both',
     status: 'completed',
+    billingMethod: 'printed',
+    tier: 'vip',
     source: 'facebook',
     campaignId: 'cmp-2',
     campaignName: 'عرض عروض الصالون والمعيشة',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
     responsibleUserId: 'user-1',
-    responsibleUserName: 'أحمد محمود',
+    responsibleUserName: 'أحمد سمير',
     notes: 'تم توريد وتركيب مطبخ Polylac بالكامل + غرفة نوم ماستر وغرفة سفرة 8 كراسي. العميل راضٍ تماماً.',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
     createdDate: '2026-06-10',
     lastActivityDate: '2026-08-25 14:10',
     hasPurchased: true,
@@ -145,9 +169,11 @@ export const initialCustomers: Customer[] = [
     paidAmount: 185000
   },
 
-  // 3. Sara Ali (Demo Scenario 3 - Lost Customer)
+  // 3. Sara Ali (Individual B2C - Lost)
   {
     id: 'cust-3',
+    code: 'CUST-2026-0003',
+    customerType: 'individual',
     fullName: 'سارة علي',
     phone: '01223344556',
     email: 'sara.ali@outlook.com',
@@ -158,6 +184,8 @@ export const initialCustomers: Customer[] = [
     status: 'lost',
     lostReason: 'price',
     lostNote: 'الميزانية المتاحة لدى العميلة 90 ألف جنيه بينما التكلفة الإجمالية للمواصفات المطلوبة 140 ألف جنيه. تم الحفظ لإعادة التواصل في العروض القادمة.',
+    billingMethod: 'whatsapp',
+    tier: 'standard',
     source: 'facebook',
     campaignId: 'cmp-1',
     campaignName: 'حملة المطابخ الصيفية 2026',
@@ -166,52 +194,76 @@ export const initialCustomers: Customer[] = [
     responsibleUserId: 'user-4',
     responsibleUserName: 'عمر فاروق',
     notes: 'تم تقديم عرض سعر بمبلغ 140,000 ج.م لمطبخ خشابي زان.',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
     createdDate: '2026-08-05',
     lastActivityDate: '2026-08-24 11:20',
     hasPurchased: false,
     isAfterSales: false
   },
 
-  // 4. Mahmoud Nabil
+  // 4. Palm Hills Real Estate Developments (Commercial B2B)
   {
     id: 'cust-4',
-    fullName: 'محمود نبيل',
+    code: 'CUST-2026-0004',
+    customerType: 'commercial',
+    fullName: 'شركة بالم للتطوير العقاري',
+    companyName: 'مجموعة بالم هيلز للتطوير العقاري والمقاولات',
+    contactPerson: 'م. تامر الشناوي',
+    contactRole: 'مدير المشتريات والمشاريع',
+    taxId: '542-890-123',
+    commercialRegister: '109845',
+    billingMethod: 'electronic_tax',
+    tier: 'wholesale',
     phone: '01099887766',
+    altPhone: '0227568900',
+    email: 'tamer. procurement@palmhills.com',
     city: 'القاهرة',
-    area: 'التجمع الأول - البنفسج 4',
-    interestType: 'furniture',
-    status: 'measurement_scheduled',
-    source: 'walk_in',
+    area: 'القاهرة الجديدة - التجمع الخامس',
+    address: 'المقر الإداري - مبنى 404 القطاع الأول',
+    interestType: 'both',
+    status: 'quotation',
+    source: 'referral',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
-    responsibleUserId: 'user-2',
-    responsibleUserName: 'محمود القاضي',
-    notes: 'زيارة المعرض الرئيسي، يطلب معاينة لقياسات غرفة المعيشة وغرفة الأطفال.',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200',
+    responsibleUserId: 'user-1',
+    responsibleUserName: 'أحمد سمير',
+    notes: 'طلب تأثيث وتوريد 12 مطبخ كامل لوحدات التاون هاوس بالمشروع الجديد.',
+    initialAttachments: [
+      {
+        id: 'att-b2b-1',
+        name: 'مواصفات_توريد_المطابخ_BOM.pdf',
+        url: '#',
+        type: 'application/pdf',
+        size: '3.2 MB',
+        uploadedAt: '2026-08-22'
+      }
+    ],
     createdDate: '2026-08-22',
     lastActivityDate: '2026-08-26 16:00',
     hasPurchased: false,
     isAfterSales: false,
-    measurementDate: '2026-08-29'
+    quotationRef: 'QUO-2026-112',
+    quotationAmount: 890000
   },
 
-  // 5. Karim Mohamed
+  // 5. Karim Mohamed (Individual B2C)
   {
     id: 'cust-5',
+    code: 'CUST-2026-0005',
+    customerType: 'individual',
     fullName: 'كريم محمد',
     phone: '01055443322',
     city: 'الإسكندرية',
     area: 'سموحة - طريق 14 مايو',
     interestType: 'both',
     status: 'quotation',
+    billingMethod: 'email',
+    tier: 'standard',
     source: 'whatsapp',
     branchId: 'branch-4',
     branchName: 'معرض الإسكندرية - سموحة',
     responsibleUserId: 'user-4',
     responsibleUserName: 'عمر فاروق',
-    notes: 'تم إرسال المقاسات عبر الواتساب وقاري إعداد عرض السعر لمطبخ وقماش صالون.',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+    notes: 'تم إرسال المقاسات عبر الواتساب وجاري إعداد عرض السعر لمطبخ وقماش صالون.',
     createdDate: '2026-08-18',
     lastActivityDate: '2026-08-25 19:45',
     hasPurchased: false,
@@ -220,15 +272,19 @@ export const initialCustomers: Customer[] = [
     quotationAmount: 125000
   },
 
-  // 6. Nourhan Ali
+  // 6. Nourhan Ali (Individual B2C)
   {
     id: 'cust-6',
+    code: 'CUST-2026-0006',
+    customerType: 'individual',
     fullName: 'نورهان علي',
     phone: '01199887711',
     city: 'الإسكندرية',
     area: 'جليم - شارع عبد السلام عارف',
     interestType: 'kitchens',
     status: 'won',
+    billingMethod: 'printed',
+    tier: 'standard',
     source: 'tiktok',
     campaignId: 'cmp-4',
     campaignName: 'افتتاح معرض سموحة بالإسكندرية',
@@ -237,7 +293,6 @@ export const initialCustomers: Customer[] = [
     responsibleUserId: 'user-4',
     responsibleUserName: 'عمر فاروق',
     notes: 'تم توقيع العقد وسداد مقدم 50,000 ج.م لمطبخ ألوميتال خشابي.',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     createdDate: '2026-07-28',
     lastActivityDate: '2026-08-26 12:00',
     hasPurchased: true,
@@ -247,14 +302,25 @@ export const initialCustomers: Customer[] = [
     paidAmount: 50000
   },
 
-  // 7. Omar Khaled
+  // 7. Al-Andalus Interior Design (Commercial B2B)
   {
     id: 'cust-7',
-    fullName: 'عمر خالد',
+    code: 'CUST-2026-0007',
+    customerType: 'commercial',
+    fullName: 'مكتب الأندلس للديكور والتصميم',
+    companyName: 'الأندلس إنتيريور ديزاين وتجهيزات الفنادق',
+    contactPerson: 'المهندسة ريم الجابري',
+    contactRole: 'المدير التنفيذي',
+    taxId: '332-671-884',
+    billingMethod: 'email',
+    tier: 'wholesale',
     phone: '01288776655',
+    altPhone: '01022334411',
+    email: 'rim@alandalus-design.com',
     city: 'القاهرة',
     area: 'مصر الجديدة - النزهة',
-    interestType: 'furniture',
+    address: 'شارع الحجاز - عمارة 45',
+    interestType: 'both',
     status: 'new',
     source: 'website',
     campaignId: 'cmp-5',
@@ -263,30 +329,32 @@ export const initialCustomers: Customer[] = [
     branchName: 'معرض القاهرة الرئيسي',
     responsibleUserId: 'user-2',
     responsibleUserName: 'محمود القاضي',
-    notes: 'طلب جديد مسجل عبر نموذج الموقع الإلكتروني للاستفسار عن طقم سفرة مودرن.',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+    notes: 'طلب التعاون كمكتب ديكور لتوريد غرف نوم ومطابخ لعملائهم بخصم تجاري خاص.',
     createdDate: '2026-08-26',
     lastActivityDate: '2026-08-26 21:00',
     hasPurchased: false,
     isAfterSales: false
   },
 
-  // 8. Dr. Hanaa Sherif
+  // 8. Dr. Hanaa Sherif (Individual B2C)
   {
     id: 'cust-8',
+    code: 'CUST-2026-0008',
+    customerType: 'individual',
     fullName: 'د. هناء شريف',
     phone: '01011223344',
     city: 'القاهرة',
     area: 'التجمع الخامس - حي الشويفات',
     interestType: 'both',
     status: 'customer',
+    billingMethod: 'whatsapp',
+    tier: 'vip',
     source: 'referral',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
     responsibleUserId: 'user-1',
-    responsibleUserName: 'أحمد محمود',
+    responsibleUserName: 'أحمد سمير',
     notes: 'عميلة دائمة عن طريق ترشيح د. محمد علي. تم تجهيز فيلا بالكامل.',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
     createdDate: '2026-05-01',
     lastActivityDate: '2026-08-20 15:30',
     hasPurchased: true,
@@ -296,24 +364,27 @@ export const initialCustomers: Customer[] = [
     paidAmount: 340000
   },
 
-  // 9. Khaled Tewfik
+  // 9. Khaled Tewfik (Individual B2C)
   {
     id: 'cust-9',
+    code: 'CUST-2026-0009',
+    customerType: 'individual',
     fullName: 'م. خالد توفيق',
     phone: '01200112233',
     city: 'القاهرة',
     area: 'العاصمة الإدارية - الحي السكني R3',
     interestType: 'kitchens',
     status: 'measured',
+    billingMethod: 'printed',
+    tier: 'vip',
     source: 'facebook',
     campaignId: 'cmp-1',
     campaignName: 'حملة المطابخ الصيفية 2026',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
-    responsibleUserId: 'user-[#C87A38]',
-    responsibleUserName: 'خالد توفيق',
+    responsibleUserId: 'user-4',
+    responsibleUserName: 'عمر فاروق',
     notes: 'تمت المعاينة الرسمية بالفيلا وأخذ المقاسات 3D بالليزر.',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
     createdDate: '2026-08-10',
     lastActivityDate: '2026-08-23 17:15',
     hasPurchased: false,
@@ -321,15 +392,19 @@ export const initialCustomers: Customer[] = [
     measurementDate: '2026-08-22'
   },
 
-  // 10. Reem Fouad
+  // 10. Reem Fouad (Individual B2C)
   {
     id: 'cust-10',
+    code: 'CUST-2026-0010',
+    customerType: 'individual',
     fullName: 'أ. ريم فؤاد',
     phone: '01077665544',
     city: 'الجيزة',
     area: 'الشيخ زايد - كمبوند سوديك',
     interestType: 'furniture',
     status: 'contacted',
+    billingMethod: 'whatsapp',
+    tier: 'standard',
     source: 'instagram',
     campaignId: 'cmp-3',
     campaignName: 'إطلاق مطابخ HPL مودرن',
@@ -338,7 +413,6 @@ export const initialCustomers: Customer[] = [
     responsibleUserId: 'user-4',
     responsibleUserName: 'عمر فاروق',
     notes: 'تم الاتصال بالعميلة هاتفياً وإرسال صور أطقم المعيشة المتاحة بالمعرض.',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
     createdDate: '2026-08-24',
     lastActivityDate: '2026-08-25 10:30',
     hasPurchased: false,
@@ -403,7 +477,7 @@ export const initialActivities: CustomerActivity[] = [
     date: '2026-06-10',
     timestamp: '2026-06-10 09:15',
     userId: 'user-1',
-    userName: 'أحمد محمود'
+    userName: 'أحمد سمير'
   },
   {
     id: 'act-202',
@@ -425,7 +499,7 @@ export const initialActivities: CustomerActivity[] = [
     date: '2026-06-22',
     timestamp: '2026-06-22 15:30',
     userId: 'user-1',
-    userName: 'أحمد محمود'
+    userName: 'أحمد سمير'
   },
   {
     id: 'act-204',
@@ -436,7 +510,7 @@ export const initialActivities: CustomerActivity[] = [
     date: '2026-06-25',
     timestamp: '2026-06-25 11:00',
     userId: 'user-1',
-    userName: 'أحمد محمود'
+    userName: 'أحمد سمير'
   },
   {
     id: 'act-205',
@@ -458,7 +532,7 @@ export const initialActivities: CustomerActivity[] = [
     date: '2026-08-25',
     timestamp: '2026-08-25 14:10',
     userId: 'user-1',
-    userName: 'أحمد محمود'
+    userName: 'أحمد سمير'
   },
 
   // Activities for Sara Ali (cust-3)
@@ -539,7 +613,7 @@ export const initialDocuments: CustomerDocument[] = [
     fileName: 'Contract-ORD-2026-042.pdf',
     fileSize: '2.8 MB',
     uploadedDate: '2026-06-25',
-    uploadedByName: 'أحمد محمود'
+    uploadedByName: 'أحمد سمير'
   },
   {
     id: 'doc-3',

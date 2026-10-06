@@ -38,8 +38,12 @@ import {
   CreditCard,
   Camera,
   Layers,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Building2,
+  Receipt,
+  Paperclip
 } from 'lucide-react';
+import { CustomerAvatar } from '../components/common/CustomerAvatar';
 import { CustomerFormModal } from '../components/modals/CustomerFormModal';
 import { LostReasonModal } from '../components/modals/LostReasonModal';
 import { ActivityFormModal } from '../components/modals/ActivityFormModal';
@@ -165,10 +169,10 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
     <div className="space-y-6">
       
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200/90 text-slate-700 font-bold text-xs shadow-xs transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-all w-fit"
         >
           <ArrowRight className="w-4 h-4 text-[#361D13]" />
           <span>العودة لقائمة العملاء</span>
@@ -177,15 +181,15 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setIsActivityModalOpen(true)}
-            className="px-3.5 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-xs transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Plus className="w-4 h-4 text-emerald-700" />
-            <span>تسجيل نشاط / مكالمة</span>
+            <span>تسجيل متابعة / مكالمة</span>
           </button>
 
           <button
             onClick={() => setIsReminderModalOpen(true)}
-            className="px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold text-xs transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Clock className="w-4 h-4 text-amber-700" />
             <span>جدولة تذكير</span>
@@ -193,174 +197,193 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
           <button
             onClick={() => setIsEditModalOpen(true)}
-            className="px-3.5 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-4 h-4 text-slate-500" />
             <span>تعديل البيانات</span>
           </button>
         </div>
       </div>
 
       {/* Customer Header 360 Card */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+        
+        {/* Main Flex Row: Identity on right, Actions & Status on left */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           
-          {/* Avatar & Main Info */}
-          <div className="flex items-center gap-4">
-            <img
-              src={customer.avatar}
-              alt=""
-              className="w-16 h-16 rounded-3xl object-cover ring-4 ring-[#361D13]/15 shadow-md shrink-0"
+          {/* Identity & Basic Info */}
+          <div className="flex items-start gap-4">
+            <CustomerAvatar
+              name={customer.fullName}
+              customerType={customer.customerType}
+              size="xl"
+              className="w-16 h-16 rounded-2xl text-lg font-black shrink-0 shadow-md"
             />
 
             <div className="space-y-1.5">
+              {/* Name, Code, and Badges */}
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-black text-slate-900">{customer.fullName}</h1>
                 
-                {/* Interest Badge */}
-                <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border ${
-                  isInterestCustom
-                    ? 'bg-amber-100 text-amber-900 border-amber-300'
-                    : isInterestFurniture
-                    ? 'bg-blue-100 text-blue-900 border-blue-300'
-                    : 'bg-purple-100 text-purple-900 border-purple-300'
-                }`}>
-                  {isInterestCustom ? 'مهتم: تفصيل وعمولة' : isInterestFurniture ? 'مهتم: أثاث جاهز' : 'مهتم: جاهز + تفصيل'}
+                <span className="font-mono text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                  {customer.code || customer.id}
                 </span>
 
-                {/* Status Badge Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                    className={`px-3 py-1 rounded-xl text-xs font-black border flex items-center gap-1.5 shadow-xs transition-all ${statusMeta.bgClass} ${statusMeta.textClass} ${statusMeta.borderClass}`}
-                  >
-                    <span>{statusMeta.label}</span>
-                    <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-                  </button>
+                <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold border ${
+                  customer.customerType === 'commercial'
+                    ? 'bg-indigo-50 text-indigo-900 border-indigo-200'
+                    : 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                }`}>
+                  {customer.customerType === 'commercial' ? '🏢 عميل تجاري' : '👤 عميل فردي'}
+                </span>
 
-                  {isStatusDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-50 animate-in fade-in duration-200">
-                      <div className="px-3 py-1.5 text-[10px] font-black text-slate-400 border-b border-slate-100">
-                        تحديث حالة مسار العميل:
-                      </div>
-                      <div className="py-1 space-y-1 max-h-60 overflow-y-auto">
-                        {[
-                          { id: 'new', label: 'جديد (New)' },
-                          { id: 'contacted', label: 'تم التواصل (Contacted)' },
-                          { id: 'interested', label: 'مهتم جاد (Interested)' },
-                          { id: 'measurement_scheduled', label: 'موعد معاينة ومقاسات' },
-                          { id: 'measured', label: 'تمت المعاينة (Measured)' },
-                          { id: 'quotation', label: 'قيد التسعير وعرض السعر' },
-                          { id: 'won', label: 'تم الاتفاق والتعاقد (Won)' },
-                          { id: 'customer', label: 'عميل نشط (Customer)' },
-                          { id: 'completed', label: 'مشروع مكتمل (Completed)' },
-                          { id: 'lost', label: 'فرصة مفقودة (Lost)' }
-                        ].map(st => (
-                          <button
-                            key={st.id}
-                            onClick={() => handleStatusSelect(st.id as CustomerStatus)}
-                            className={`w-full text-right px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                              customer.status === st.id ? 'bg-[#361D13] text-white' : 'hover:bg-slate-50 text-slate-700'
-                            }`}
-                          >
-                            {st.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {customer.tier === 'vip' && (
+                  <span className="px-2 py-0.5 rounded-lg text-xs font-black bg-amber-500 text-white shadow-xs">
+                    VIP ⭐
+                  </span>
+                )}
               </div>
 
-              {/* Contact Links */}
+              {/* Phone, City & Interest */}
               <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap font-medium">
-                <span className="flex items-center gap-1 font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200" dir="ltr">
+                <span className="font-mono text-emerald-700 font-bold dir-ltr flex items-center gap-1">
                   <span>📱 {customer.phone}</span>
                 </span>
+                
+                <span className="text-slate-300">·</span>
+                
+                <span>{customer.city} — {customer.area}</span>
 
-                {customer.city && (
-                  <span className="flex items-center gap-1 text-slate-500">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    {customer.city} — {customer.area}
-                  </span>
-                )}
+                <span className="text-slate-300">·</span>
 
-                <span className="flex items-center gap-1 text-slate-500">
-                  <Building className="w-3.5 h-3.5 text-[#361D13]" />
-                  الفرع: {customer.branchName}
+                <span className="text-[#C87A38] font-bold">
+                  {isInterestCustom ? 'مطابخ وتفصيل عمولة' : isInterestFurniture ? 'أثاث جاهز ومعارض' : 'جاهز + تفصيل'}
                 </span>
-
-                {customer.responsibleUserName && (
-                  <span className="flex items-center gap-1 text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-lg">
-                    <UserCheck className="w-3.5 h-3.5 text-slate-500" />
-                    المسؤول: {customer.responsibleUserName}
-                  </span>
-                )}
               </div>
+
+              {/* Commercial Contact Person if available */}
+              {customer.customerType === 'commercial' && customer.contactPerson && (
+                <p className="text-xs text-indigo-700 font-bold">
+                  المسؤول المفوض: {customer.contactPerson} {customer.contactRole ? `(${customer.contactRole})` : ''}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Action Buttons: Quick WhatsApp & Direct Modals */}
-          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-            {showSalesTab && (
+          {/* Left Controls: Status Dropdown + Action Buttons */}
+          <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-3 shrink-0">
+            
+            {/* Status Dropdown */}
+            <div className="relative w-full sm:w-auto">
               <button
-                onClick={() => setIsCreateOrderModalOpen(true)}
-                className="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-black text-xs shadow-xs transition-all flex items-center gap-1.5"
+                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                className={`w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-black border flex items-center justify-between gap-3 shadow-xs transition-all ${statusMeta.bgClass} ${statusMeta.textClass} ${statusMeta.borderClass}`}
               >
-                <ShoppingBag className="w-4 h-4 text-emerald-600" />
-                <span>+ طلب مبيعات جاهز</span>
+                <span>حالة المسار: {statusMeta.label}</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
               </button>
-            )}
 
-            {showProjectsTab && (
-              <button
-                onClick={() => setIsCreateProjectModalOpen(true)}
-                className="px-3.5 py-2 rounded-2xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5"
+              {isStatusDropdownOpen && (
+                <div className="absolute top-full left-0 lg:left-0 lg:right-auto right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-50 animate-in fade-in duration-200">
+                  <div className="px-3 py-1.5 text-[10px] font-black text-slate-400 border-b border-slate-100">
+                    تحديث حالة مسار العميل:
+                  </div>
+                  <div className="py-1 space-y-1 max-h-60 overflow-y-auto">
+                    {[
+                      { id: 'new', label: 'جديد (New)' },
+                      { id: 'contacted', label: 'تم التواصل (Contacted)' },
+                      { id: 'interested', label: 'مهتم جاد (Interested)' },
+                      { id: 'measurement_scheduled', label: 'موعد معاينة ومقاسات' },
+                      { id: 'measured', label: 'تمت المعاينة (Measured)' },
+                      { id: 'quotation', label: 'قيد التسعير وعرض السعر' },
+                      { id: 'won', label: 'تم الاتفاق والتعاقد (Won)' },
+                      { id: 'customer', label: 'عميل نشط (Customer)' },
+                      { id: 'completed', label: 'مشروع مكتمل (Completed)' },
+                      { id: 'lost', label: 'فرصة مفقودة (Lost)' }
+                    ].map(st => (
+                      <button
+                        key={st.id}
+                        onClick={() => handleStatusSelect(st.id as CustomerStatus)}
+                        className={`w-full text-right px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                          customer.status === st.id ? 'bg-[#361D13] text-white' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* CTA Buttons Row */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+                title="فتح محادثة واتساب"
               >
-                <Ruler className="w-4 h-4 text-[#C87A38]" />
-                <span>+ مشروع تفصيل جديد</span>
-              </button>
-            )}
+                <MessageSquare className="w-4 h-4 fill-white" />
+                <span>واتساب</span>
+              </a>
 
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2"
-            >
-              <MessageSquare className="w-4 h-4 fill-white" />
-              <span>محادثة WhatsApp</span>
-              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-            </a>
+              {showProjectsTab && (
+                <button
+                  onClick={() => setIsCreateProjectModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+                >
+                  <Ruler className="w-4 h-4 text-[#C87A38]" />
+                  <span>+ مشروع تفصيل</span>
+                </button>
+              )}
+
+              {showSalesTab && (
+                <button
+                  onClick={() => setIsCreateOrderModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+                >
+                  <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                  <span>+ طلب جاهز</span>
+                </button>
+              )}
+            </div>
+
           </div>
 
         </div>
 
-        {/* Badges Bar */}
-        <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-xl font-bold border border-slate-200 flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${sourceMeta.iconColor.replace('text-', 'bg-')}`}></span>
-              <span>المصدر: {sourceMeta.label}</span>
+        {/* Clean 4-Column Structured Metadata Strip */}
+        <div className="pt-4 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="text-slate-400 font-bold block text-[10px]">الفرع المخصص:</span>
+            <span className="font-bold text-slate-800">{customer.branchName}</span>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="text-slate-400 font-bold block text-[10px]">الموظف المسؤول:</span>
+            <span className="font-bold text-slate-800">{customer.responsibleUserName || 'غير محدد'}</span>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="text-slate-400 font-bold block text-[10px]">المصدر والحملة:</span>
+            <span className="font-bold text-slate-800 truncate block" title={customer.campaignName || sourceMeta.label}>
+              {sourceMeta.label.split(' ')[0]} {customer.campaignName ? `(${customer.campaignName})` : ''}
             </span>
-
-            {customer.campaignName && (
-              <span className="bg-emerald-950 text-emerald-200 px-3 py-1 rounded-xl font-bold border border-emerald-800 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#C87A38]" />
-                <span>الحملة: {customer.campaignName}</span>
-              </span>
-            )}
           </div>
 
-          <div className="text-[11px] text-slate-400 font-mono">
-            تاريخ التسجيل: {customer.createdDate} | آخر نشاط: {customer.lastActivityDate}
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="text-slate-400 font-bold block text-[10px]">تاريخ التسجيل:</span>
+            <span className="font-bold text-slate-800 font-mono">{customer.createdDate}</span>
           </div>
         </div>
+
       </div>
 
       {/* Lost Reason Banner if Lost */}
       {customer.status === 'lost' && (
-        <div className="p-4 rounded-3xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1">
           <div className="flex items-center gap-2 font-black text-xs text-rose-800">
             <AlertOctagon className="w-4 h-4 text-rose-600" />
             <span>تم تصنيف العميل كـ "فرصة مفقودة (Lost)"</span>
@@ -374,69 +397,79 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         </div>
       )}
 
-      {/* Progressive Disclosure Tabs Navigation */}
-      <div className="bg-white rounded-2xl p-2 border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-1 text-xs">
+      {/* Modern, Clean Tabs Navigation */}
+      <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-1.5 text-xs">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2.5 rounded-xl font-black transition-all ${
-            activeTab === 'overview' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+          className={`px-4 py-2 rounded-xl transition-all ${
+            activeTab === 'overview'
+              ? 'bg-white text-slate-900 shadow-sm font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
           }`}
         >
-          نظرة عامة (Overview)
+          نظرة عامة
         </button>
 
         <button
           onClick={() => setActiveTab('activity')}
-          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'activity' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+          className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+            activeTab === 'activity'
+              ? 'bg-white text-slate-900 shadow-sm font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
           }`}
         >
-          <span>سجل المتابعات والمكالمات</span>
-          <span className="bg-white/20 text-xs px-2 py-0.2 rounded-full">{customerActivities.length}</span>
+          <span>المتابعات والمكالمات</span>
+          <span className="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+            {customerActivities.length}
+          </span>
         </button>
 
         <button
           onClick={() => setActiveTab('reminders')}
-          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'reminders' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+          className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+            activeTab === 'reminders'
+              ? 'bg-white text-slate-900 shadow-sm font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
           }`}
         >
           <span>التذكيرات والمواعيد</span>
           {customerReminders.length > 0 && (
-            <span className="bg-[#C87A38] text-white text-[10px] px-2 py-0.2 rounded-full">
+            <span className="bg-[#C87A38] text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
               {customerReminders.length}
             </span>
           )}
         </button>
 
-        {/* Sales Tab: Rendered ONLY if customer is interested in furniture or both */}
         {showSalesTab && (
           <button
             onClick={() => setActiveTab('sales')}
-            className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'sales' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+              activeTab === 'sales'
+                ? 'bg-white text-slate-900 shadow-sm font-black'
+                : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
             }`}
           >
-            <span>المبيعات وطلبات الأثاث الجاهز</span>
+            <span>طلبات الأثاث الجاهز</span>
             {customerOrders.length > 0 && (
-              <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.2 rounded-full">
+              <span className="bg-emerald-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
                 {customerOrders.length}
               </span>
             )}
           </button>
         )}
 
-        {/* Custom Projects Tab: Rendered ONLY if customer is interested in custom/kitchens or both */}
         {showProjectsTab && (
           <button
             onClick={() => setActiveTab('projects')}
-            className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'projects' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+              activeTab === 'projects'
+                ? 'bg-white text-slate-900 shadow-sm font-black'
+                : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
             }`}
           >
-            <span>مشاريع التفصيل والمقاسات</span>
+            <span>مشاريع التفصيل</span>
             {customerProjects.length > 0 && (
-              <span className="bg-amber-600 text-white text-[10px] px-2 py-0.2 rounded-full">
+              <span className="bg-amber-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
                 {customerProjects.length}
               </span>
             )}
@@ -445,12 +478,14 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
 
         <button
           onClick={() => setActiveTab('documents')}
-          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-            activeTab === 'documents' ? 'bg-[#361D13] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+          className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+            activeTab === 'documents'
+              ? 'bg-white text-slate-900 shadow-sm font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
           }`}
         >
-          <span>أرشيف الوثائق والمستندات</span>
-          <span className="bg-slate-200 text-slate-800 text-[10px] px-2 py-0.2 rounded-full font-bold">
+          <span>المستندات والمرفقات</span>
+          <span className="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
             {customerDocuments.length}
           </span>
         </button>
@@ -458,25 +493,28 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
         {customer.isAfterSales && (
           <button
             onClick={() => setActiveTab('after_sales')}
-            className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'after_sales' ? 'bg-[#C87A38] text-white shadow-md' : 'text-amber-800 bg-amber-50 hover:bg-amber-100'
+            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+              activeTab === 'after_sales'
+                ? 'bg-white text-emerald-900 shadow-sm font-black'
+                : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
             }`}
           >
             <Award className="w-3.5 h-3.5 text-amber-500" />
-            <span>خدمة ما بعد البيع</span>
+            <span>ما بعد البيع</span>
           </button>
         )}
 
-        {/* Tab 8: Audit Log & History Trail (Prompt 5 Requirement) */}
         <button
           onClick={() => setActiveTab('audit_log')}
-          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 mr-auto ${
-            activeTab === 'audit_log' ? 'bg-[#361D13] text-amber-300 shadow-md' : 'text-slate-500 hover:bg-slate-100'
+          className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 mr-auto ${
+            activeTab === 'audit_log'
+              ? 'bg-white text-slate-900 shadow-sm font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold hover:bg-white/60'
           }`}
         >
-          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-          <span>سجل التدقيق والرقابة</span>
-          <span className="bg-black/20 text-amber-300 text-[10px] px-2 py-0.2 rounded-full font-mono">
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+          <span>سجل التدقيق</span>
+          <span className="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold">
             {customerAuditLogs.length}
           </span>
         </button>
@@ -494,6 +532,18 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-slate-400 font-bold block">كود العميل:</span>
+                  <span className="font-black text-slate-900 font-mono text-sm">{customer.code || customer.id}</span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 font-bold block">نوع العميل:</span>
+                  <span className="font-black text-indigo-900">
+                    {customer.customerType === 'commercial' ? '🏢 عميل تجاري / شركات' : '👤 عميل فردي (B2C)'}
+                  </span>
+                </div>
+
                 <div>
                   <span className="text-slate-400 font-bold block">الاسم بالكامل:</span>
                   <span className="font-black text-slate-900 text-sm">{customer.fullName}</span>
@@ -531,10 +581,70 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                 </div>
               </div>
 
+              {/* Commercial B2B Details if available */}
+              {customer.customerType === 'commercial' && (
+                <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-200/80 space-y-2 text-xs">
+                  <p className="font-black text-indigo-950 flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-indigo-700" />
+                    <span>بيانات المنشأة التجارية / الشركة:</span>
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-indigo-900">
+                    {customer.companyName && <div><span className="font-bold text-indigo-700">الاسم التجاري: </span>{customer.companyName}</div>}
+                    {customer.contactPerson && <div><span className="font-bold text-indigo-700">المسؤول: </span>{customer.contactPerson} {customer.contactRole ? `(${customer.contactRole})` : ''}</div>}
+                    {customer.taxId && <div><span className="font-bold text-indigo-700">الرقم الضريبي: </span><span className="font-mono">{customer.taxId}</span></div>}
+                    {customer.commercialRegister && <div><span className="font-bold text-indigo-700">السجل التجاري: </span><span className="font-mono">{customer.commercialRegister}</span></div>}
+                  </div>
+                </div>
+              )}
+
+              {/* Preferred Billing Method Box */}
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-300/60 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
+                    <Receipt className="w-4 h-4 text-[#C87A38]" />
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-bold block text-[11px]">طريقة الفوترة المفضلة:</span>
+                    <span className="font-black text-slate-900">{CrmService.getBillingMethodLabel(customer.billingMethod).label}</span>
+                  </div>
+                </div>
+                <span className="text-[11px] text-amber-900/80 font-medium">
+                  {CrmService.getBillingMethodLabel(customer.billingMethod).desc}
+                </span>
+              </div>
+
+              {/* Initial Attachments & Inspiration Gallery */}
+              {customer.initialAttachments && customer.initialAttachments.length > 0 && (
+                <div className="pt-3 border-t border-slate-100 space-y-2">
+                  <span className="font-black text-slate-900 text-xs flex items-center gap-1.5">
+                    <Paperclip className="w-4 h-4 text-[#C87A38]" />
+                    <span>مرفقات وصور أفكار العميل الأولية ({customer.initialAttachments.length}):</span>
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {customer.initialAttachments.map((att) => (
+                      <div key={att.id} className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-[#361D13] transition-all">
+                        <div className="h-24 rounded-xl overflow-hidden bg-slate-200 flex items-center justify-center">
+                          {att.type.startsWith('image/') ? (
+                            <img src={att.url} alt={att.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <FileText className="w-8 h-8 text-indigo-600" />
+                          )}
+                        </div>
+                        <p className="font-bold text-slate-800 text-[11px] truncate" title={att.name}>{att.name}</p>
+                        <div className="flex items-center justify-between text-[10px] text-slate-400">
+                          <span>{att.size || 'ملف'}</span>
+                          <span>{att.uploadedAt}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {customer.notes && (
                 <div className="pt-3 border-t border-slate-100">
-                  <span className="text-slate-400 font-bold block text-xs mb-1">ملاحظات أولية:</span>
-                  <p className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-700 leading-relaxed font-medium">
+                  <span className="text-slate-400 font-bold block text-xs mb-1">ملاحظات واحتياجات العميل:</span>
+                  <p className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-700 leading-relaxed font-medium">
                     {customer.notes}
                   </p>
                 </div>

@@ -1,4 +1,555 @@
 import { ProductionOrder, InstallationRecord } from '../types/erp';
+import {
+  WorkCenter,
+  WorkOrder,
+  ScrapClaimRecord,
+  OffCutReturnRecord,
+  ManufacturingPackageItem,
+  QualityGateInspection
+} from '../types/production';
+
+// ----------------------------------------------------
+// 1. WORK CENTERS (عنابر ومراكز تشغيل المصنع والورش)
+// ----------------------------------------------------
+
+export const initialWorkCenters: WorkCenter[] = [
+  {
+    id: 'wc-cnc-01',
+    code: 'WC-CNC-01',
+    name: 'ماكينة CNC التقطيع والنيستينج Biesse Rover',
+    nameEn: 'Biesse Rover CNC Nesting & Sizing',
+    category: 'cutting_cnc',
+    workshopLocation: 'عنبر التقطيع الرئيسي - مصنع العبور',
+    supervisorName: 'الأسطى محمود الشافعي (مشرف CNC)',
+    capacityHoursPerDay: 16,
+    hourlyLaborCost: 120,
+    hourlyMachineCost: 280,
+    status: 'busy',
+    currentActiveWOCount: 3,
+    efficiencyRate: 94,
+    maintenanceNextDate: '2026-10-25',
+    supportedMaterials: ['MDF أسباني', 'كونتر جودوود', 'HPL', 'أكريليك']
+  },
+  {
+    id: 'wc-edg-01',
+    code: 'WC-EDG-01',
+    name: 'ماكينة لزق وقشاط الحرف الأوتوماتيك Homag',
+    nameEn: 'Homag Automatic Edge Bander',
+    category: 'edge_banding',
+    workshopLocation: 'عنبر القشاط والتشطيب - مصنع العبور',
+    supervisorName: 'الفني شريف فاروق (أخصائي قشاط)',
+    capacityHoursPerDay: 16,
+    hourlyLaborCost: 100,
+    hourlyMachineCost: 180,
+    status: 'busy',
+    currentActiveWOCount: 2,
+    efficiencyRate: 91,
+    maintenanceNextDate: '2026-10-30',
+    supportedMaterials: ['شريط PVC 0.4مم', 'شريط PVC 2مم', 'قشرة طبيعية']
+  },
+  {
+    id: 'wc-bor-01',
+    code: 'WC-BOR-01',
+    name: 'ماكينة التخريم والفرز الأفقي والرأسي Vitap',
+    nameEn: 'Vitap CNC Point-to-Point Boring',
+    category: 'drilling_routing',
+    workshopLocation: 'عنبر التخريم والفرز - مصنع العبور',
+    supervisorName: 'الفني كمال درويش',
+    capacityHoursPerDay: 14,
+    hourlyLaborCost: 95,
+    hourlyMachineCost: 150,
+    status: 'active',
+    currentActiveWOCount: 1,
+    efficiencyRate: 88,
+    maintenanceNextDate: '2026-11-05',
+    supportedMaterials: ['شاسيهات كبائن', 'ضلف مطابخ', 'قواطع دريسنج']
+  },
+  {
+    id: 'wc-pnt-01',
+    code: 'WC-PNT-01',
+    name: 'كابينة الرش الحراري وأفران الدهان الإيطالية',
+    nameEn: 'Italian Heated Spray & Drying Booth',
+    category: 'paint_finishing',
+    workshopLocation: 'عنبر الدهانات والدوكو المعزول - العبور',
+    supervisorName: 'الأسطى صابر الأستورجي (كبير الفنيين)',
+    capacityHoursPerDay: 12,
+    hourlyLaborCost: 150,
+    hourlyMachineCost: 220,
+    status: 'busy',
+    currentActiveWOCount: 2,
+    efficiencyRate: 86,
+    maintenanceNextDate: '2026-10-20',
+    supportedMaterials: ['دوكو مط ولميع', 'لاكيه مغسول', 'بولي يوريثان PU', 'صبغات قشرة جوز']
+  },
+  {
+    id: 'wc-asm-01',
+    code: 'WC-ASM-01',
+    name: 'عنبر التجميع الميكانيكي وتركيب الإكسسوارات',
+    nameEn: 'Cabinet Assembly & Hardware Fitting Bay',
+    category: 'assembly',
+    workshopLocation: 'صالة التجميع الرئيسية - مصنع العبور',
+    supervisorName: 'الأسطى مصطفى كمال (رئيس النجارين)',
+    capacityHoursPerDay: 16,
+    hourlyLaborCost: 110,
+    hourlyMachineCost: 50,
+    status: 'active',
+    currentActiveWOCount: 3,
+    efficiencyRate: 92,
+    maintenanceNextDate: '2026-12-01',
+    supportedMaterials: ['مفصلات باكم Blum', 'أدراج تلسكوبية', 'إكسسوار سلات', 'إنارة LED']
+  },
+  {
+    id: 'wc-pkg-01',
+    code: 'WC-PKG-01',
+    name: 'محطة الفحص النهائي والتغليف والباركود',
+    nameEn: 'Final Quality Inspection & Flat-Pack Boxing',
+    category: 'packaging_qc',
+    workshopLocation: 'صالة التغليف والتحميل - مصنع العبور',
+    supervisorName: 'المهندس أحمد سمير (مدير مراقبة الجودة)',
+    capacityHoursPerDay: 14,
+    hourlyLaborCost: 105,
+    hourlyMachineCost: 40,
+    status: 'active',
+    currentActiveWOCount: 2,
+    efficiencyRate: 97,
+    maintenanceNextDate: '2026-11-15',
+    supportedMaterials: ['كرتون مقوى مزدوج', 'بابلز هوائي', 'زوايا فوم واقية', 'استريتش فيلم']
+  }
+];
+
+// ----------------------------------------------------
+// 2. WORK ORDERS (أوامر الشغل التفصيلية للمحطات)
+// ----------------------------------------------------
+
+export const initialWorkOrders: WorkOrder[] = [
+  // Kitchen Project PROD-2026-0012 (محمد حسن)
+  {
+    id: 'wo-101-1',
+    workOrderNumber: 'WO-2026-0041',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    projectId: 'prj-101',
+    projectNumber: 'PRJ-2026-001',
+    customerName: 'محمد حسن',
+    sequenceOrder: 1,
+    operationName: 'تقطيع وتفصيل ألواح المطبخ (8 ألواح MDF + HPL)',
+    operationCategory: 'cutting_cnc',
+    workCenterId: 'wc-cnc-01',
+    workCenterName: 'ماكينة CNC التقطيع والنيستينج Biesse Rover',
+    plannedDurationMinutes: 180,
+    actualDurationMinutes: 195,
+    scheduledStartDate: '2026-08-26 09:00',
+    scheduledEndDate: '2026-08-26 12:00',
+    startedAt: '2026-08-26 09:15',
+    completedAt: '2026-08-26 12:30',
+    assignedTechnicians: ['الأسطى محمود الشافعي', 'كريم عادل'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 42,
+    partsCompletedCount: 42,
+    cutListReference: 'CUT-KITCHEN-MDF18-V1',
+    specialInstructions: 'مراعاة خلوص 2مم للشريط ومحاذاة اتجاه قشرة الجوز بالضلف',
+    qualityCheckPassed: true,
+    qualityInspectorName: 'م. أحمد سمير',
+    scrapGeneratedCount: 1
+  },
+  {
+    id: 'wo-101-2',
+    workOrderNumber: 'WO-2026-0042',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    projectId: 'prj-101',
+    projectNumber: 'PRJ-2026-001',
+    customerName: 'محمد حسن',
+    sequenceOrder: 2,
+    operationName: 'لزق شريط الحرف PVC 2مم وقشاط الجوانب (35 متر)',
+    operationCategory: 'edge_banding',
+    workCenterId: 'wc-edg-01',
+    workCenterName: 'ماكينة لزق وقشاط الحرف الأوتوماتيك Homag',
+    plannedDurationMinutes: 120,
+    actualDurationMinutes: 110,
+    scheduledStartDate: '2026-08-26 13:00',
+    scheduledEndDate: '2026-08-26 15:00',
+    startedAt: '2026-08-26 13:00',
+    completedAt: '2026-08-26 14:50',
+    assignedTechnicians: ['الفني شريف فاروق'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 38,
+    partsCompletedCount: 38,
+    specialInstructions: 'استخدام غراء بولي يوريثان مقاوم للرطوبة لحواف كابينة الحوض',
+    qualityCheckPassed: true,
+    qualityInspectorName: 'م. أحمد سمير'
+  },
+  {
+    id: 'wo-101-3',
+    workOrderNumber: 'WO-2026-0043',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    projectId: 'prj-101',
+    projectNumber: 'PRJ-2026-001',
+    customerName: 'محمد حسن',
+    sequenceOrder: 3,
+    operationName: 'تخريم أماكن المفصلات ومجاري الأدراج التلسكوبية',
+    operationCategory: 'drilling_routing',
+    workCenterId: 'wc-bor-01',
+    workCenterName: 'ماكينة التخريم والفرز الأفقي والرأسي Vitap',
+    plannedDurationMinutes: 90,
+    actualDurationMinutes: 85,
+    scheduledStartDate: '2026-08-27 09:00',
+    scheduledEndDate: '2026-08-27 10:30',
+    startedAt: '2026-08-27 09:00',
+    completedAt: '2026-08-27 10:25',
+    assignedTechnicians: ['الفني كمال درويش'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 26,
+    partsCompletedCount: 26,
+    specialInstructions: 'تخريم فتحات نظام Blum Clip-Top 35مم عمق 12.5مم بدقة',
+    qualityCheckPassed: true,
+    qualityInspectorName: 'م. أحمد سمير'
+  },
+  {
+    id: 'wo-101-4',
+    workOrderNumber: 'WO-2026-0044',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    projectId: 'prj-101',
+    projectNumber: 'PRJ-2026-001',
+    customerName: 'محمد حسن',
+    sequenceOrder: 4,
+    operationName: 'تجميع الكبائن السفلية والعلوية وتركيب الإكسسوارات',
+    operationCategory: 'assembly',
+    workCenterId: 'wc-asm-01',
+    workCenterName: 'عنبر التجميع الميكانيكي وتركيب الإكسسوارات',
+    plannedDurationMinutes: 240,
+    actualDurationMinutes: 160,
+    scheduledStartDate: '2026-08-27 11:00',
+    scheduledEndDate: '2026-08-27 15:00',
+    startedAt: '2026-08-27 11:00',
+    assignedTechnicians: ['الأسطى مصطفى كمال', 'عمر حسني'],
+    status: 'in_progress',
+    progressPercentage: 70,
+    partsToProcessCount: 14,
+    partsCompletedCount: 10,
+    specialInstructions: 'فحص استقامة الزوايا 90 درجة وتجربة سلاسة حركة الأدراج الهيدروليك'
+  },
+  {
+    id: 'wo-101-5',
+    workOrderNumber: 'WO-2026-0045',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    projectId: 'prj-101',
+    projectNumber: 'PRJ-2026-001',
+    customerName: 'محمد حسن',
+    sequenceOrder: 5,
+    operationName: 'الفحص النهائي لمراقبة الجودة والتغليف وتكوين الطرود',
+    operationCategory: 'packaging_qc',
+    workCenterId: 'wc-pkg-01',
+    workCenterName: 'محطة الفحص النهائي والتغليف والباركود',
+    plannedDurationMinutes: 90,
+    actualDurationMinutes: 0,
+    scheduledStartDate: '2026-08-28 09:00',
+    scheduledEndDate: '2026-08-28 10:30',
+    assignedTechnicians: ['المهندس أحمد سمير', 'فريق التغليف'],
+    status: 'ready',
+    progressPercentage: 0,
+    partsToProcessCount: 6,
+    partsCompletedCount: 0,
+    specialInstructions: 'تغليف كل شاسيه مع إكسسواراته في طرد مرقم مع باركود مستقل'
+  },
+
+  // Bedroom Project PROD-2026-0010 (سارة علي) - Completed Order
+  {
+    id: 'wo-102-1',
+    workOrderNumber: 'WO-2026-0031',
+    manufacturingOrderId: 'prod-102',
+    manufacturingOrderNumber: 'PROD-2026-0010',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerName: 'سارة علي',
+    sequenceOrder: 1,
+    operationName: 'تقطيع ألواح خشب السرير والدولاب الماستر',
+    operationCategory: 'cutting_cnc',
+    workCenterId: 'wc-cnc-01',
+    workCenterName: 'ماكينة CNC التقطيع والنيستينج Biesse Rover',
+    plannedDurationMinutes: 200,
+    actualDurationMinutes: 210,
+    scheduledStartDate: '2026-08-10 09:00',
+    scheduledEndDate: '2026-08-10 12:30',
+    startedAt: '2026-08-10 09:00',
+    completedAt: '2026-08-10 12:30',
+    assignedTechnicians: ['الأسطى محمود الشافعي'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 36,
+    partsCompletedCount: 36,
+    qualityCheckPassed: true,
+    qualityInspectorName: 'م. أحمد سمير'
+  },
+  {
+    id: 'wo-102-2',
+    workOrderNumber: 'WO-2026-0032',
+    manufacturingOrderId: 'prod-102',
+    manufacturingOrderNumber: 'PROD-2026-0010',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerName: 'سارة علي',
+    sequenceOrder: 2,
+    operationName: 'دهان دوكو أبيض مط وتشطيب قشرة السرير',
+    operationCategory: 'paint_finishing',
+    workCenterId: 'wc-pnt-01',
+    workCenterName: 'كابينة الرش الحراري وأفران الدهان الإيطالية',
+    plannedDurationMinutes: 300,
+    actualDurationMinutes: 320,
+    scheduledStartDate: '2026-08-12 09:00',
+    scheduledEndDate: '2026-08-12 14:00',
+    startedAt: '2026-08-12 09:00',
+    completedAt: '2026-08-12 14:20',
+    assignedTechnicians: ['الأسطى صابر الأستورجي'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 22,
+    partsCompletedCount: 22,
+    qualityCheckPassed: true,
+    qualityInspectorName: 'م. أحمد سمير'
+  },
+  {
+    id: 'wo-102-3',
+    workOrderNumber: 'WO-2026-0033',
+    manufacturingOrderId: 'prod-102',
+    manufacturingOrderNumber: 'PROD-2026-0010',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerName: 'سارة علي',
+    sequenceOrder: 3,
+    operationName: 'التجميع النهائي وتغليف طرود غرفة النوم',
+    operationCategory: 'packaging_qc',
+    workCenterId: 'wc-pkg-01',
+    workCenterName: 'محطة الفحص النهائي والتغليف والباركود',
+    plannedDurationMinutes: 180,
+    actualDurationMinutes: 175,
+    scheduledStartDate: '2026-08-24 10:00',
+    scheduledEndDate: '2026-08-24 13:00',
+    startedAt: '2026-08-24 10:00',
+    completedAt: '2026-08-24 13:00',
+    assignedTechnicians: ['الأسطى حسن صابر', 'م. أحمد سمير'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 8,
+    partsCompletedCount: 8,
+    qualityCheckPassed: true,
+    qualityInspectorName: 'م. أحمد سمير'
+  },
+
+  // TV Wall Unit Project PROD-2026-0014 (أحمد سمير) - Pending Material Shortage
+  {
+    id: 'wo-103-1',
+    workOrderNumber: 'WO-2026-0051',
+    manufacturingOrderId: 'prod-103',
+    manufacturingOrderNumber: 'PROD-2026-0014',
+    projectId: 'prj-103',
+    projectNumber: 'PRJ-2026-003',
+    customerName: 'أحمد سمير',
+    sequenceOrder: 1,
+    operationName: 'تقطيع ألواح وحدة التلفزيون المودرن مع بانوهات LED',
+    operationCategory: 'cutting_cnc',
+    workCenterId: 'wc-cnc-01',
+    workCenterName: 'ماكينة CNC التقطيع والنيستينج Biesse Rover',
+    plannedDurationMinutes: 140,
+    actualDurationMinutes: 0,
+    scheduledStartDate: '2026-08-28 09:00',
+    scheduledEndDate: '2026-08-28 11:20',
+    assignedTechnicians: ['الفني عادل منير'],
+    status: 'blocked',
+    progressPercentage: 0,
+    partsToProcessCount: 18,
+    partsCompletedCount: 0,
+    specialInstructions: 'معلق بانتظار توريد ألواح MDF 18مم اسباني من أمر الشراء PO-2026-004'
+  }
+];
+
+// ----------------------------------------------------
+// 3. SCRAP CLAIMS & REQUISITIONS (إدارة الهدر والتوالف والصرف)
+// ----------------------------------------------------
+
+export const initialScrapClaims: ScrapClaimRecord[] = [
+  {
+    id: 'scr-001',
+    claimNumber: 'SCR-2026-001',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    workOrderId: 'wo-101-1',
+    workCenterName: 'ماكينة CNC التقطيع والنيستينج Biesse Rover',
+    materialId: 'mat-1',
+    materialCode: 'MAT-MDF-001',
+    materialName: 'MDF أبيض 18مم اسباني',
+    unit: 'Sheet',
+    scrapQuantity: 1,
+    reason: 'machine_defect',
+    reasonDescription: 'انحراف سلاح البنطة أثناء تفريز مجرى كابينة الركنة نتج عنه كسر في حرف اللوح',
+    estimatedCost: 1250,
+    reportedBy: 'الأسطى محمود الشافعي',
+    reportedAt: '2026-08-26 11:20',
+    status: 'replacement_issued',
+    replacementGINNumber: 'GIN-2026-0045'
+  },
+  {
+    id: 'scr-002',
+    claimNumber: 'SCR-2026-002',
+    manufacturingOrderId: 'prod-102',
+    manufacturingOrderNumber: 'PROD-2026-0010',
+    workOrderId: 'wo-102-2',
+    workCenterName: 'كابينة الرش الحراري وأفران الدهان',
+    materialId: 'mat-2',
+    materialCode: 'MAT-HPL-002',
+    materialName: 'قشرة HPL خشب جوز إيطالي',
+    unit: 'Meter',
+    scrapQuantity: 2,
+    reason: 'operator_error',
+    reasonDescription: 'زيادة ضغط الصنفرة في زاوية الضلفة أدت إلى كشف طبقة الخشب الأساسية',
+    estimatedCost: 900,
+    reportedBy: 'الأسطى صابر الأستورجي',
+    reportedAt: '2026-08-12 11:00',
+    status: 'replacement_issued',
+    replacementGINNumber: 'GIN-2026-0038'
+  }
+];
+
+// ----------------------------------------------------
+// 4. OFF-CUTS & REMNANTS RETURN (إرجاع فضلات الخشب الصالحة)
+// ----------------------------------------------------
+
+export const initialOffCutReturns: OffCutReturnRecord[] = [
+  {
+    id: 'off-001',
+    returnNumber: 'OFF-2026-001',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    materialId: 'mat-1',
+    materialName: 'MDF أبيض 18مم اسباني',
+    dimensions: '140 × 85 سم (سمك 18مم)',
+    quantity: 2,
+    unit: 'لوح فضلات',
+    condition: 'excellent',
+    targetWarehouseName: 'مستودع فضلات وخامات الورشة - العبور',
+    returnedBy: 'الأسطى محمود الشافعي',
+    date: '2026-08-26 14:00',
+    status: 'returned_to_stock'
+  },
+  {
+    id: 'off-002',
+    returnNumber: 'OFF-2026-002',
+    manufacturingOrderId: 'prod-102',
+    manufacturingOrderNumber: 'PROD-2026-0010',
+    materialId: 'mat-1',
+    materialName: 'MDF أبيض 18مم اسباني',
+    dimensions: '110 × 60 سم (سمك 18مم)',
+    quantity: 3,
+    unit: 'لوح فضلات',
+    condition: 'good',
+    targetWarehouseName: 'مستودع فضلات وخامات الورشة - العبور',
+    returnedBy: 'الأسطى حسن صابر',
+    date: '2026-08-24 15:30',
+    status: 'returned_to_stock'
+  }
+];
+
+// ----------------------------------------------------
+// 5. PACKAGING ITEMS & PART LABELS (طرود التغليف وملصقات الباركود)
+// ----------------------------------------------------
+
+export const initialPackages: ManufacturingPackageItem[] = [
+  {
+    id: 'pkg-101-1',
+    packageCode: 'PKG-101-01',
+    title: 'طرد 1/5 - شاسيه كابينة الحوض 90سم + مفصلات Blum',
+    dimensions: '90 × 60 × 85 سم',
+    weightKg: 28.5,
+    status: 'packed',
+    qrCode: 'QR-PROD101-PKG01',
+    itemsContained: ['قاعدة وجوانب شاسيه حوض 90سم', 'مفصلات هيدروليك بلوم 4 قطع', 'رجلاش ألمنيوم 4 قطع']
+  },
+  {
+    id: 'pkg-101-2',
+    packageCode: 'PKG-101-02',
+    title: 'طرد 2/5 - وحدة الأدراج السفلية 60سم مع المجاري التلسكوبية',
+    dimensions: '60 × 60 × 85 سم',
+    weightKg: 34.0,
+    status: 'packed',
+    qrCode: 'QR-PROD101-PKG02',
+    itemsContained: ['صناديق أدراج خشب جوز 3 أدراج', 'مجاري Blum Soft-Close 3 أطقم', 'مقابض غاطسة 3 قطع']
+  },
+  {
+    id: 'pkg-101-3',
+    packageCode: 'PKG-101-03',
+    title: 'طرد 3/5 - الكبائن العلوية قلاب Aventos (وحدة 120سم)',
+    dimensions: '120 × 35 × 70 سم',
+    weightKg: 22.0,
+    status: 'staged',
+    qrCode: 'QR-PROD101-PKG03',
+    itemsContained: ['شاسيه علوي 120سم أبيض', 'ميكانيزم قلاب Aventos HF طقم', 'ضلف HPL جوز إيطالي']
+  },
+  {
+    id: 'pkg-102-1',
+    packageCode: 'PKG-102-01',
+    title: 'طرد 1/4 - شاسيه وتجميعة السرير الماستر كينج 180×200',
+    dimensions: '205 × 185 × 40 سم',
+    weightKg: 65.0,
+    status: 'packed',
+    qrCode: 'QR-PROD102-PKG01',
+    itemsContained: ['بانوهات رأس السرير تنجيد ودوكو', 'فخذين سرير يمين وشمال', 'ميكانيزم ميكانيكي هيدروليك السحارة']
+  }
+];
+
+// ----------------------------------------------------
+// 6. QUALITY GATE INSPECTIONS (بوابات فحص الجودة)
+// ----------------------------------------------------
+
+export const initialQualityInspections: QualityGateInspection[] = [
+  {
+    id: 'qg-101-1',
+    gateNumber: 'QG-2026-011',
+    manufacturingOrderId: 'prod-101',
+    manufacturingOrderNumber: 'PROD-2026-0012',
+    stage: 'cutting_edge',
+    stageTitle: 'فحص جودة التقطيع وقشاط الحرف PVC',
+    inspectorName: 'المهندس أحمد سمير (مدير الجودة)',
+    inspectionDate: '2026-08-26 15:30',
+    passed: true,
+    scorePercentage: 96,
+    checklistResults: [
+      { itemTitle: 'مطابقة مقاسات الألواح مع قائمة التقطيع بالمللي', passed: true, notes: 'نسبة التفاوت 0.2 مم ضمن المسموح' },
+      { itemTitle: 'خلو الحواف من أي رايش أو تقطيع بسلاح المنشار', passed: true },
+      { itemTitle: 'التصاق تام لشريط القشاط مع خلوه من فقاعات الغراء', passed: true },
+      { itemTitle: 'تطابق اتجاه قشرة الخشب في الضلف المتجاورة', passed: true }
+    ],
+    photos: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=600']
+  },
+  {
+    id: 'qg-102-1',
+    gateNumber: 'QG-2026-008',
+    manufacturingOrderId: 'prod-102',
+    manufacturingOrderNumber: 'PROD-2026-0010',
+    stage: 'final_packaging',
+    stageTitle: 'الفحص الشامل النهائي واعتماد الإفراج للتركيبات',
+    inspectorName: 'المهندس أحمد سمير (مدير الجودة)',
+    inspectionDate: '2026-08-24 14:00',
+    passed: true,
+    scorePercentage: 98,
+    checklistResults: [
+      { itemTitle: 'فحص نعومة الدهان وتجانس لمعة الدوكو الأبيض المط', passed: true },
+      { itemTitle: 'تجربة ميكانيزم السرير والأدراج وسلاسة الإغلاق الهادئ', passed: true },
+      { itemTitle: 'اكتمال كافة المسامير والأكسسوارات والرجلاش في حقيبة الإكسسوار', passed: true },
+      { itemTitle: 'سلامة التغليف المقوى ووجود ملصقات الباركود على جميع الطرود', passed: true }
+    ],
+    photos: ['https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&q=80&w=600']
+  }
+];
+
+// ----------------------------------------------------
+// 7. PRODUCTION ORDERS & INSTALLATION (Compatible Main Records)
+// ----------------------------------------------------
 
 export const initialProductionOrders: ProductionOrder[] = [
   {
@@ -13,16 +564,16 @@ export const initialProductionOrders: ProductionOrder[] = [
     customerPhone: '01009876543',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
-    workshopLocation: 'ورشة تصنيع العبور الرئيسية',
+    workshopLocation: 'عنبر النجارة والتقطيع - مصنع العبور الرئيسي',
     startDate: '2026-08-26',
     expectedCompletionDate: '2026-09-15',
-    assignedTeam: ['الفني مصطفى كمال (نجار رئيسي)', 'الفني شريف فاروق (فني HPL)'],
+    assignedTeam: ['الأسطى مصطفى كمال (رئيس نجارين)', 'الفني شريف فاروق (فني قشاط)', 'الأسطى محمود الشافعي (مشرف CNC)'],
     status: 'in_production',
-    notes: 'تجهيز المطبخ طبقاً للتصميم V1 المعتمد وتجهيز الهيكل الإسباني 18مم',
+    notes: 'تجهيز مطبخ مودرن كامل طبقاً للتصميم V1 المعتمد مع مفصلات بلوم باكم وأدراج خفية',
     completionPhotos: [],
     totalEstimatedMaterialCost: 25900,
-    totalActualMaterialCost: 0,
-    materialVariance: 0,
+    totalActualMaterialCost: 27150,
+    materialVariance: 1250,
     createdDate: '2026-08-26 10:00',
     materials: [
       {
@@ -33,14 +584,14 @@ export const initialProductionOrders: ProductionOrder[] = [
         materialCode: 'MAT-MDF-001',
         unit: 'Sheet',
         requiredQuantity: 8,
-        reservedQuantity: 0,
-        consumedQuantity: 0,
-        remainingQuantity: 8,
+        reservedQuantity: 8,
+        consumedQuantity: 8,
+        remainingQuantity: 0,
         estimatedUnitCost: 1250,
         estimatedTotalCost: 10000,
         actualUnitCost: 1250,
-        actualTotalCost: 0,
-        status: 'pending'
+        actualTotalCost: 11250, // includes 1 scrap sheet
+        status: 'consumed'
       },
       {
         id: 'pm-101-2',
@@ -50,14 +601,14 @@ export const initialProductionOrders: ProductionOrder[] = [
         materialCode: 'MAT-HPL-002',
         unit: 'Meter',
         requiredQuantity: 12,
-        reservedQuantity: 0,
-        consumedQuantity: 0,
-        remainingQuantity: 12,
+        reservedQuantity: 12,
+        consumedQuantity: 12,
+        remainingQuantity: 0,
         estimatedUnitCost: 450,
         estimatedTotalCost: 5400,
         actualUnitCost: 450,
-        actualTotalCost: 0,
-        status: 'pending'
+        actualTotalCost: 5400,
+        status: 'consumed'
       },
       {
         id: 'pm-101-3',
@@ -67,14 +618,14 @@ export const initialProductionOrders: ProductionOrder[] = [
         materialCode: 'MAT-EDG-003',
         unit: 'Meter',
         requiredQuantity: 35,
-        reservedQuantity: 0,
-        consumedQuantity: 0,
-        remainingQuantity: 35,
+        reservedQuantity: 35,
+        consumedQuantity: 35,
+        remainingQuantity: 0,
         estimatedUnitCost: 40,
         estimatedTotalCost: 1400,
         actualUnitCost: 40,
-        actualTotalCost: 0,
-        status: 'pending'
+        actualTotalCost: 1400,
+        status: 'consumed'
       },
       {
         id: 'pm-101-4',
@@ -84,14 +635,14 @@ export const initialProductionOrders: ProductionOrder[] = [
         materialCode: 'MAT-HNG-004',
         unit: 'Piece',
         requiredQuantity: 18,
-        reservedQuantity: 0,
-        consumedQuantity: 0,
-        remainingQuantity: 18,
+        reservedQuantity: 18,
+        consumedQuantity: 14,
+        remainingQuantity: 4,
         estimatedUnitCost: 150,
         estimatedTotalCost: 2700,
         actualUnitCost: 150,
-        actualTotalCost: 0,
-        status: 'pending'
+        actualTotalCost: 2100,
+        status: 'reserved'
       },
       {
         id: 'pm-101-5',
@@ -101,14 +652,14 @@ export const initialProductionOrders: ProductionOrder[] = [
         materialCode: 'MAT-RAL-005',
         unit: 'Pair',
         requiredQuantity: 8,
-        reservedQuantity: 0,
-        consumedQuantity: 0,
-        remainingQuantity: 8,
+        reservedQuantity: 8,
+        consumedQuantity: 6,
+        remainingQuantity: 2,
         estimatedUnitCost: 450,
         estimatedTotalCost: 3600,
         actualUnitCost: 450,
-        actualTotalCost: 0,
-        status: 'pending'
+        actualTotalCost: 2700,
+        status: 'reserved'
       },
       {
         id: 'pm-101-6',
@@ -118,14 +669,14 @@ export const initialProductionOrders: ProductionOrder[] = [
         materialCode: 'MAT-HND-006',
         unit: 'Piece',
         requiredQuantity: 18,
-        reservedQuantity: 0,
-        consumedQuantity: 0,
-        remainingQuantity: 18,
+        reservedQuantity: 18,
+        consumedQuantity: 10,
+        remainingQuantity: 8,
         estimatedUnitCost: 150,
         estimatedTotalCost: 2700,
         actualUnitCost: 150,
-        actualTotalCost: 0,
-        status: 'pending'
+        actualTotalCost: 1500,
+        status: 'reserved'
       }
     ]
   },
@@ -141,13 +692,13 @@ export const initialProductionOrders: ProductionOrder[] = [
     customerPhone: '01223344556',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
-    workshopLocation: 'ورشة تصنيع التجمع',
+    workshopLocation: 'صالة تصنيع غرف النوم - مصنع العبور',
     startDate: '2026-08-10',
     expectedCompletionDate: '2026-08-24',
     actualCompletionDate: '2026-08-24 16:00',
-    assignedTeam: ['الفني حسن صابر (رئيس ورشة النوم)'],
+    assignedTeam: ['الأسطى حسن صابر (رئيس ورشة النوم)', 'الأسطى صابر الأستورجي (دهانات)'],
     status: 'completed',
-    notes: 'تم إنهاء تصنيع وتجميع غرفة النوم وتغليفها بالكامل جاهزة للتركيب',
+    notes: 'تم إنهاء تصنيع وتجميع غرفة النوم الماستر وتغليفها بالكامل في 4 طرود وجاهزة للتركيب',
     completionPhotos: ['https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&q=80&w=600'],
     totalEstimatedMaterialCost: 18500,
     totalActualMaterialCost: 18900,
@@ -181,16 +732,16 @@ export const initialProductionOrders: ProductionOrder[] = [
     projectId: 'prj-103',
     projectNumber: 'PRJ-2026-003',
     customerId: 'cust-2',
-    customerName: 'أحمد محمود',
+    customerName: 'أحمد سمير',
     customerPhone: '01112223334',
     branchId: 'branch-2',
     branchName: 'معرض الإسكندرية',
-    workshopLocation: 'ورشة الإسكندرية',
+    workshopLocation: 'ورشة الإسكندرية المركزية',
     startDate: '2026-08-20',
     expectedCompletionDate: '2026-09-05',
-    assignedTeam: ['الفني عادل منير'],
+    assignedTeam: ['الفني عادل منير (مشغل CNC)'],
     status: 'pending',
-    notes: 'طلب وحدة تلفزيون مودرن - يوجد نقص بالخامات المطلوبة بالمخزن',
+    notes: 'طلب وحدة تلفزيون مودرن مع إضاءة خفية - تم إصدار طلب شراء عاجل للنواقص بالمخزن',
     completionPhotos: [],
     totalEstimatedMaterialCost: 12500,
     totalActualMaterialCost: 0,
@@ -234,9 +785,9 @@ export const initialInstallationRecords: InstallationRecord[] = [
     scheduledDate: '2026-08-28',
     scheduledTime: '10:00',
     assignedTeam: ['user-1', 'user-2'],
-    assignedTeamNames: ['أحمد محمود (مهندس جودة)', 'عمر السعيد (فني تركيبات)'],
+    assignedTeamNames: ['أحمد سمير (مهندس جودة وتسليم)', 'عمر السعيد (فني تركيبات)'],
     status: 'scheduled',
-    notes: 'موعد تركيب غرفة نوم ماستر شامبين مع العميل',
+    notes: 'موعد تركيب غرفة نوم ماستر شامبين مع العميل - 4 طرود مغلفة جاهزة للتحميل',
     beforePhotos: [],
     afterPhotos: [],
     handoverStatus: 'pending'

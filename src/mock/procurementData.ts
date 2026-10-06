@@ -112,7 +112,7 @@ export const initialPurchaseRequests: PurchaseRequest[] = [
         customerName: 'أحمد مصطفى'
       }
     ],
-    approvedByUserName: 'أحمد محمود',
+    approvedByUserName: 'أحمد سمير',
     approvedDate: '2026-08-20 14:30',
     rfqIds: ['rfq-101'],
     rfqNumbers: ['RFQ-2026-001'],
@@ -345,7 +345,7 @@ export const initialRFQs: RequestForQuotation[] = [
         responseDate: '2026-08-22 14:15'
       }
     ],
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-21 08:30',
     updatedAt: '2026-08-22 17:00'
   },
@@ -397,7 +397,7 @@ export const initialRFQs: RequestForQuotation[] = [
         sentDate: '2026-08-26 10:00'
       }
     ],
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-26 09:30',
     updatedAt: '2026-08-26 10:00'
   }
@@ -475,12 +475,12 @@ export const initialSupplierQuotations: SupplierQuotation[] = [
     warrantyTerms: 'ضمان استبدال فوري لأي لوح به اعوجاج أو عيوب ميلامين',
     status: 'selected',
     selectionReason: 'أفضل عرض متكامل: السعر ممتاز (1,220 ج.م للوح بعد الخصم) + تسليم سريع 5 أيام + توفير شهادة المنشأ الإسبانية والضمان',
-    selectedByUserName: 'أحمد محمود',
+    selectedByUserName: 'أحمد سمير',
     selectedDate: '2026-08-22 16:00',
     convertedToPoId: 'po-proc-101',
     convertedToPoNumber: 'PO-2026-001',
     notes: 'عرض معتمد من مدير المشتريات للبدء الفوري بالتوريد',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-21 16:30'
   },
   {
@@ -545,7 +545,7 @@ export const initialSupplierQuotations: SupplierQuotation[] = [
     shippingTerms: 'التسليم أرض المصنع (النقل على المشتري)',
     status: 'rejected',
     selectionReason: 'السعر أعلى بنسبة 5.6% ومدة التوريد 8 أيام أطول من شركة الأخشاب العالمية',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-22 11:00'
   },
   {
@@ -610,7 +610,7 @@ export const initialSupplierQuotations: SupplierQuotation[] = [
     shippingTerms: 'شامل التوصيل',
     status: 'rejected',
     selectionReason: 'عرض MDF تركي بديل وليس إسباني أصلي طبقاً للمواصفة الفنية + مدة التوريد 14 يوماً تتجاوز تاريخ الحاجة بالمصنع',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-22 14:15'
   }
 ];
@@ -637,7 +637,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     warehouseId: 'branch-2',
     warehouseName: 'المخزن المركزي - العاشر',
     buyerId: 'user-1',
-    buyerName: 'أحمد محمود',
+    buyerName: 'أحمد سمير',
     currency: 'EGP',
     exchangeRate: 1.0,
     paymentTerms: 'سداد 50% مقدم وباقي 50% عند التوريد',
@@ -664,7 +664,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     status: 'partially_received',
     receivingStatus: 'partially_received',
     paymentStatus: 'partially_paid',
-    approvedByUserName: 'أحمد محمود',
+    approvedByUserName: 'أحمد سمير',
     approvedDate: '2026-08-22 17:30',
     items: [
       {
@@ -744,7 +744,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     ],
     revisions: [],
     notes: 'أمر توريد خامات مشروع مطبخ فيلا الياسمين (التوريدة الأولى 40 لوح MDF + 100 مفصلة مستلمة)',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-22 17:00',
     updatedAt: '2026-08-26 12:00'
   },
@@ -763,7 +763,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     warehouseId: 'branch-2',
     warehouseName: 'المخزن المركزي - العاشر',
     buyerId: 'user-1',
-    buyerName: 'أحمد محمود',
+    buyerName: 'أحمد سمير',
     currency: 'EGP',
     exchangeRate: 1.0,
     paymentTerms: 'آجل 30 يوم',
@@ -779,7 +779,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     status: 'sent_to_supplier',
     receivingStatus: 'pending',
     paymentStatus: 'unpaid',
-    approvedByUserName: 'أحمد محمود',
+    approvedByUserName: 'أحمد سمير',
     approvedDate: '2026-08-24 14:00',
     items: [
       {
@@ -809,7 +809,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     vendorBills: [],
     revisions: [],
     notes: 'أمر توريد 50 طقم مجرى درج Blum لمخزن العاشر',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-24 11:00',
     updatedAt: '2026-08-24 14:00'
   },
@@ -827,7 +827,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     warehouseId: 'branch-2',
     warehouseName: 'المخزن المركزي - العاشر',
     buyerId: 'user-1',
-    buyerName: 'أحمد محمود',
+    buyerName: 'أحمد سمير',
     currency: 'EGP',
     exchangeRate: 1.0,
     paymentTerms: 'نقداً عند الاستلام',
@@ -843,7 +843,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     status: 'closed',
     receivingStatus: 'fully_received',
     paymentStatus: 'paid',
-    approvedByUserName: 'أحمد محمود',
+    approvedByUserName: 'أحمد سمير',
     approvedDate: '2026-08-15 12:00',
     items: [
       {
@@ -890,7 +890,7 @@ export const initialEnterprisePurchaseOrders: EnterprisePurchaseOrder[] = [
     ],
     revisions: [],
     notes: 'أمر توريد منجز ومسدد بالكامل ومطابق',
-    createdByUserName: 'أحمد محمود',
+    createdByUserName: 'أحمد سمير',
     createdAt: '2026-08-15 10:00',
     updatedAt: '2026-08-19 15:00'
   }
@@ -919,8 +919,8 @@ export const initialSupplierPriceLists: SupplierItemPrice[] = [
     isActive: true,
     notes: 'ماركة Finsa الإسبانية نخب أول',
     priceHistory: [
-      { price: 1180, effectiveDate: '2026-01-15', changedByUserName: 'أحمد محمود', reason: 'سعر التعاقد السنوي الأولي' },
-      { price: 1220, effectiveDate: '2026-08-01', changedByUserName: 'أحمد محمود', reason: 'تعديل السعر لارتفاع تكاليف الشحن الدولي' }
+      { price: 1180, effectiveDate: '2026-01-15', changedByUserName: 'أحمد سمير', reason: 'سعر التعاقد السنوي الأولي' },
+      { price: 1220, effectiveDate: '2026-08-01', changedByUserName: 'أحمد سمير', reason: 'تعديل السعر لارتفاع تكاليف الشحن الدولي' }
     ]
   },
   {
@@ -940,7 +940,7 @@ export const initialSupplierPriceLists: SupplierItemPrice[] = [
     effectiveDate: '2026-07-01',
     isActive: true,
     priceHistory: [
-      { price: 1260, effectiveDate: '2026-07-01', changedByUserName: 'أحمد محمود', reason: 'سعر القائمة الرسمية' }
+      { price: 1260, effectiveDate: '2026-07-01', changedByUserName: 'أحمد سمير', reason: 'سعر القائمة الرسمية' }
     ]
   },
   {
@@ -962,7 +962,7 @@ export const initialSupplierPriceLists: SupplierItemPrice[] = [
     notes: 'مفصلات أصلية معتمدة من الوكيل بالضمان',
     priceHistory: [
       { price: 85, effectiveDate: '2026-01-10', changedByUserName: 'سارة الشريف', reason: 'سعر التعاقد الأولي' },
-      { price: 82, effectiveDate: '2026-06-01', changedByUserName: 'أحمد محمود', reason: 'خصم كميات إضافي 3.5%' }
+      { price: 82, effectiveDate: '2026-06-01', changedByUserName: 'أحمد سمير', reason: 'خصم كميات إضافي 3.5%' }
     ]
   },
   {
@@ -982,7 +982,7 @@ export const initialSupplierPriceLists: SupplierItemPrice[] = [
     effectiveDate: '2026-05-15',
     isActive: true,
     priceHistory: [
-      { price: 320, effectiveDate: '2026-05-15', changedByUserName: 'أحمد محمود', reason: 'سعر تعاقد توريد مجاري الأدراج' }
+      { price: 320, effectiveDate: '2026-05-15', changedByUserName: 'أحمد سمير', reason: 'سعر تعاقد توريد مجاري الأدراج' }
     ]
   },
   {
@@ -1002,8 +1002,8 @@ export const initialSupplierPriceLists: SupplierItemPrice[] = [
     effectiveDate: '2026-08-01',
     isActive: true,
     priceHistory: [
-      { price: 820, effectiveDate: '2026-02-01', changedByUserName: 'أحمد محمود', reason: 'السعر الأولي' },
-      { price: 850, effectiveDate: '2026-08-01', changedByUserName: 'أحمد محمود', reason: 'تحديث الأسعار الدورية' }
+      { price: 820, effectiveDate: '2026-02-01', changedByUserName: 'أحمد سمير', reason: 'السعر الأولي' },
+      { price: 850, effectiveDate: '2026-08-01', changedByUserName: 'أحمد سمير', reason: 'تحديث الأسعار الدورية' }
     ]
   }
 ];
@@ -1030,7 +1030,7 @@ export const initialProcurementReturns: ProcurementSupplierReturn[] = [
     totalRefundAmount: 410,
     reason: 'وجود عيوب في كبس الهيدروليك لعدد 5 مفصلات Blum أثناء الفحص الظاهري',
     status: 'approved',
-    approvedByUserName: 'أحمد محمود',
+    approvedByUserName: 'أحمد سمير',
     approvedDate: '2026-08-23 15:00',
     inventoryMovementId: 'mov-ret-101',
     vendorDebitNoteId: 'deb-note-01',

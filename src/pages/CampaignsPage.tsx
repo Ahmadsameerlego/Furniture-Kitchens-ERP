@@ -3,6 +3,7 @@ import { useERP } from '../context/ERPContext';
 import { MarketingCampaign, CustomerSource } from '../types/erp';
 import { Sparkles, Plus, TrendingUp, Users, ShoppingBag, DollarSign, Calendar, Edit, CheckCircle2, ChevronLeft } from 'lucide-react';
 import { CrmService } from '../services/crmService';
+import { CustomerAvatar } from '../components/common/CustomerAvatar';
 
 export const CampaignsPage: React.FC = () => {
   const { campaigns, customers, addCampaign, updateCampaign, setSelectedCustomerId, setActiveModule } = useERP();
@@ -173,7 +174,11 @@ export const CampaignsPage: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <img src={cust.avatar} alt="" className="w-8 h-8 rounded-xl object-cover" />
+                      <CustomerAvatar
+                        name={cust.fullName}
+                        customerType={cust.customerType}
+                        size="sm"
+                      />
                       <span className="font-black text-slate-900">{cust.fullName}</span>
                     </div>
 

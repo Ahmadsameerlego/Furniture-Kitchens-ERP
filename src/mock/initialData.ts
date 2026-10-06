@@ -49,7 +49,7 @@ export const initialBranches: Branch[] = [
     phone: '01001234567',
     isMain: true,
     status: 'active',
-    managerName: 'أحمد محمود',
+    managerName: 'أحمد سمير',
     createdDate: '2025-01-10',
     capacity: 'عرض 450 طقم و20 نموذج مطبخ'
   },
@@ -185,7 +185,7 @@ export const initialRoles: Role[] = [
 export const initialUsers: User[] = [
   {
     id: 'user-1',
-    fullName: 'أحمد محمود',
+    fullName: 'أحمد سمير',
     email: 'ahmed@furnitureland.eg',
     phone: '01001234567',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
@@ -255,7 +255,7 @@ export const initialAuditLogs: AuditLog[] = [
     id: 'log-101',
     timestamp: '2026-08-26 21:45:10',
     userId: 'user-1',
-    userName: 'أحمد محمود',
+    userName: 'أحمد سمير',
     userRole: 'Super Admin',
     category: 'company',
     action: 'تحديث بيانات الشركة',
@@ -269,7 +269,7 @@ export const initialAuditLogs: AuditLog[] = [
     id: 'log-102',
     timestamp: '2026-08-26 20:30:00',
     userId: 'user-1',
-    userName: 'أحمد محمود',
+    userName: 'أحمد سمير',
     userRole: 'Super Admin',
     category: 'branch',
     action: 'تعيين الفرع الرئيسي',
@@ -283,7 +283,7 @@ export const initialAuditLogs: AuditLog[] = [
     id: 'log-103',
     timestamp: '2026-08-26 18:15:22',
     userId: 'user-1',
-    userName: 'أحمد محمود',
+    userName: 'أحمد سمير',
     userRole: 'Super Admin',
     category: 'role',
     action: 'إنشاء دور مخصص جديد',
@@ -326,7 +326,7 @@ export const initialAuditLogs: AuditLog[] = [
 export const demoPersonas: DemoPersona[] = [
   {
     id: 'ahmed_owner',
-    name: 'أحمد محمود',
+    name: 'أحمد سمير',
     nameEn: 'Ahmed Mahmoud',
     roleTitle: 'Super Admin (مالك الشركة)',
     roleId: 'role-superadmin',
@@ -345,7 +345,7 @@ export const demoPersonas: DemoPersona[] = [
   },
   {
     id: 'ahmed_owner',
-    name: 'أحمد محمود',
+    name: 'أحمد سمير',
     nameEn: 'Ahmed Mahmoud',
     roleTitle: 'Super Admin (مالك الشركة)',
     roleId: 'role-superadmin',

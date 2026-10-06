@@ -349,7 +349,7 @@ export const initialGoodsReceiptNotes: GoodsReceiptNote[] = [
     status: 'posted',
     journalEntryId: 'je-gr-101',
     createdByUserName: 'م. إبراهيم كمال (مدير المخازن)',
-    approvedByUserName: 'أحمد محمود (المالية)',
+    approvedByUserName: 'أحمد سمير (المالية)',
     notes: 'إذن استلام مخزني لألواح الـ MDF لحساب أمر الشراء PO-2026-001'
   },
   {
@@ -381,7 +381,7 @@ export const initialGoodsReceiptNotes: GoodsReceiptNote[] = [
     totalAmount: 17000,
     status: 'posted',
     createdByUserName: 'عماد عبد الفتاح (أمين مخزن الإكسسوار)',
-    approvedByUserName: 'أحمد محمود (المالية)',
+    approvedByUserName: 'أحمد سمير (المالية)',
     notes: 'استلام شحنة مفصلات بلوم نمساوي للمخزن'
   }
 ];
@@ -563,7 +563,7 @@ export const initialStocktakeSessions: StocktakeSession[] = [
     totalCountedValue: 259750,
     totalVarianceAmount: -2000,
     conductedByUserName: 'لجنة جرد مخازن العبور',
-    approvedByUserName: 'أحمد محمود (المالية)',
+    approvedByUserName: 'أحمد سمير (المالية)',
     notes: 'جلسة الجرد الفعلي الشهري لشهر أغسطس 2026'
   }
 ];

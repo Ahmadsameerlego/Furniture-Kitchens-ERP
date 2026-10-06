@@ -419,12 +419,12 @@ export const initialOrders: ReadyOrder[] = [
     id: 'ord-demo-2a',
     orderNumber: 'ORD-2026-042',
     customerId: 'cust-2',
-    customerName: 'أحمد محمود',
+    customerName: 'أحمد سمير',
     customerPhone: '01112223344',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
     salesUserId: 'user-1',
-    salesUserName: 'أحمد محمود',
+    salesUserName: 'أحمد سمير',
     items: [
       {
         id: 'item-201',
@@ -538,7 +538,7 @@ export const initialOrders: ReadyOrder[] = [
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
     salesUserId: 'user-1',
-    salesUserName: 'أحمد محمود',
+    salesUserName: 'أحمد سمير',
     items: [
       {
         id: 'item-301',
@@ -608,7 +608,7 @@ export const initialPayments: CustomerPayment[] = [
     paymentMethod: 'bank_transfer',
     receiptRef: 'REC-2026-7910',
     receivedByUserId: 'user-1',
-    receivedByUserName: 'أحمد محمود',
+    receivedByUserName: 'أحمد سمير',
     notes: 'عربون حجز طقم سفرة مودرن 8 كراسي',
     paymentType: 'deposit'
   },
@@ -700,7 +700,7 @@ export const initialReturns: OrderReturn[] = [
     orderId: 'ord-demo-2a',
     orderNumber: 'ORD-2026-042',
     customerId: 'cust-2',
-    customerName: 'أحمد محمود',
+    customerName: 'أحمد سمير',
     productId: 'prod-6',
     productName: 'طقم مفصلات سوفت كلوز النمساوي Blum (10 مفصلات)',
     quantity: 1,

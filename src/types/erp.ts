@@ -4,9 +4,14 @@ export type LocationType = 'showroom' | 'warehouse' | 'workshop';
 
 export type ModuleId = 
   | 'dashboard'
+  | 'analytics'
   | 'customers'
   | 'campaigns'
   | 'sales'
+  | 'sales_dashboard'
+  | 'sales_quotations'
+  | 'sales_contracts'
+  | 'sales_change_orders'
   | 'custom_projects'
   | 'tech_office'
   | 'tech_dashboard'
@@ -51,6 +56,13 @@ export type ModuleId =
   | 'proc_prices'
   | 'proc_reports'
   | 'production'
+  | 'mfg_dashboard'
+  | 'mfg_orders'
+  | 'mfg_work_orders'
+  | 'mfg_shopfloor'
+  | 'mfg_job_cards'
+  | 'mfg_scrap'
+  | 'mfg_qc'
   | 'installation'
   | 'finance'
   | 'acc_dashboard'
@@ -391,10 +403,32 @@ export interface AfterSalesRecord {
 }
 
 export type CustomerInterestType = 'furniture' | 'kitchens' | 'both' | 'custom';
+export type CustomerType = 'individual' | 'commercial';
+export type CustomerBillingMethod = 'printed' | 'email' | 'whatsapp' | 'electronic_tax';
+export type CustomerTier = 'standard' | 'vip' | 'wholesale';
+
+export interface CustomerAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size?: string;
+  uploadedAt: string;
+}
 
 export interface Customer {
   id: string;
+  code: string; // e.g. "CUST-2026-0001"
+  customerType: CustomerType; // 'individual' | 'commercial'
   fullName: string;
+  companyName?: string; // For commercial clients (الاسم التجاري)
+  contactPerson?: string; // For commercial clients (اسم المسؤول / المفوض)
+  contactRole?: string; // For commercial clients (المسمى الوظيفي)
+  taxId?: string; // الرقم الضريبي / البطاقة الضريبية
+  commercialRegister?: string; // السجل التجاري
+  billingMethod: CustomerBillingMethod; // 'printed' | 'email' | 'whatsapp' | 'electronic_tax'
+  tier?: CustomerTier; // 'standard' | 'vip' | 'wholesale'
+  nationalId?: string; // الرقم القومي للأفراد (اختياري)
   phone: string;
   altPhone?: string;
   email?: string;
@@ -413,7 +447,8 @@ export interface Customer {
   responsibleUserId?: string;
   responsibleUserName?: string;
   notes?: string;
-  avatar: string;
+  avatar?: string;
+  initialAttachments?: CustomerAttachment[];
   createdDate: string;
   lastActivityDate: string;
   
@@ -1581,3 +1616,4 @@ export interface StockLedgerEntry {
 }
 
 export * from './procurement';
+export * from './sales';

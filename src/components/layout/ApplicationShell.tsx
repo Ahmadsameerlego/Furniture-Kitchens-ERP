@@ -6,6 +6,7 @@ import { ToastContainer } from './ToastContainer';
 
 // Pages
 import { DashboardPage } from '../../pages/DashboardPage';
+import { AnalyticsPage } from '../../pages/AnalyticsPage';
 import { CustomersListPage } from '../../pages/CustomersListPage';
 import { CampaignsPage } from '../../pages/CampaignsPage';
 import { ProductsListPage } from '../../pages/ProductsListPage';
@@ -13,6 +14,10 @@ import { MaterialsListPage } from '../../pages/MaterialsListPage';
 import { InventoryPage } from '../../pages/InventoryPage';
 import { ReadyOrdersListPage } from '../../pages/ReadyOrdersListPage';
 import { CustomProjectsListPage } from '../../pages/CustomProjectsListPage';
+import { SalesDashboardPage } from '../../pages/SalesDashboardPage';
+import { SalesQuotationsPage } from '../../pages/SalesQuotationsPage';
+import { SalesContractsPage } from '../../pages/SalesContractsPage';
+import { SalesChangeOrdersPage } from '../../pages/SalesChangeOrdersPage';
 import { ProductionListPage } from '../../pages/ProductionListPage';
 import { InstallationsListPage } from '../../pages/InstallationsListPage';
 import { SuppliersListPage } from '../../pages/SuppliersListPage';
@@ -58,6 +63,9 @@ import { TechnicalECRView } from '../../pages/technicalOffice/TechnicalECRView';
 // Planning & MRP Pages
 import { PlanningPage } from '../../pages/planning/PlanningPage';
 
+// Manufacturing & Workshops Suite
+import { ManufacturingWorkspace } from '../../pages/production/ManufacturingWorkspace';
+
 // Procurement & Purchasing Pages
 import { ProcurementWorkspace } from '../../pages/procurement/ProcurementWorkspace';
 
@@ -83,20 +91,28 @@ export const ApplicationShell: React.FC = () => {
   const renderMainContent = () => {
     switch (activeModule) {
       case 'dashboard':
-        return (
-          <div className="space-y-8">
-            <DashboardPage />
-            <div className="pt-6 border-t border-slate-200">
-              <ReadySalesDashboardPage />
-            </div>
-          </div>
-        );
+        return <DashboardPage />;
+
+      case 'analytics':
+        return <AnalyticsPage />;
 
       case 'customers':
         return <CustomersListPage />;
 
       case 'campaigns':
         return <CampaignsPage />;
+
+      case 'sales_dashboard':
+        return <SalesDashboardPage />;
+
+      case 'sales_quotations':
+        return <SalesQuotationsPage />;
+
+      case 'sales_contracts':
+        return <SalesContractsPage />;
+
+      case 'sales_change_orders':
+        return <SalesChangeOrdersPage />;
 
       case 'sales':
         return <ReadyOrdersListPage />;
@@ -151,7 +167,26 @@ export const ApplicationShell: React.FC = () => {
         return <PlanningPage initialTab="plan_mps" />;
 
       case 'production':
-        return <ProductionListPage />;
+      case 'mfg_dashboard':
+        return <ManufacturingWorkspace initialTab="mfg_dashboard" />;
+
+      case 'mfg_orders':
+        return <ManufacturingWorkspace initialTab="mfg_orders" />;
+
+      case 'mfg_work_orders':
+        return <ManufacturingWorkspace initialTab="mfg_work_orders" />;
+
+      case 'mfg_shopfloor':
+        return <ManufacturingWorkspace initialTab="mfg_shopfloor" />;
+
+      case 'mfg_job_cards':
+        return <ManufacturingWorkspace initialTab="mfg_job_cards" />;
+
+      case 'mfg_scrap':
+        return <ManufacturingWorkspace initialTab="mfg_scrap" />;
+
+      case 'mfg_qc':
+        return <ManufacturingWorkspace initialTab="mfg_qc" />;
 
       case 'installation':
         return <InstallationsListPage />;

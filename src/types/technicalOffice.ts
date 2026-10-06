@@ -45,7 +45,7 @@ export interface TechnicalProject {
   targetReleaseDate: string;
   activeDesignVersion: number;
   activeBomRevision: string;     // e.g. "REV-A", "REV-01"
-  handoverId: string;
+  handoverId?: string;
   technicalNotes?: string;
   commercialScopeSummary?: string;
 }
