@@ -792,6 +792,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemMasterCards]);
 
+  // Journal entry numbers continue from the highest one already posted
+  useEffect(() => {
+    AccountingService.seedEntrySequence(journalEntries.map(e => e.entryNumber));
+  }, [journalEntries]);
+
   // Persist the working data so a refresh keeps what was done on screen
   useEffect(() => {
     const timer = window.setTimeout(() => saveDemoState({
@@ -2044,7 +2049,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const createCustomProject = (projectData: any): CustomProject => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const today = timestamp.substring(0, 10);
-    const projectNumber = `PRJ-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const projectNumber = nextDocNumber('PRJ', customProjects.map(x => x.projectNumber), 3);
 
     const newProject: CustomProject = {
       id: `prj-${Date.now()}`,
@@ -2102,7 +2107,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const newTechPrj: TechnicalProject = {
         id: `tech-${Date.now()}`,
-        projectNumber: `TECH-2026-${Math.floor(100 + Math.random() * 900)}`,
+        projectNumber: nextDocNumber('TECH', technicalProjects.map(x => x.projectNumber), 3),
         salesProjectId: projectId,
         salesProjectNumber: salesPrj ? salesPrj.projectNumber : `PRJ-${projectId}`,
         projectName: salesPrj ? salesPrj.projectName : 'مشروع تفصيل جديد',
@@ -2341,7 +2346,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetProject = customProjects.find(p => p.id === targetQuotation.projectId);
     if (!targetProject) throw new Error('Project not found');
 
-    const contractNumber = `CNT-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const contractNumber = nextDocNumber('CNT', customContracts.map(x => x.contractNumber), 3);
     const totalVal = targetQuotation.totalSelling;
 
     const defaultMilestones: PaymentMilestone[] = customMilestones && customMilestones.length > 0 ? customMilestones : [
@@ -2809,7 +2814,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       savedSurvey = {
         id: `srv-${Date.now()}`,
         technicalProjectId: surveyData.technicalProjectId,
-        surveyNumber: `SRV-2026-${Math.floor(100 + Math.random() * 900)}`,
+        surveyNumber: nextDocNumber('SRV', technicalSurveys.map(x => x.surveyNumber), 3),
         surveyorName: surveyData.surveyorName || currentUser.fullName,
         surveyDate: surveyData.surveyDate || timestamp.substring(0, 10),
         status: surveyData.status || 'draft',
@@ -3516,7 +3521,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createPurchaseRequest = (data: Partial<PurchaseRequest>): PurchaseRequest => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const prNumber = data.prNumber || `PR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const prNumber = data.prNumber || nextDocNumber('PR', purchaseRequests.map(x => x.prNumber), 3);
     const items = (data.items || []).map((it, idx) => ({
       id: it.id || `pri-${Date.now()}-${idx}`,
       itemId: it.itemId || 'item-1',
@@ -3757,7 +3762,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createRFQ = (data: Partial<RequestForQuotation>): RequestForQuotation => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const rfqNumber = data.rfqNumber || `RFQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const rfqNumber = data.rfqNumber || nextDocNumber('RFQ', rfqs.map(x => x.rfqNumber), 3);
 
     const newRFQ: RequestForQuotation = {
       id: data.id || `rfq-${Date.now()}`,
@@ -4143,7 +4148,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createEnterprisePurchaseOrder = (data: Partial<EnterprisePurchaseOrder>): EnterprisePurchaseOrder => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const poNumber = data.poNumber || `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const poNumber = data.poNumber || nextDocNumber('PO', enterprisePurchaseOrders.map(x => x.poNumber), 3);
 
     const items = (data.items || []).map((it, idx) => ({
       id: it.id || `poi-${Date.now()}-${idx}`,
@@ -4727,7 +4732,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const convertProposalToProduction = (proposal: SupplyProposal) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const moNumber = `MO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const moNumber = nextDocNumber('PROD', productionOrders.map(x => x.productionNumber), 4);
 
     // Create Production Order
     const newMO: ProductionOrder = {
@@ -4957,7 +4962,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const targetProject = customProjects.find(p => p.id === targetOrder.projectId);
 
-    const productionNumber = `PROD-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const productionNumber = nextDocNumber('PROD', productionOrders.map(x => x.productionNumber), 4);
 
     const bomItems: ProductionMaterialItem[] = targetOrder.items.map((it, idx) => {
       const mat = materials.find(m => m.id === it.productId) || materials[0];
@@ -5419,7 +5424,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addCompanyExpense = (expenseData: any): CompanyExpense => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const today = timestamp.substring(0, 10);
-    const expenseNumber = `EXP-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const expenseNumber = nextDocNumber('EXP', expenses.map(x => x.expenseNumber), 3);
 
     const categoryNames: Record<ExpenseCategory, string> = {
       rent: 'إيجار مقرات ومعارض',
@@ -5714,7 +5719,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, options?: { silent?: boolean }): CustomerAdvance => {
     const targetCust = customers.find(c => c.id === data.customerId);
     const custName = targetCust?.fullName || 'عميل تعاقد';
-    const advanceNumber = `ADV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const advanceNumber = nextDocNumber('ADV', customerAdvances.map(x => x.advanceNumber), 4);
     const today = new Date().toISOString().substring(0, 10);
     const currentPeriod = currentOpenPeriod();
     const cashOrBankJournal = data.paymentMethod === 'cash' 
@@ -6065,7 +6070,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createVendorBill = (billData: any): VendorBill => {
     const today = new Date().toISOString().substring(0, 10);
-    const billNumber = `BILL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const billNumber = nextDocNumber('BILL', vendorBills.map(x => x.billNumber), 4);
     const targetSup = suppliers.find(s => s.id === billData.supplierId);
     const supName = targetSup?.name || billData.supplierName || 'مورد';
 
@@ -6618,7 +6623,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const today = new Date().toISOString().substring(0, 10);
-    const grnNumber = `GRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const grnNumber = nextDocNumber('GRN', goodsReceiptNotes.map(x => x.grnNumber), 4);
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
     const targetSup = suppliers.find(s => s.id === data.supplierId);
     const supName = targetSup?.name || (data.type === 'purchase_receipt' ? 'مورد خامات' : undefined);
@@ -6793,7 +6798,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notes?: string;
   }): GoodsIssueNote => {
     const today = new Date().toISOString().substring(0, 10);
-    const ginNumber = `GIN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const ginNumber = nextDocNumber('GIN', goodsIssueNotes.map(x => x.ginNumber), 4);
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
 
     // 0. Strict Negative Stock Prevention Check

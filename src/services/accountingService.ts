@@ -73,9 +73,23 @@ export class AccountingService {
   /**
    * Generates a unique Journal Entry Number
    */
+  private static lastSequence = new Map<string, number>();
+
+  /** Make the next generated number continue after the highest one already issued. */
+  public static seedEntrySequence(existingNumbers: string[]): void {
+    existingNumbers.forEach(num => {
+      const match = /^(.*-)(\d+)$/.exec(num);
+      if (!match) return;
+      const [, prefix, seq] = match;
+      const value = Number(seq);
+      if (value > (AccountingService.lastSequence.get(prefix) || 0)) AccountingService.lastSequence.set(prefix, value);
+    });
+  }
+
   public static generateEntryNumber(prefix = 'JE-2026-'): string {
-    const randomSeq = Math.floor(100000 + Math.random() * 900000);
-    return `${prefix}${randomSeq}`;
+    const next = (AccountingService.lastSequence.get(prefix) || 0) + 1;
+    AccountingService.lastSequence.set(prefix, next);
+    return `${prefix}${String(next).padStart(6, '0')}`;
   }
 
   /**
@@ -117,7 +131,7 @@ export class AccountingService {
 
     const entry: JournalEntry = {
       id: `je-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      entryNumber: this.generateEntryNumber(data.journal.sequencePrefix || 'JE-2026-'),
+      entryNumber: this.generateEntryNumber('JE-2026-'),
       date: data.date,
       periodId: data.periodId,
       journalId: data.journal.id,
