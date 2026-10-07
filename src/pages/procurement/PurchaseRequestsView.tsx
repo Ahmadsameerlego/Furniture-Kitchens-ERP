@@ -127,23 +127,30 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
     <div className="space-y-6">
       
       {/* Header Bar */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-black text-slate-900">طلبات الشراء والاحتياجات (Purchase Requests - PR)</h1>
-            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
-              {purchaseRequests.length} طلب
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#361D13] to-[#1E110B] text-[#E29555] flex items-center justify-center shadow-md">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-xl font-black text-[#1E110B]">طلبات الشراء والاحتياجات (Purchase Requests - PR)</h1>
+                <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-black px-3 py-0.5 rounded-full border border-[#C87A38]/30 font-mono">
+                  {purchaseRequests.length} طلب
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                استقبال واعتماد طلبات شراء الخامات والمستلزمات الواردة من التخطيط (MRP)، ورش التصنيع، والمخازن
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            استقبال واعتماد طلبات شراء الخامات والمستلزمات الواردة من التخطيط (MRP)، ورش التصنيع، والمخازن
-          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleExportExcel}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
           >
             <Download className="w-4 h-4 text-slate-500" />
             <span>تصدير Excel</span>
@@ -151,9 +158,9 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
           {canCreate && (
             <button
               onClick={onOpenCreatePR}
-              className="px-4 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-[#361D13] to-[#1E110B] hover:opacity-95 text-white font-black text-xs rounded-2xl shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Plus className="w-4 h-4 text-[#C87A38]" />
+              <Plus className="w-4 h-4 text-[#E29555]" />
               <span>إنشاء طلب شراء يدوي</span>
             </button>
           )}
@@ -161,18 +168,18 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+      <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           
           {/* Search */}
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث برقم الطلب، الصنف، المشروع، الطالب..."
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-xs"
+              className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C87A38] focus:bg-white text-xs font-medium transition-all shadow-2xs"
             />
           </div>
 
@@ -180,7 +187,7 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
+            className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#C87A38]"
           >
             <option value="all">جميع الحالات (All Statuses)</option>
             <option value="pending_approval">بانتظار الاعتماد (Pending)</option>
@@ -195,7 +202,7 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
+            className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#C87A38]"
           >
             <option value="all">جميع مستويات الأولوية (Priority)</option>
             <option value="urgent">عاجل وحرج (Urgent)</option>
@@ -207,7 +214,7 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
           <select
             value={departmentFilter}
             onChange={(e) => setDepartmentFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
+            className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#C87A38]"
           >
             <option value="all">جميع الأقسام الطالبة (Departments)</option>
             <option value="planning">التخطيط و MRP (Planning)</option>
@@ -221,26 +228,26 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
       </div>
 
       {/* PR Table */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-right text-xs">
-            <thead className="bg-slate-50/80 text-slate-600 font-bold border-b border-slate-200">
-              <tr>
-                <th className="py-3.5 px-4">رقم الطلب</th>
-                <th className="py-3.5 px-4">تاريخ الطلب / الحاجة</th>
-                <th className="py-3.5 px-4">الطالب والمصدر</th>
-                <th className="py-3.5 px-4">المشروع المرتبط</th>
-                <th className="py-3.5 px-4">البنود والكميات</th>
-                <th className="py-3.5 px-4">القيمة التقديرية</th>
-                <th className="py-3.5 px-4">الأولوية</th>
-                <th className="py-3.5 px-4">الحالة</th>
-                <th className="py-3.5 px-4 text-center">الإجراءات</th>
+            <thead className="bg-[#1E110B]/5 text-slate-700 font-black border-b border-slate-200/80">
+              <tr className="whitespace-nowrap">
+                <th className="py-4 px-5 min-w-[130px]">رقم الطلب</th>
+                <th className="py-4 px-4 min-w-[140px]">تاريخ الطلب / الحاجة</th>
+                <th className="py-4 px-4 min-w-[150px]">الطالب والمصدر</th>
+                <th className="py-4 px-4 min-w-[150px]">المشروع المرتبط</th>
+                <th className="py-4 px-4 min-w-[200px]">البنود والكميات</th>
+                <th className="py-4 px-4 text-center min-w-[130px]">القيمة التقديرية</th>
+                <th className="py-4 px-4 text-center min-w-[120px]">الأولوية</th>
+                <th className="py-4 px-4 text-center min-w-[150px]">الحالة</th>
+                <th className="py-4 px-5 text-center min-w-[160px]">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
               {filteredPRs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={9} className="py-12 text-center text-slate-400 font-bold">
                     لا توجد طلبات شراء مطابقة للفلاتر المحددة
                   </td>
                 </tr>
@@ -250,98 +257,127 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
                   const priorityBadge = ProcurementService.getPriorityBadge(pr.priority);
 
                   return (
-                    <tr key={pr.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-black text-slate-900">
-                        {pr.prNumber}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-800">{pr.requestDate}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">مطلوب: <strong className="text-slate-700">{pr.requiredDate}</strong></div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-900">{pr.requesterName}</div>
-                        <div className="text-[10px] text-slate-500">
-                          {pr.department === 'planning' ? 'التخطيط' : pr.department === 'production' ? 'الإنتاج' : 'المخازن'} 
-                          {pr.sourceReference ? ` • ${pr.sourceReference}` : ''}
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {pr.projectNumber ? (
-                          <div>
-                            <span className="font-bold text-indigo-700 block font-mono">{pr.projectNumber}</span>
-                            <span className="text-[10px] text-slate-500 block truncate max-w-[140px]">{pr.projectName}</span>
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 font-medium">مخزون عام</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-black text-slate-800 line-clamp-1 max-w-[200px]">
-                          {pr.items[0]?.itemName}
-                        </div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">
-                          {pr.items[0]?.quantity} {pr.items[0]?.uom} {pr.items.length > 1 ? `(+${pr.items.length - 1} بنود)` : ''}
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono font-black text-slate-900">
-                        {pr.totalEstimatedValue.toLocaleString()} ج.م
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${priorityBadge.bg} ${priorityBadge.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${priorityBadge.dot}`} />
-                          {priorityBadge.label}
+                    <tr key={pr.id} className="hover:bg-amber-50/20 transition-colors">
+                      {/* PR Number */}
+                      <td className="py-4 px-5 font-mono font-black text-slate-900 text-xs whitespace-nowrap">
+                        <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">
+                          {pr.prNumber}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
+
+                      {/* Request & Required Date */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="font-mono font-bold text-slate-800 text-xs">{pr.requestDate}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          مطلوب: <strong className="text-amber-800 font-mono font-black">{pr.requiredDate}</strong>
+                        </div>
+                      </td>
+
+                      {/* Requester & Department */}
+                      <td className="py-4 px-4">
+                        <div className="font-bold text-slate-900 text-xs">{pr.requesterName}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
+                          <span className="px-1.5 py-0.2 bg-slate-100 rounded text-slate-600">
+                            {pr.department === 'planning' ? 'التخطيط' : pr.department === 'production' ? 'الإنتاج' : 'المخازن'}
+                          </span>
+                          {pr.sourceReference && <span className="font-mono text-slate-400">• {pr.sourceReference}</span>}
+                        </div>
+                      </td>
+
+                      {/* Project */}
+                      <td className="py-4 px-4">
+                        {pr.projectNumber ? (
+                          <div>
+                            <span className="font-bold text-indigo-700 block font-mono text-xs">{pr.projectNumber}</span>
+                            <span className="text-[10px] text-slate-500 block truncate max-w-[140px] mt-0.5">{pr.projectName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 font-medium text-xs">مخزون عام</span>
+                        )}
+                      </td>
+
+                      {/* Items */}
+                      <td className="py-4 px-4">
+                        <div className="font-black text-[#1E110B] leading-relaxed text-xs line-clamp-1 max-w-[200px]">
+                          {pr.items[0]?.itemName}
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 font-bold">
+                          <span className="font-mono text-indigo-700">{pr.items[0]?.quantity} {pr.items[0]?.uom}</span>
+                          {pr.items.length > 1 && <span className="mr-1 text-slate-400 font-normal"> (+{pr.items.length - 1} بنود)</span>}
+                        </div>
+                      </td>
+
+                      {/* Estimated Value */}
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <span className="font-mono font-black text-slate-900 text-xs">{pr.totalEstimatedValue.toLocaleString()}</span>
+                        <span className="text-[10px] text-slate-500 mr-1 font-bold">ج.م</span>
+                      </td>
+
+                      {/* Priority Badge (No clipping) */}
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <span className={`whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${priorityBadge.bg} ${priorityBadge.text} border-slate-200/60`}>
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${priorityBadge.dot}`} />
+                          <span>{priorityBadge.label}</span>
+                        </span>
+                      </td>
+
+                      {/* Status Badge (No clipping) */}
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <span className={`whitespace-nowrap inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
                           {statusBadge.label}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center justify-center gap-1">
+
+                      {/* Actions */}
+                      <td className="py-4 px-5 text-center whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {/* View details */}
                           <button
                             onClick={() => handleOpenDetails(pr)}
-                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                            title="عرض التفاصيل"
+                            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                            title="عرض التفاصيل الكاملة"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
 
+                          {/* Approve Action */}
                           {pr.status === 'pending_approval' && canApprove && (
                             <button
                               onClick={() => handleApprove(pr.id)}
-                              className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] transition-colors flex items-center gap-1 shadow-2xs"
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
                               title="اعتماد فوري"
                             >
-                              <CheckCircle2 className="w-3 h-3" />
+                              <CheckCircle2 className="w-3.5 h-3.5" />
                               <span>اعتماد</span>
                             </button>
                           )}
 
+                          {/* Conversion Actions */}
                           {pr.status === 'approved' && (
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => onOpenCreateRFQFromPR(pr)}
-                                className="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-[10px] transition-colors flex items-center gap-1 shadow-2xs"
-                                title="إنشاء RFQ"
+                                className="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-black text-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+                                title="إنشاء طلب عروض أسعار (RFQ)"
                               >
-                                <Send className="w-3 h-3" />
+                                <Send className="w-3.5 h-3.5" />
                                 <span>RFQ</span>
                               </button>
                               <button
                                 onClick={() => onOpenCreatePOFromPR(pr)}
-                                className="px-2 py-1 bg-[#361D13] hover:bg-[#23120A] text-white rounded-lg font-bold text-[10px] transition-colors flex items-center gap-1 shadow-2xs"
-                                title="إصدار أمر شراء مباشر"
+                                className="px-2.5 py-1.5 bg-[#361D13] hover:bg-[#23120A] text-white rounded-xl font-black text-xs transition-colors flex items-center gap-1 shadow-2xs border border-[#C87A38]/30 cursor-pointer active:scale-95"
+                                title="إصدار أمر شراء مباشر (PO)"
                               >
-                                <ShoppingCart className="w-3 h-3 text-[#C87A38]" />
+                                <ShoppingCart className="w-3.5 h-3.5 text-[#E29555]" />
                                 <span>PO</span>
                               </button>
                             </div>
                           )}
 
+                          {/* Traceability */}
                           <button
                             onClick={() => onOpenTraceability(undefined, pr)}
-                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
                             title="شجرة التتبع"
                           >
                             <Sparkles className="w-4 h-4" />

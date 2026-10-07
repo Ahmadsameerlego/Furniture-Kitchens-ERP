@@ -142,21 +142,28 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
       {/* Header Bar */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-black text-slate-900">أوامر الشراء الرسمية (Purchase Orders - PO)</h1>
-            <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C87A38]/30">
-              {enterprisePurchaseOrders.length} أمر شراء
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#361D13] to-[#1E110B] text-[#E29555] flex items-center justify-center shadow-md">
+              <ShoppingCart className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-xl font-black text-[#1E110B]">أوامر الشراء الرسمية (Purchase Orders - PO)</h1>
+                <span className="bg-[#C87A38]/15 text-[#C87A38] text-xs font-black px-3 py-0.5 rounded-full border border-[#C87A38]/30 font-mono">
+                  {enterprisePurchaseOrders.length} أمر شراء
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                إدارة الالتزامات التعاقدية مع الموردين، دورة الاعتمادات، ومتابعة الاستلامات المخزنية والفواتير
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            إدارة الالتزامات التعاقدية مع الموردين، دورة الاعتمادات، ومتابعة الاستلامات المخزنية والفواتير
-          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleExportExcel}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
           >
             <Download className="w-4 h-4 text-slate-500" />
             <span>تصدير Excel</span>
@@ -164,9 +171,9 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
           {canCreate && (
             <button
               onClick={onOpenCreatePO}
-              className="px-4 py-2.5 bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-[#361D13] to-[#1E110B] hover:opacity-95 text-white font-black text-xs rounded-2xl shadow-md shadow-[#1E110B]/20 border border-[#C87A38]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Plus className="w-4 h-4 text-[#C87A38]" />
+              <Plus className="w-4 h-4 text-[#E29555]" />
               <span>أمر شراء جديد (PO)</span>
             </button>
           )}
@@ -174,24 +181,24 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs">
+      <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث برقم PO، المورد، الصنف، المشروع..."
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#361D13]/30 text-xs"
+              className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C87A38] focus:bg-white text-xs font-medium transition-all shadow-2xs"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
+            className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#C87A38]"
           >
             <option value="all">جميع حالات أمر الشراء (Status)</option>
             <option value="pending_approval">بانتظار الاعتماد (Pending Approval)</option>
@@ -206,7 +213,7 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
           <select
             value={receivingFilter}
             onChange={(e) => setReceivingFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
+            className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#C87A38]"
           >
             <option value="all">حالة الاستلام المخزني (Receiving)</option>
             <option value="pending">بانتظار التوريد والاستلام</option>
@@ -218,26 +225,26 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
       </div>
 
       {/* PO Table */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-right text-xs">
-            <thead className="bg-slate-50/80 text-slate-600 font-bold border-b border-slate-200">
-              <tr>
-                <th className="py-3.5 px-4">رقم الأمر</th>
-                <th className="py-3.5 px-4">تاريخ الأمر / التوريد</th>
-                <th className="py-3.5 px-4">المورد المعتمد</th>
-                <th className="py-3.5 px-4">المشروع المرتبط</th>
-                <th className="py-3.5 px-4">البنود ونسبة الاستلام</th>
-                <th className="py-3.5 px-4">القيمة الإجمالية</th>
-                <th className="py-3.5 px-4">حالة الاستلام</th>
-                <th className="py-3.5 px-4">الحالة</th>
-                <th className="py-3.5 px-4 text-center">الإجراءات</th>
+            <thead className="bg-[#1E110B]/5 text-slate-700 font-black border-b border-slate-200/80">
+              <tr className="whitespace-nowrap">
+                <th className="py-4 px-5 min-w-[130px]">رقم الأمر</th>
+                <th className="py-4 px-4 min-w-[140px]">تاريخ الأمر / التوريد</th>
+                <th className="py-4 px-4 min-w-[180px]">المورد المعتمد</th>
+                <th className="py-4 px-4 min-w-[160px]">المشروع المرتبط</th>
+                <th className="py-4 px-4 min-w-[180px]">البنود ونسبة الاستلام</th>
+                <th className="py-4 px-4 text-center min-w-[130px]">القيمة الإجمالية</th>
+                <th className="py-4 px-4 text-center min-w-[130px]">حالة الاستلام</th>
+                <th className="py-4 px-4 text-center min-w-[150px]">الحالة</th>
+                <th className="py-4 px-5 text-center min-w-[170px]">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
               {filteredPOs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={9} className="py-12 text-center text-slate-400 font-bold">
                     لا توجد أوامر شراء مطابقة للفلاتر
                   </td>
                 </tr>
@@ -249,66 +256,92 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                   const receivePercent = totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 100) : 0;
 
                   return (
-                    <tr key={po.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-black text-slate-900">
-                        {po.poNumber}
+                    <tr key={po.id} className="hover:bg-amber-50/20 transition-colors">
+                      {/* PO Number */}
+                      <td className="py-4 px-5 font-mono font-black text-slate-900 text-xs whitespace-nowrap">
+                        <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">
+                          {po.poNumber}
+                        </span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-800">{po.poDate}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">تسليم: <strong className="text-slate-700">{po.expectedDeliveryDate}</strong></div>
+
+                      {/* PO Date & Expected Delivery */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="font-mono font-bold text-slate-800 text-xs">{po.poDate}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          تسليم: <strong className="text-amber-800 font-mono font-black">{po.expectedDeliveryDate}</strong>
+                        </div>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-900">{po.supplierName}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">{po.supplierTaxNumber || 'ضريبي'}</div>
+
+                      {/* Supplier */}
+                      <td className="py-4 px-4">
+                        <div className="font-bold text-slate-900 text-xs">{po.supplierName}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">{po.supplierTaxNumber || 'ضريبي'}</div>
                       </td>
-                      <td className="py-3.5 px-4">
+
+                      {/* Project */}
+                      <td className="py-4 px-4">
                         {po.projectNumber ? (
                           <div>
-                            <span className="font-bold text-indigo-700 block font-mono">{po.projectNumber}</span>
-                            <span className="text-[10px] text-slate-500 block truncate max-w-[130px]">{po.projectName}</span>
+                            <span className="font-bold text-indigo-700 block font-mono text-xs">{po.projectNumber}</span>
+                            <span className="text-[10px] text-slate-500 block truncate max-w-[140px] mt-0.5">{po.projectName}</span>
                           </div>
                         ) : (
-                          <span className="text-slate-400">مخزون عام</span>
+                          <span className="text-slate-400 font-medium text-xs">مخزون عام</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center justify-between text-[11px] mb-1">
-                          <span className="font-bold text-slate-700">{totalReceived} من {totalOrdered} مستلم</span>
-                          <span className="font-mono text-slate-500 font-bold">{receivePercent}%</span>
+
+                      {/* Items & Progress */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
+                          <span className="text-slate-700 font-mono">{totalReceived} من {totalOrdered} مستلم</span>
+                          <span className="font-mono text-slate-900 font-black">{receivePercent}%</span>
                         </div>
-                        <div className="w-28 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
                           <div
-                            className={`h-full rounded-full transition-all ${
-                              receivePercent === 100 ? 'bg-emerald-500' : receivePercent > 0 ? 'bg-amber-500' : 'bg-slate-300'
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              receivePercent === 100 
+                                ? 'bg-emerald-500' 
+                                : receivePercent > 0 
+                                ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
+                                : 'bg-slate-300'
                             }`}
                             style={{ width: `${receivePercent}%` }}
                           />
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-black text-slate-900">
-                        {po.grandTotal.toLocaleString()} ج.م
+
+                      {/* Grand Total */}
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <span className="font-mono font-black text-slate-900 text-xs">{po.grandTotal.toLocaleString()}</span>
+                        <span className="text-[10px] text-slate-500 mr-1 font-bold">ج.م</span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+
+                      {/* Receiving Status Badge (No clipping) */}
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <span className={`whitespace-nowrap inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${
                           po.receivingStatus === 'fully_received'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                             : po.receivingStatus === 'partially_received'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-slate-100 text-slate-600'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-slate-50 text-slate-600 border-slate-200'
                         }`}>
                           {po.receivingStatus === 'fully_received' ? 'استلام كامل' : po.receivingStatus === 'partially_received' ? 'استلام جزئي' : 'قيد الانتظار'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
+
+                      {/* Status Badge (No clipping) */}
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <span className={`whitespace-nowrap inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
                           {statusBadge.label}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center justify-center gap-1">
+
+                      {/* Actions */}
+                      <td className="py-4 px-5 text-center whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleOpenDetails(po)}
-                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                             title="تفاصيل أمر الشراء"
                           >
                             <Eye className="w-4 h-4" />
@@ -316,7 +349,7 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
 
                           <button
                             onClick={() => handleOpenPrint(po)}
-                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                             title="طباعة أمر الشراء الرسمي"
                           >
                             <Printer className="w-4 h-4" />
@@ -325,10 +358,10 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                           {po.status === 'pending_approval' && canApprove && (
                             <button
                               onClick={() => handleApprove(po.id)}
-                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-[10px] flex items-center gap-1 shadow-2xs"
-                              title="اعتماد PO"
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+                              title="اعتماد أمر الشراء"
                             >
-                              <CheckCircle2 className="w-3 h-3" />
+                              <CheckCircle2 className="w-3.5 h-3.5" />
                               <span>اعتماد</span>
                             </button>
                           )}
@@ -336,17 +369,17 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                           {po.status === 'approved' && (
                             <button
                               onClick={() => handleSend(po.id)}
-                              className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[10px] flex items-center gap-1 shadow-2xs"
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
                               title="إرسال للمورد"
                             >
-                              <Send className="w-3 h-3" />
+                              <Send className="w-3.5 h-3.5" />
                               <span>إرسال</span>
                             </button>
                           )}
 
                           <button
                             onClick={() => onOpenTraceability(po)}
-                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
                             title="شجرة التتبع الكاملة"
                           >
                             <Sparkles className="w-4 h-4" />
