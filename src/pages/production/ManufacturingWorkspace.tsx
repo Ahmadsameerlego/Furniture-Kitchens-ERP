@@ -281,7 +281,6 @@ export const ManufacturingWorkspace: React.FC<ManufacturingWorkspaceProps> = ({
             onOpenQualityModal={setSelectedOrderForQuality}
             onCompleteOrder={order => {
               completeProductionOrder(order.id, ['https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&q=80&w=600']);
-              showToast('تم إنهاء أمر التصنيع بنجاح وتوليد القيود المحاسبية للربط مع التركيبات ✅', 'success');
             }}
           />
         )}
@@ -351,7 +350,6 @@ export const ManufacturingWorkspace: React.FC<ManufacturingWorkspaceProps> = ({
           onOpenQualityModal={setSelectedOrderForQuality}
           onCompleteOrder={order => {
             completeProductionOrder(order.id, ['https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&q=80&w=600']);
-            showToast('تم إنهاء أمر التصنيع بنجاح وتوليد القيود المحاسبية للربط مع التركيبات ✅', 'success');
           }}
         />
       )}

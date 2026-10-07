@@ -15,7 +15,7 @@
 // ============================================================================
 
 export const OWNER_NAME = 'م. عمرو عباس';
-export const OWNER_NAME_EN = 'Eng. Hesham El-Desouky';
+export const OWNER_NAME_EN = 'Eng. Amr Abbas';
 export const QUALITY_MANAGER_NAME = 'م. وليد عبد الحميد';
 
 // Most mock files were written as if "today" were this date.
@@ -73,6 +73,8 @@ const projectsByNumber = new Map(CANONICAL_PROJECTS.map(p => [p.projectNumber, p
 // Legacy names left in free text by the original per-module mocks. Longer,
 // more specific phrases come first so they win over the bare names.
 const TEXT_REPLACEMENTS: Array<[string, string]> = [
+  // Placeholder owner name used while the real one was unknown
+  ['م. هشام الدسوقي', OWNER_NAME],
   ['المهندس أحمد سمير (مدير الجودة)', `${QUALITY_MANAGER_NAME} (مدير الجودة)`],
   ['أحمد سمير (مهندس جودة وتسليم)', `${QUALITY_MANAGER_NAME} (مهندس جودة وتسليم)`],
   ['المهندس أحمد سمير', QUALITY_MANAGER_NAME],

@@ -5221,6 +5221,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetProd = productionOrders.find(p => p.id === productionOrderId);
     if (!targetProd) return;
+    if (targetProd.status === 'pending') {
+      showToast(`لا يمكن إنهاء ${targetProd.productionNumber} قبل بدء التشغيل وصرف الخامات`, 'error');
+      return;
+    }
+    const openStations = workOrders.filter(wo => wo.manufacturingOrderId === productionOrderId && wo.status !== 'completed');
+    if (openStations.length > 0) {
+      showToast(`باقي ${openStations.length} محطة لم تكتمل في ${targetProd.productionNumber}: ${openStations.map(wo => wo.workCenterName).join('، ')}`, 'warning');
+      return;
+    }
 
     // Labor + machine cost from the station work orders (actual minutes, else planned)
     const laborCost = Math.round(workOrders
@@ -5913,19 +5922,26 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setJournalEntries(prev => [postResult.entry!, ...prev]);
     }
 
-    // Deduct the applied amount from several advances, oldest first
+    // Deduct the applied amount from several advances, oldest first. The split is worked
+    // out up front so the state updater stays pure (React may call it twice).
     if (advanceApplied > 0 && Array.isArray(invoiceData.advanceIds) && invoiceData.advanceIds.length > 0) {
       let left = advanceApplied;
-      setCustomerAdvances(prev => [...prev]
+      const takes = new Map<string, number>();
+      [...customerAdvances]
+        .filter(a => invoiceData.advanceIds.includes(a.id))
         .sort((x, y) => x.date.localeCompare(y.date))
-        .map(a => {
-          if (!invoiceData.advanceIds.includes(a.id) || left <= 0) return a;
+        .forEach(a => {
           const take = Math.min(left, a.remainingAmount);
+          if (take > 0) takes.set(a.id, take);
           left -= take;
-          const newApplied = a.appliedAmount + take;
-          const newRemaining = Math.max(0, a.amount - newApplied);
-          return { ...a, appliedAmount: newApplied, remainingAmount: newRemaining, status: newRemaining === 0 ? 'fully_applied' : 'partially_applied' };
-        }));
+        });
+      setCustomerAdvances(prev => prev.map(a => {
+        const take = takes.get(a.id);
+        if (!take) return a;
+        const newApplied = a.appliedAmount + take;
+        const newRemaining = Math.max(0, a.amount - newApplied);
+        return { ...a, appliedAmount: newApplied, remainingAmount: newRemaining, status: newRemaining === 0 ? 'fully_applied' : 'partially_applied' };
+      }));
     }
 
     // Deduct advance remaining if applied

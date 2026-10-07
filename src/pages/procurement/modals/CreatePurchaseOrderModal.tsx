@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Calendar, Building2, ShoppingCart, Percent, DollarSign } from 'lucide-react';
 import { useERP } from '../../../context/ERPContext';
 import { PurchaseOrderLineItem } from '../../../types/procurement';
@@ -36,7 +36,7 @@ export const CreatePurchaseOrderModal: React.FC<CreatePurchaseOrderModalProps> =
     new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
   const [paymentTerms, setPaymentTerms] = useState<string>('سداد 30 يوم من الاستلام ومطابقة الفاتورة');
-  const [shippingTerms, setShippingTerms] = useState<string>('التسليم بمخازن مصنع العاشر من رمضان (DDP)');
+  const [shippingTerms, setShippingTerms] = useState<string>('التسليم بمخازن مصنع العبور (DDP)');
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [otherCharges, setOtherCharges] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
@@ -66,6 +66,12 @@ export const CreatePurchaseOrderModal: React.FC<CreatePurchaseOrderModalProps> =
       taxRate: 14
     }
   ]);
+
+  // Opened from a purchase request row: prefill supplier, project and lines from it
+  useEffect(() => {
+    if (isOpen && defaultPrId) handlePrChange(defaultPrId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, defaultPrId]);
 
   if (!isOpen) return null;
 
@@ -361,6 +367,9 @@ export const CreatePurchaseOrderModal: React.FC<CreatePurchaseOrderModalProps> =
                           className="w-full p-1.5 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-[#C87A38]"
                         >
                           <option value="">-- اختر الصنف --</option>
+                          {item.itemId && !materials.some(m => m.id === item.itemId) && (
+                            <option value={item.itemId}>{item.itemName} ({item.itemCode})</option>
+                          )}
                           {materials.map(i => (
                             <option key={i.id} value={i.id}>{i.name} ({i.code || i.id})</option>
                           ))}

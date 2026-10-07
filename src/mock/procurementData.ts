@@ -211,7 +211,7 @@ export const initialPurchaseRequests: PurchaseRequest[] = [
     items: [
       {
         id: 'pri-6',
-        itemId: 'mat-10',
+        itemId: 'OAK-PLYWOOD-18',
         itemCode: 'OAK-PLYWOOD-18',
         itemName: 'أبلكاج كونتر قشرة أرو طبيعي وجهين 18مم',
         itemCategory: 'plywood',
