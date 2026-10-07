@@ -17,6 +17,7 @@ import {
   initialPackages,
   initialQualityInspections
 } from '../../mock/productionData';
+import { harmonizeMockData } from '../../mock/scenario';
 
 // Modals
 import { ProductionOrderDetailsModal } from '../../components/production/ProductionOrderDetailsModal';
@@ -68,15 +69,15 @@ export const ManufacturingWorkspace: React.FC<ManufacturingWorkspaceProps> = ({
   } = useERP();
 
   // Active Tab State
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(() => harmonizeMockData(initialTab));
 
   // Local state for manufacturing suite data
-  const [workCenters, setWorkCenters] = useState<WorkCenter[]>(initialWorkCenters);
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialWorkOrders);
-  const [scrapClaims, setScrapClaims] = useState<ScrapClaimRecord[]>(initialScrapClaims);
-  const [offCutReturns, setOffCutReturns] = useState<OffCutReturnRecord[]>(initialOffCutReturns);
-  const [packages, setPackages] = useState<ManufacturingPackageItem[]>(initialPackages);
-  const [qualityInspections, setQualityInspections] = useState<QualityGateInspection[]>(initialQualityInspections);
+  const [workCenters, setWorkCenters] = useState<WorkCenter[]>(() => harmonizeMockData(initialWorkCenters));
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(() => harmonizeMockData(initialWorkOrders));
+  const [scrapClaims, setScrapClaims] = useState<ScrapClaimRecord[]>(() => harmonizeMockData(initialScrapClaims));
+  const [offCutReturns, setOffCutReturns] = useState<OffCutReturnRecord[]>(() => harmonizeMockData(initialOffCutReturns));
+  const [packages, setPackages] = useState<ManufacturingPackageItem[]>(() => harmonizeMockData(initialPackages));
+  const [qualityInspections, setQualityInspections] = useState<QualityGateInspection[]>(() => harmonizeMockData(initialQualityInspections));
 
   // Modals state
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<ProductionOrder | null>(null);
@@ -173,7 +174,7 @@ export const ManufacturingWorkspace: React.FC<ManufacturingWorkspaceProps> = ({
       manufacturingOrderNumber: inspData.manufacturingOrderNumber || 'PROD-2026-0012',
       stage: inspData.stage || 'carpentry_assembly',
       stageTitle: inspData.stageTitle || 'فحص الجودة الشامل',
-      inspectorName: inspData.inspectorName || 'المهندس أحمد سمير',
+      inspectorName: inspData.inspectorName || 'م. وليد عبد الحميد (مدير الجودة)',
       inspectionDate: inspData.inspectionDate || new Date().toISOString().substring(0, 16).replace('T', ' '),
       passed: inspData.passed ?? true,
       scorePercentage: inspData.scorePercentage || 95,

@@ -129,6 +129,7 @@ import {
   initialCommercialPaymentSchedules
 } from '../mock/commercialData';
 import { initialVariationOrders } from '../mock/salesData';
+import { harmonizeMockData, buildFiscalPeriods, PLANNING_MOCK_ANCHOR } from '../mock/scenario';
 import { VariationOrder } from '../types/sales';
 import {
   initialProductionOrders,
@@ -589,115 +590,115 @@ interface ERPContextType {
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
 
 export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [company, setCompany] = useState<CompanyConfig>(initialCompany);
-  const [branches, setBranches] = useState<Branch[]>(initialBranches);
-  const [roles, setRoles] = useState<Role[]>(initialRoles);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(initialAuditLogs);
+  const [company, setCompany] = useState<CompanyConfig>(() => harmonizeMockData(initialCompany));
+  const [branches, setBranches] = useState<Branch[]>(() => harmonizeMockData(initialBranches));
+  const [roles, setRoles] = useState<Role[]>(() => harmonizeMockData(initialRoles));
+  const [users, setUsers] = useState<User[]>(() => harmonizeMockData(initialUsers));
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => harmonizeMockData(initialAuditLogs));
   
   // CRM State
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>(initialCampaigns);
-  const [activities, setActivities] = useState<CustomerActivity[]>(initialActivities);
-  const [reminders, setReminders] = useState<CustomerReminder[]>(initialReminders);
-  const [documents, setDocuments] = useState<CustomerDocument[]>(initialDocuments);
-  const [afterSalesRecords, setAfterSalesRecords] = useState<AfterSalesRecord[]>(initialAfterSalesRecords);
+  const [customers, setCustomers] = useState<Customer[]>(() => harmonizeMockData(initialCustomers));
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>(() => harmonizeMockData(initialCampaigns));
+  const [activities, setActivities] = useState<CustomerActivity[]>(() => harmonizeMockData(initialActivities));
+  const [reminders, setReminders] = useState<CustomerReminder[]>(() => harmonizeMockData(initialReminders));
+  const [documents, setDocuments] = useState<CustomerDocument[]>(() => harmonizeMockData(initialDocuments));
+  const [afterSalesRecords, setAfterSalesRecords] = useState<AfterSalesRecord[]>(() => harmonizeMockData(initialAfterSalesRecords));
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   // Ready Sales & Suppliers State
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
-  const [supplierInvoices, setSupplierInvoices] = useState<SupplierPurchaseInvoice[]>(initialSupplierInvoices);
-  const [supplierPayments, setSupplierPayments] = useState<SupplierPaymentRecord[]>(initialSupplierPayments);
-  const [orders, setOrders] = useState<ReadyOrder[]>(initialOrders);
-  const [payments, setPayments] = useState<CustomerPayment[]>(initialPayments);
-  const [paymentSchedules, setPaymentSchedules] = useState<PaymentSchedule[]>(initialCommercialPaymentSchedules);
-  const [returns, setReturns] = useState<OrderReturn[]>(initialReturns);
+  const [products, setProducts] = useState<Product[]>(() => harmonizeMockData(initialProducts));
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => harmonizeMockData(initialSuppliers));
+  const [supplierInvoices, setSupplierInvoices] = useState<SupplierPurchaseInvoice[]>(() => harmonizeMockData(initialSupplierInvoices));
+  const [supplierPayments, setSupplierPayments] = useState<SupplierPaymentRecord[]>(() => harmonizeMockData(initialSupplierPayments));
+  const [orders, setOrders] = useState<ReadyOrder[]>(() => harmonizeMockData(initialOrders));
+  const [payments, setPayments] = useState<CustomerPayment[]>(() => harmonizeMockData(initialPayments));
+  const [paymentSchedules, setPaymentSchedules] = useState<PaymentSchedule[]>(() => harmonizeMockData(initialCommercialPaymentSchedules));
+  const [returns, setReturns] = useState<OrderReturn[]>(() => harmonizeMockData(initialReturns));
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
 
   // Prompt 4 State
-  const [materials, setMaterials] = useState<Material[]>(initialMaterials);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(initialPurchaseOrders);
-  const [stockMovements, setStockMovements] = useState<StockMovement[]>(initialStockMovements);
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(initialStockTransfers);
-  const [supplierReturns, setSupplierReturns] = useState<SupplierReturn[]>(initialSupplierReturns);
-  const [notifications, setNotifications] = useState<SystemNotification[]>(initialNotifications);
+  const [materials, setMaterials] = useState<Material[]>(() => harmonizeMockData(initialMaterials));
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => harmonizeMockData(initialPurchaseOrders));
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>(() => harmonizeMockData(initialStockMovements));
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(() => harmonizeMockData(initialStockTransfers));
+  const [supplierReturns, setSupplierReturns] = useState<SupplierReturn[]>(() => harmonizeMockData(initialSupplierReturns));
+  const [notifications, setNotifications] = useState<SystemNotification[]>(() => harmonizeMockData(initialNotifications));
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
 
   // Prompt 5 & 6 State
-  const [customProjects, setCustomProjects] = useState<CustomProject[]>(initialCustomProjects);
-  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(initialSiteVisits);
-  const [projectMeasurements, setProjectMeasurements] = useState<ProjectMeasurement[]>(initialProjectMeasurements);
-  const [projectDesigns, setProjectDesigns] = useState<ProjectDesign[]>(initialProjectDesigns);
-  const [projectQuotations, setProjectQuotations] = useState<ProjectQuotation[]>(initialProjectQuotations);
-  const [projectTimelineEvents, setProjectTimelineEvents] = useState<ProjectTimelineEvent[]>(initialProjectTimelineEvents);
-  const [customContracts, setCustomContracts] = useState<CustomContract[]>(initialCustomContracts);
-  const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(initialProjectHandovers);
-  const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(initialPaymentReceipts);
-  const [variationOrders, setVariationOrders] = useState<VariationOrder[]>(initialVariationOrders);
+  const [customProjects, setCustomProjects] = useState<CustomProject[]>(() => harmonizeMockData(initialCustomProjects));
+  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(() => harmonizeMockData(initialSiteVisits));
+  const [projectMeasurements, setProjectMeasurements] = useState<ProjectMeasurement[]>(() => harmonizeMockData(initialProjectMeasurements));
+  const [projectDesigns, setProjectDesigns] = useState<ProjectDesign[]>(() => harmonizeMockData(initialProjectDesigns));
+  const [projectQuotations, setProjectQuotations] = useState<ProjectQuotation[]>(() => harmonizeMockData(initialProjectQuotations));
+  const [projectTimelineEvents, setProjectTimelineEvents] = useState<ProjectTimelineEvent[]>(() => harmonizeMockData(initialProjectTimelineEvents));
+  const [customContracts, setCustomContracts] = useState<CustomContract[]>(() => harmonizeMockData(initialCustomContracts));
+  const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(() => harmonizeMockData(initialProjectHandovers));
+  const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(() => harmonizeMockData(initialPaymentReceipts));
+  const [variationOrders, setVariationOrders] = useState<VariationOrder[]>(() => harmonizeMockData(initialVariationOrders));
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [portalCurrentCustomerId, setPortalCurrentCustomerId] = useState<string>('cust-1');
 
   // Technical Office & Engineering State
-  const [technicalProjects, setTechnicalProjects] = useState<TechnicalProject[]>(initialTechnicalProjects);
-  const [technicalSurveys, setTechnicalSurveys] = useState<TechnicalSiteSurvey[]>(initialTechnicalSurveys);
-  const [technicalDesigns, setTechnicalDesigns] = useState<TechnicalDesignRevision[]>(initialTechnicalDesigns);
-  const [technicalBOMs, setTechnicalBOMs] = useState<TechnicalBOM[]>(initialTechnicalBOMs);
-  const [technicalReleases, setTechnicalReleases] = useState<TechnicalReleasePackage[]>(initialTechnicalReleases);
-  const [engineeringChangeRequests, setEngineeringChangeRequests] = useState<EngineeringChangeRequest[]>(initialEngineeringChangeRequests);
+  const [technicalProjects, setTechnicalProjects] = useState<TechnicalProject[]>(() => harmonizeMockData(initialTechnicalProjects));
+  const [technicalSurveys, setTechnicalSurveys] = useState<TechnicalSiteSurvey[]>(() => harmonizeMockData(initialTechnicalSurveys));
+  const [technicalDesigns, setTechnicalDesigns] = useState<TechnicalDesignRevision[]>(() => harmonizeMockData(initialTechnicalDesigns));
+  const [technicalBOMs, setTechnicalBOMs] = useState<TechnicalBOM[]>(() => harmonizeMockData(initialTechnicalBOMs));
+  const [technicalReleases, setTechnicalReleases] = useState<TechnicalReleasePackage[]>(() => harmonizeMockData(initialTechnicalReleases));
+  const [engineeringChangeRequests, setEngineeringChangeRequests] = useState<EngineeringChangeRequest[]>(() => harmonizeMockData(initialEngineeringChangeRequests));
   const [selectedTechnicalProjectId, setSelectedTechnicalProjectId] = useState<string | null>(null);
 
   // Prompt 7 State
-  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(initialProductionOrders);
-  const [installationRecords, setInstallationRecords] = useState<InstallationRecord[]>(initialInstallationRecords);
+  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(() => harmonizeMockData(initialProductionOrders));
+  const [installationRecords, setInstallationRecords] = useState<InstallationRecord[]>(() => harmonizeMockData(initialInstallationRecords));
   const [selectedProductionOrderId, setSelectedProductionOrderId] = useState<string | null>(null);
 
   // Prompt 8 Finance State
-  const [expenses, setExpenses] = useState<CompanyExpense[]>(initialCompanyExpenses);
-  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>(initialFinancialAccounts);
-  const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>(initialFinancialTransactions);
+  const [expenses, setExpenses] = useState<CompanyExpense[]>(() => harmonizeMockData(initialCompanyExpenses));
+  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>(() => harmonizeMockData(initialFinancialAccounts));
+  const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>(() => harmonizeMockData(initialFinancialTransactions));
 
   // Production-Ready Accounting Module State
-  const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>(initialChartOfAccounts);
-  const [journals, setJournals] = useState<Journal[]>(initialJournals);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(initialJournalEntries);
-  const [fiscalPeriods, setFiscalPeriods] = useState<FiscalPeriod[]>(initialFiscalPeriods);
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(initialCostCenters);
-  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(initialSalesInvoices);
-  const [vendorBills, setVendorBills] = useState<VendorBill[]>(initialVendorBills);
-  const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(initialCustomerAdvances);
-  const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(initialPDCRecords);
+  const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>(() => harmonizeMockData(initialChartOfAccounts));
+  const [journals, setJournals] = useState<Journal[]>(() => harmonizeMockData(initialJournals));
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(() => harmonizeMockData(initialJournalEntries));
+  const [fiscalPeriods, setFiscalPeriods] = useState<FiscalPeriod[]>(() => buildFiscalPeriods() as FiscalPeriod[]);
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(() => harmonizeMockData(initialCostCenters));
+  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(() => harmonizeMockData(initialSalesInvoices));
+  const [vendorBills, setVendorBills] = useState<VendorBill[]>(() => harmonizeMockData(initialVendorBills));
+  const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(() => harmonizeMockData(initialCustomerAdvances));
+  const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(() => harmonizeMockData(initialPDCRecords));
 
   // Enterprise Warehouses & Inventory State
-  const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(initialWarehouses);
-  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(initialItemMasterCards);
-  const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(initialGoodsReceiptNotes);
-  const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(initialGoodsIssueNotes);
-  const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(initialMaterialRequisitions);
-  const [stocktakeSessions, setStocktakeSessions] = useState<StocktakeSession[]>(initialStocktakeSessions);
-  const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(initialStockLedgerEntries);
+  const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(() => harmonizeMockData(initialWarehouses));
+  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(() => harmonizeMockData(initialItemMasterCards));
+  const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(() => harmonizeMockData(initialGoodsReceiptNotes));
+  const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(() => harmonizeMockData(initialGoodsIssueNotes));
+  const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(() => harmonizeMockData(initialMaterialRequisitions));
+  const [stocktakeSessions, setStocktakeSessions] = useState<StocktakeSession[]>(() => harmonizeMockData(initialStocktakeSessions));
+  const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(() => harmonizeMockData(initialStockLedgerEntries));
   const [selectedItemCardId, setSelectedItemCardId] = useState<string | null>(null);
 
   // Planning & MRP Module State
-  const [planningDemands, setPlanningDemands] = useState<PlanningDemand[]>(initialPlanningDemands);
-  const [supplyProposals, setSupplyProposals] = useState<SupplyProposal[]>(initialSupplyProposals);
-  const [workCenterCapacities, setWorkCenterCapacities] = useState<WorkCenterCapacity[]>(initialWorkCenterCapacities);
-  const [projectReadinessList, setProjectReadinessList] = useState<ProjectPlanningReadiness[]>(initialProjectReadinessList);
-  const [planningRuns, setPlanningRuns] = useState<PlanningRun[]>(initialPlanningRuns);
-  const [mpsWeeklyBuckets, setMpsWeeklyBuckets] = useState<MPSWeeklyBucket[]>(initialMPSWeeklyBuckets);
-  const [mpsItems, setMpsItems] = useState<MPSItemRow[]>(initialMPSItems);
-  const [planningAuditLogs, setPlanningAuditLogs] = useState<PlanningAuditEntry[]>(initialPlanningAuditLogs);
+  const [planningDemands, setPlanningDemands] = useState<PlanningDemand[]>(() => harmonizeMockData(initialPlanningDemands, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [supplyProposals, setSupplyProposals] = useState<SupplyProposal[]>(() => harmonizeMockData(initialSupplyProposals, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [workCenterCapacities, setWorkCenterCapacities] = useState<WorkCenterCapacity[]>(() => harmonizeMockData(initialWorkCenterCapacities, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [projectReadinessList, setProjectReadinessList] = useState<ProjectPlanningReadiness[]>(() => harmonizeMockData(initialProjectReadinessList, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [planningRuns, setPlanningRuns] = useState<PlanningRun[]>(() => harmonizeMockData(initialPlanningRuns, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [mpsWeeklyBuckets, setMpsWeeklyBuckets] = useState<MPSWeeklyBucket[]>(() => harmonizeMockData(initialMPSWeeklyBuckets, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [mpsItems, setMpsItems] = useState<MPSItemRow[]>(() => harmonizeMockData(initialMPSItems, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [planningAuditLogs, setPlanningAuditLogs] = useState<PlanningAuditEntry[]>(() => harmonizeMockData(initialPlanningAuditLogs, { anchor: PLANNING_MOCK_ANCHOR }));
 
   // Complete Procurement & Purchasing Module State
-  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(initialPurchaseRequests);
-  const [rfqs, setRFQs] = useState<RequestForQuotation[]>(initialRFQs);
-  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(initialSupplierQuotations);
-  const [enterprisePurchaseOrders, setEnterprisePurchaseOrders] = useState<EnterprisePurchaseOrder[]>(initialEnterprisePurchaseOrders);
-  const [supplierPriceLists, setSupplierPriceLists] = useState<SupplierItemPrice[]>(initialSupplierPriceLists);
-  const [procurementSupplierReturns, setProcurementSupplierReturns] = useState<ProcurementSupplierReturn[]>(initialProcurementReturns);
-  const [threeWayMatches, setThreeWayMatches] = useState<ThreeWayMatchingRecord[]>(initialThreeWayMatches);
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(() => harmonizeMockData(initialPurchaseRequests));
+  const [rfqs, setRFQs] = useState<RequestForQuotation[]>(() => harmonizeMockData(initialRFQs));
+  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(() => harmonizeMockData(initialSupplierQuotations));
+  const [enterprisePurchaseOrders, setEnterprisePurchaseOrders] = useState<EnterprisePurchaseOrder[]>(() => harmonizeMockData(initialEnterprisePurchaseOrders));
+  const [supplierPriceLists, setSupplierPriceLists] = useState<SupplierItemPrice[]>(() => harmonizeMockData(initialSupplierPriceLists));
+  const [procurementSupplierReturns, setProcurementSupplierReturns] = useState<ProcurementSupplierReturn[]>(() => harmonizeMockData(initialProcurementReturns));
+  const [threeWayMatches, setThreeWayMatches] = useState<ThreeWayMatchingRecord[]>(() => harmonizeMockData(initialThreeWayMatches));
   const [selectedPRId, setSelectedPRId] = useState<string | null>(null);
   const [selectedRFQId, setSelectedRFQId] = useState<string | null>(null);
   const [selectedPOId, setSelectedPOId] = useState<string | null>(null);

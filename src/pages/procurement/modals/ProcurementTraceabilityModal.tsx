@@ -50,7 +50,7 @@ export const ProcurementTraceabilityModal: React.FC<ProcurementTraceabilityModal
       badge: selectedPO?.projectNumber || selectedPR?.projectNumber || 'PRJ-2026-001',
       details: [
         { label: 'اسم المشروع', value: selectedPO?.projectName || selectedPR?.projectName || 'مطبخ مودرن أرو ومايكا - فيلا الياسمين' },
-        { label: 'العميل', value: selectedPO?.customerName || selectedPR?.customerName || 'أ. أحمد مصطفى' },
+        { label: 'العميل', value: selectedPO?.customerName || selectedPR?.customerName || '—' },
         { label: 'رقم العقد', value: selectedPO?.contractNumber || selectedPR?.contractNumber || 'CNT-2026-008' }
       ]
     },

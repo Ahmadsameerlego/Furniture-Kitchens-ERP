@@ -134,7 +134,7 @@ export const PackageLabelPrintModal: React.FC<PackageLabelPrintModalProps> = ({
               <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-[10px] text-slate-400">
                 <span>تاريخ التغليف والفحص: {order.startDate}</span>
                 <span className="font-mono font-bold text-slate-700">BOX {idx + 1} OF {relatedPackages.length}</span>
-                <span>فحص بواسطة: م. أحمد سمير (QC PASS)</span>
+                <span>فحص بواسطة: م. وليد عبد الحميد (QC PASS)</span>
               </div>
             </div>
           ))}

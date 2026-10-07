@@ -497,7 +497,7 @@ export const SalesContractsPage: React.FC = () => {
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-center">
                   <span className="text-slate-500 block mb-2 font-bold">توقيع واعتماد الطرف الأول (الشركة)</span>
                   <div className="h-10 border-b border-dashed border-slate-300 flex items-center justify-center font-bold text-slate-800">
-                    أحمد سمير (مدير المبيعات)
+                    عمر فاروق (مدير المبيعات)
                   </div>
                   <span className="text-[10px] text-slate-400 mt-1 block">ختم وتوقيع الإدارة</span>
                 </div>

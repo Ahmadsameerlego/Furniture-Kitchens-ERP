@@ -7,6 +7,7 @@ import {
   ModulePermissions,
   DemoPersona
 } from '../types/erp';
+import { OWNER_NAME, OWNER_NAME_EN } from './scenario';
 
 // Full permissions builder utility
 const createFullPermissions = (): ModulePermissions => ({
@@ -68,10 +69,10 @@ export const initialBranches: Branch[] = [
   },
   {
     id: 'branch-3',
-    name: 'مصنع وورشة التجمع',
-    nameEn: 'Production Workshop - Tagamoa',
+    name: 'مصنع العبور الرئيسي',
+    nameEn: 'Main Factory - Obour',
     type: 'workshop',
-    address: 'المنطقة الصناعية الثالثة - بلوك 12 - التجمع',
+    address: 'المنطقة الصناعية الثالثة - بلوك 12 - العبور',
     phone: '01223456789',
     isMain: false,
     status: 'active',
@@ -326,31 +327,12 @@ export const initialAuditLogs: AuditLog[] = [
 export const demoPersonas: DemoPersona[] = [
   {
     id: 'ahmed_owner',
-    name: 'أحمد سمير',
-    nameEn: 'Ahmed Mahmoud',
+    name: OWNER_NAME,
+    nameEn: OWNER_NAME_EN,
     roleTitle: 'Super Admin (مالك الشركة)',
     roleId: 'role-superadmin',
     userId: 'user-1',
-    assignedBranchNames: ['معرض القاهرة الرئيسي', 'المخزن المركزي', 'مصنع وورشة التجمع', 'معرض الإسكندرية'],
-    restrictedBranchNames: [],
-    description: 'مالك الشركة ولديه نفاذ كامل لكل الفروع والإعدادات الأمنية والمالية وإدارة الأدوار والصلاحيات.',
-    descriptionEn: 'Company Owner with complete access to all 4 branches, security, settings & audit logs.',
-    keyTests: [
-      'التبديل بحرية بين الفروع الأربعة',
-      'تعديل الفرع الرئيسي مع نافذة التأكيد',
-      'تحديث نوع النشاط (أثاث / مطابخ) ونموذج العمل',
-      'إدارة المستخدمين والأدوار وحجم الصلاحيات',
-      'استعراض سجل المراجعة والتأمين بالكامل'
-    ]
-  },
-  {
-    id: 'ahmed_owner',
-    name: 'أحمد سمير',
-    nameEn: 'Ahmed Mahmoud',
-    roleTitle: 'Super Admin (مالك الشركة)',
-    roleId: 'role-superadmin',
-    userId: 'user-1',
-    assignedBranchNames: ['معرض القاهرة الرئيسي', 'المخزن المركزي', 'مصنع وورشة التجمع', 'معرض الإسكندرية'],
+    assignedBranchNames: ['معرض القاهرة الرئيسي', 'المخزن المركزي', 'مصنع العبور الرئيسي', 'معرض الإسكندرية'],
     restrictedBranchNames: [],
     description: 'مالك الشركة ولديه نفاذ كامل لكل الفروع والإعدادات الأمنية والمالية وإدارة الأدوار والصلاحيات.',
     descriptionEn: 'Company Owner with complete access to all 4 branches, security, settings & audit logs.',
@@ -370,7 +352,7 @@ export const demoPersonas: DemoPersona[] = [
     roleId: 'role-moderator',
     userId: 'user-4',
     assignedBranchNames: ['معرض القاهرة الرئيسي', 'معرض الإسكندرية'],
-    restrictedBranchNames: ['المخزن المركزي - العبور', 'مصنع وورشة التجمع'],
+    restrictedBranchNames: ['المخزن المركزي - العبور', 'مصنع العبور الرئيسي'],
     description: 'مشرف مبيعات مكلف فقط بمعرض القاهرة الرئيسي ومعرض الإسكندرية. محظور تماماً من المخزن المركزي والورشة ومن إعدادات النظام.',
     descriptionEn: 'Sales Moderator assigned only to 2 showrooms. Blocked from central warehouse & workshop.',
     keyTests: [
