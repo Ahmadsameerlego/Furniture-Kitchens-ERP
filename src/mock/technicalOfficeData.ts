@@ -136,7 +136,7 @@ export const initialTechnicalSurveys: TechnicalSiteSurvey[] = [
       {
         id: 'wall-1',
         wallName: 'الجدار A (الرئيسي - حوض وغسالة أطباق)',
-        lengthCm: 385,
+        lengthCm: 419.5,
         heightCm: 280,
         angleDegrees: 90,
         plasterQuality: 'straight',
@@ -145,7 +145,7 @@ export const initialTechnicalSurveys: TechnicalSiteSurvey[] = [
       {
         id: 'wall-2',
         wallName: 'الجدار B (الجانبي - عمود خرساني وشفاط وبوتاجاز)',
-        lengthCm: 290,
+        lengthCm: 339.5,
         heightCm: 280,
         angleDegrees: 89.5,
         plasterQuality: 'straight',

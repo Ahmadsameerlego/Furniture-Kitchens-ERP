@@ -786,6 +786,8 @@ export interface ProductionOrder {
   totalEstimatedMaterialCost: number;
   totalActualMaterialCost: number;
   materialVariance: number;
+  /** Station labor + machine cost absorbed when the order is completed. */
+  totalLaborCost?: number;
   createdDate: string;
 }
 

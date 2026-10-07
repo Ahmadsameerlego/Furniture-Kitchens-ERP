@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
+import { resolveCatalogItem } from '../../services/materialCatalog';
 import { GoodsReceiptNote, GRNType } from '../../types/erp';
 import {
   ArrowDownLeft,
@@ -29,8 +30,14 @@ export const GoodsReceiptNotesView: React.FC = () => {
     suppliers,
     itemMasterCards,
     createGoodsReceiptNote,
+    enterprisePurchaseOrders,
     showToast
   } = useERP();
+
+  // Purchase orders still waiting for (part of) their goods
+  const openPurchaseOrders = enterprisePurchaseOrders.filter(po =>
+    ['approved', 'sent_to_supplier', 'partially_received'].includes(po.status)
+  );
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('all');
@@ -41,7 +48,7 @@ export const GoodsReceiptNotesView: React.FC = () => {
   const [formType, setFormType] = useState<GRNType>('purchase_receipt');
   const [formSupplierId, setFormSupplierId] = useState<string>(suppliers[0]?.id || '');
   const [formWarehouseId, setFormWarehouseId] = useState<string>(warehouses[0]?.id || '');
-  const [formPoNumber, setFormPoNumber] = useState<string>('PO-2026-0045');
+  const [formPoNumber, setFormPoNumber] = useState<string>('');
   const [formNotes, setFormNotes] = useState<string>('استلام وتوريد شحنة خامات خشب ومفصلات');
   
   // Line items state
@@ -68,6 +75,34 @@ export const GoodsReceiptNotesView: React.FC = () => {
       notes: 'تم فحص الشحنة ومطابقة الأبعاد'
     }
   ]);
+
+  const handlePurchaseOrderSelect = (poNumber: string) => {
+    setFormPoNumber(poNumber);
+    const po = openPurchaseOrders.find(p => p.poNumber === poNumber);
+    if (!po) return;
+    if (po.supplierId) setFormSupplierId(po.supplierId);
+    const lines = po.items
+      .filter(it => it.quantity - (it.receivedQuantity || 0) > 0)
+      .map(it => {
+        const catalog = resolveCatalogItem(it.itemCode);
+        const aliases = new Set((catalog?.aliases || [it.itemCode]).map(a => a.toUpperCase()));
+        const card = itemMasterCards.find(c => aliases.has(c.code.toUpperCase()));
+        const remaining = it.quantity - (it.receivedQuantity || 0);
+        return {
+          itemId: card?.id || it.itemCode,
+          itemCode: card?.code || it.itemCode,
+          itemName: card?.nameAr || it.itemName,
+          unit: card?.unitNameAr || it.uom,
+          orderedQty: remaining,
+          receivedQty: remaining,
+          unitCost: it.unitPrice,
+          locationBin: card?.locationBin || 'منطقة الاستلام',
+          notes: `مطابق لأمر الشراء ${po.poNumber}`
+        };
+      });
+    if (lines.length > 0) setFormItems(lines);
+    setFormNotes(`استلام شحنة أمر الشراء ${po.poNumber} من ${po.supplierName}${po.projectNumber ? ` لمشروع ${po.projectNumber}` : ''}`);
+  };
 
   const handleAddItemRow = () => {
     const defaultItem = itemMasterCards[0];
@@ -348,6 +383,24 @@ export const GoodsReceiptNotesView: React.FC = () => {
                     >
                       {suppliers.map(s => (
                         <option key={s.id} value={s.id}>{s.name || s.companyName}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {formType === 'purchase_receipt' && (
+                  <div className="md:col-span-2">
+                    <label className="font-bold text-slate-700 mb-1 block">أمر الشراء المستلم عليه:</label>
+                    <select
+                      value={formPoNumber}
+                      onChange={(e) => handlePurchaseOrderSelect(e.target.value)}
+                      className="w-full px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl font-bold"
+                    >
+                      <option value="">— استلام بدون أمر شراء —</option>
+                      {openPurchaseOrders.map(po => (
+                        <option key={po.id} value={po.poNumber}>
+                          {po.poNumber} · {po.supplierName}{po.projectNumber ? ` · ${po.projectNumber}` : ''}
+                        </option>
                       ))}
                     </select>
                   </div>

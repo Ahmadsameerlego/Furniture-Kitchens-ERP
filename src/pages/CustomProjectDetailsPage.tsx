@@ -377,7 +377,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
       approvedQuotationVersion: approvedQuote?.version || 1,
       commercialSpecsLocked: true,
       approvedDesignVersion: approvedDesign?.version || 1,
-      siteSurveyCompleted: latestVisit?.status === 'completed',
+      siteSurveyCompleted: latestVisit?.status === 'completed' || projectMeasurements.some(m => m.projectId === project.id),
       surveyObstaclesChecked: true,
       technicalDocumentsAttached: true
     };

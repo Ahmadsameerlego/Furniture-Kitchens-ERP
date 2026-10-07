@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useERP } from '../context/ERPContext';
-import { InstallationRecord, InstallationStatus } from '../types/erp';
+import { InstallationRecord, InstallationStatus, ProductionOrder } from '../types/erp';
+import { daysFromToday } from '../mock/scenario';
 import {
   Truck,
   Calendar,
@@ -26,9 +27,37 @@ export const InstallationsListPage: React.FC = () => {
     orders,
     completeInstallation,
     completeHandover,
+    scheduleInstallation,
+    productionOrders,
+    customers,
+    siteVisits,
+    users,
     setActiveModule,
     setSelectedCustomerId
   } = useERP();
+
+  // Orders finished in the factory that still need an installation appointment
+  const readyToInstall = productionOrders.filter(po =>
+    po.status === 'completed' && !installationRecords.some(inst => inst.productionOrderId === po.id)
+  );
+  const installerOptions = users.filter(u => u.status === 'active');
+  const [scheduleFor, setScheduleFor] = useState<ProductionOrder | null>(null);
+  const [schedDate, setSchedDate] = useState(daysFromToday(2));
+  const [schedTime, setSchedTime] = useState('10:00');
+  const [schedAddress, setSchedAddress] = useState('');
+  const [schedTeam, setSchedTeam] = useState<string[]>([]);
+  const [schedNotes, setSchedNotes] = useState('');
+
+  const openSchedule = (po: ProductionOrder) => {
+    const visit = siteVisits.find(v => v.projectId === po.projectId);
+    const customer = customers.find(c => c.id === po.customerId);
+    setScheduleFor(po);
+    setSchedDate(daysFromToday(2));
+    setSchedTime('10:00');
+    setSchedAddress(visit?.address || [customer?.address, customer?.area, customer?.city].filter(Boolean).join(' - '));
+    setSchedTeam(installerOptions.slice(0, 1).map(u => u.id));
+    setSchedNotes(`تركيب ${po.projectNumber} - تحميل الطرود من مصنع العبور صباح يوم التركيب`);
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -131,6 +160,34 @@ export const InstallationsListPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Ready-to-install orders from the factory */}
+      {readyToInstall.length > 0 && (
+        <div className="bg-amber-50/70 rounded-3xl p-5 border-2 border-amber-300 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <Truck className="w-5 h-5 text-[#C87A38]" />
+            <h2 className="text-sm font-black text-slate-900">جاهز للتركيب ولم يتم تحديد موعد ({readyToInstall.length})</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {readyToInstall.map(po => (
+              <div key={po.id} className="bg-white rounded-2xl p-4 border border-amber-200 flex items-center justify-between gap-3 text-xs">
+                <div className="space-y-0.5">
+                  <p className="font-black text-slate-900">{po.customerName}</p>
+                  <p className="text-slate-500 font-bold"><span className="font-mono">{po.productionNumber}</span> · {po.projectNumber}</p>
+                  <p className="text-emerald-700 font-bold">✓ التصنيع مكتمل {po.actualCompletionDate ? `(${po.actualCompletionDate.substring(0, 10)})` : ''}</p>
+                </div>
+                <button
+                  onClick={() => openSchedule(po)}
+                  className="px-4 py-2 bg-[#361D13] hover:bg-[#23120A] text-white font-black rounded-xl shadow-md flex items-center gap-1.5 shrink-0"
+                >
+                  <Calendar className="w-4 h-4 text-[#C87A38]" />
+                  <span>جدولة موعد التركيب</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Installations Cards List */}
       <div className="space-y-4">
@@ -241,6 +298,66 @@ export const InstallationsListPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* SCHEDULE INSTALLATION MODAL */}
+      {scheduleFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl text-right space-y-3 text-xs">
+            <h3 className="text-base font-black text-slate-900">جدولة تركيب {scheduleFor.customerName}</h3>
+            <p className="text-slate-500 font-bold">{scheduleFor.productionNumber} · {scheduleFor.projectNumber}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block font-bold mb-1">تاريخ التركيب</label>
+                <input type="date" value={schedDate} onChange={e => setSchedDate(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">الساعة</label>
+                <input type="time" value={schedTime} onChange={e => setSchedTime(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold" />
+              </div>
+            </div>
+            <div>
+              <label className="block font-bold mb-1">عنوان الموقع</label>
+              <input type="text" value={schedAddress} onChange={e => setSchedAddress(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold" />
+            </div>
+            <div>
+              <label className="block font-bold mb-1">فريق التركيب</label>
+              <div className="flex flex-wrap gap-1.5">
+                {installerOptions.map(u => {
+                  const on = schedTeam.includes(u.id);
+                  return (
+                    <button
+                      key={u.id}
+                      type="button"
+                      onClick={() => setSchedTeam(prev => on ? prev.filter(id => id !== u.id) : [...prev, u.id])}
+                      className={`px-3 py-1.5 rounded-xl border font-bold ${on ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-slate-50 text-slate-700 border-slate-200'}`}
+                    >
+                      {u.fullName}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <label className="block font-bold mb-1">ملاحظات للفريق</label>
+              <textarea rows={2} value={schedNotes} onChange={e => setSchedNotes(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold"></textarea>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setScheduleFor(null)} className="px-4 py-2 border rounded-xl font-bold">إلغاء</button>
+              <button
+                type="button"
+                disabled={!schedAddress || schedTeam.length === 0}
+                onClick={() => {
+                  scheduleInstallation(scheduleFor.id, schedDate, schedTime, schedAddress, schedTeam, schedNotes);
+                  setScheduleFor(null);
+                }}
+                className="px-5 py-2 bg-[#C87A38] disabled:opacity-50 text-white font-black rounded-xl shadow-md"
+              >
+                تأكيد الموعد
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* COMPLETE INSTALLATION MODAL */}
       {activeCompleteInst && (

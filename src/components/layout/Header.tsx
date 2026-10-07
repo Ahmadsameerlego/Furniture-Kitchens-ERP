@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { demoPersonas } from '../../mock/initialData';
 import { DemoPersonaId } from '../../types/erp';
+import { resetDemoState } from '../../services/demoPersistence';
 import {
   MapPin,
   Bell,
   ChevronDown,
   User as UserIcon,
+  RotateCcw,
   LogOut,
   Settings,
   Search,
@@ -210,6 +212,15 @@ export const Header: React.FC = () => {
       {/* LEFT SECTION: Portal Link, Persona, Notifications, Lang & User */}
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         
+        {/* Reset the demo to its original scenario */}
+        <button
+          onClick={() => { if (window.confirm('إعادة الديمو لبدايته؟ سيتم مسح كل ما تم إدخاله على الشاشات.')) resetDemoState(); }}
+          className="p-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 shrink-0"
+          title="إعادة الديمو لبدايته"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+
         {/* Customer Portal Button */}
         <button
           onClick={() => setActiveModule('portal')}

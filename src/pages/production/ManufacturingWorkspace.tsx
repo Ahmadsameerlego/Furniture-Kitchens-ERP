@@ -9,15 +9,6 @@ import {
   ManufacturingPackageItem,
   QualityGateInspection
 } from '../../types/production';
-import {
-  initialWorkCenters,
-  initialWorkOrders,
-  initialScrapClaims,
-  initialOffCutReturns,
-  initialPackages,
-  initialQualityInspections
-} from '../../mock/productionData';
-import { harmonizeMockData } from '../../mock/scenario';
 
 // Modals
 import { ProductionOrderDetailsModal } from '../../components/production/ProductionOrderDetailsModal';
@@ -65,19 +56,24 @@ export const ManufacturingWorkspace: React.FC<ManufacturingWorkspaceProps> = ({
     completeProductionOrder,
     recordInventoryWipMovement,
     recordProductionCompletionToFinishedGoods,
-    showToast
+    showToast,
+    startProductionOrder,
+    workCenters,
+    setWorkCenters,
+    workOrders,
+    setWorkOrders,
+    scrapClaims,
+    setScrapClaims,
+    offCutReturns,
+    setOffCutReturns,
+    manufacturingPackages: packages,
+    setManufacturingPackages: setPackages,
+    qualityInspections,
+    setQualityInspections
   } = useERP();
 
   // Active Tab State
-  const [activeTab, setActiveTab] = useState<string>(() => harmonizeMockData(initialTab));
-
-  // Local state for manufacturing suite data
-  const [workCenters, setWorkCenters] = useState<WorkCenter[]>(() => harmonizeMockData(initialWorkCenters));
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(() => harmonizeMockData(initialWorkOrders));
-  const [scrapClaims, setScrapClaims] = useState<ScrapClaimRecord[]>(() => harmonizeMockData(initialScrapClaims));
-  const [offCutReturns, setOffCutReturns] = useState<OffCutReturnRecord[]>(() => harmonizeMockData(initialOffCutReturns));
-  const [packages, setPackages] = useState<ManufacturingPackageItem[]>(() => harmonizeMockData(initialPackages));
-  const [qualityInspections, setQualityInspections] = useState<QualityGateInspection[]>(() => harmonizeMockData(initialQualityInspections));
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   // Modals state
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<ProductionOrder | null>(null);
@@ -92,27 +88,54 @@ export const ManufacturingWorkspace: React.FC<ManufacturingWorkspaceProps> = ({
 
   // Handler: Update Work Order status (Start / Pause / Complete)
   const handleUpdateWOStatus = (woId: string, newStatus: WorkOrder['status']) => {
+    const target = workOrders.find(wo => wo.id === woId);
+    if (!target) return;
+
+    // The first station to start issues the order's materials (blocked while any are short)
+    if (newStatus === 'in_progress') {
+      const mo = productionOrders.find(o => o.id === target.manufacturingOrderId);
+      if (mo && mo.status === 'pending' && !startProductionOrder(mo.id)) return;
+    }
+
+    const nowStr = new Date().toISOString().substring(0, 16).replace('T', ' ');
+    const isDone = newStatus === 'completed';
+    const siblings = workOrders
+      .filter(wo => wo.manufacturingOrderId === target.manufacturingOrderId)
+      .sort((x, y) => x.sequenceOrder - y.sequenceOrder);
+    const next = siblings.find(wo => wo.sequenceOrder > target.sequenceOrder);
+
     setWorkOrders(prev =>
       prev.map(wo => {
         if (wo.id === woId) {
-          const isDone = newStatus === 'completed';
-          const nowStr = new Date().toISOString().substring(0, 16).replace('T', ' ');
+          const startedAt = newStatus === 'in_progress' && !wo.startedAt ? nowStr : wo.startedAt;
+          const elapsed = isDone && startedAt ? Math.round((Date.now() - new Date(startedAt.replace(' ', 'T')).getTime()) / 60000) : 0;
           return {
             ...wo,
             status: newStatus,
-            progressPercentage: isDone ? 100 : newStatus === 'in_progress' ? 50 : wo.progressPercentage,
+            progressPercentage: isDone ? 100 : newStatus === 'in_progress' ? Math.max(wo.progressPercentage, 10) : wo.progressPercentage,
+            partsCompletedCount: isDone ? wo.partsToProcessCount : wo.partsCompletedCount,
+            // Demo runs finish in seconds, so fall back to the planned time for costing
+            actualDurationMinutes: isDone ? (elapsed > 5 ? elapsed : wo.plannedDurationMinutes) : wo.actualDurationMinutes,
             completedAt: isDone ? nowStr : wo.completedAt,
-            startedAt: newStatus === 'in_progress' && !wo.startedAt ? nowStr : wo.startedAt
+            startedAt
           };
+        }
+        // Completing a station releases the next one in the routing
+        if (isDone && next && wo.id === next.id && wo.status === 'pending') {
+          return { ...wo, status: 'ready' };
         }
         return wo;
       })
     );
 
-    if (newStatus === 'completed') {
-      showToast('تم إنجاز مرحلة التشغيل وتسليمها بنجاح للمرحلة التالية ✅', 'success');
+    if (isDone) {
+      const remaining = siblings.filter(wo => wo.id !== woId && wo.status !== 'completed').length;
+      const nextLabel = next ? ' (' + next.workCenterName + ')' : '';
+      showToast(remaining === 0
+        ? '✅ اكتملت كل محطات ' + target.manufacturingOrderNumber + ' - يمكن إنهاء أمر التصنيع وتحويله للتركيبات'
+        : '✅ تم إنجاز "' + target.operationName + '" وتحويل الشغل للمحطة التالية' + nextLabel, 'success');
     } else if (newStatus === 'in_progress') {
-      showToast('تم بدء تشغيل الماكينة وأمر الشغل ⚡', 'info');
+      showToast('⚡ بدأ التشغيل على ' + target.workCenterName, 'info');
     }
   };
 

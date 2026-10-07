@@ -56,6 +56,7 @@ export const PlanningPage: React.FC<PlanningPageProps> = ({ initialTab = 'plan_d
     rescheduleProjectTimeline,
     updateWorkCenterCapacityHours,
     batchGenerateProposalsFromShortages,
+    itemMasterCards,
     setActiveModule
   } = useERP();
 
@@ -71,7 +72,7 @@ export const PlanningPage: React.FC<PlanningPageProps> = ({ initialTab = 'plan_d
   const [selectedProjectToReschedule, setSelectedProjectToReschedule] = useState<ProjectPlanningReadiness | null>(null);
 
   // Calculate Net Requirements on current demands
-  const netRequirements = calculateNetRequirements(planningDemands);
+  const netRequirements = calculateNetRequirements(planningDemands, itemMasterCards);
 
   const handleOpenProposalDetails = (proposal: SupplyProposal) => {
     setSelectedProposal(proposal);

@@ -129,7 +129,26 @@ import {
   initialCommercialPaymentSchedules
 } from '../mock/commercialData';
 import { initialVariationOrders } from '../mock/salesData';
-import { harmonizeMockData, buildFiscalPeriods, PLANNING_MOCK_ANCHOR } from '../mock/scenario';
+import { harmonizeMockData, buildFiscalPeriods, daysFromToday, PLANNING_MOCK_ANCHOR } from '../mock/scenario';
+import {
+  initialWorkCenters,
+  initialWorkOrders,
+  initialScrapClaims,
+  initialOffCutReturns,
+  initialPackages,
+  initialQualityInspections
+} from '../mock/productionData';
+import {
+  WorkCenter,
+  WorkOrder,
+  ScrapClaimRecord,
+  OffCutReturnRecord,
+  ManufacturingPackageItem,
+  QualityGateInspection
+} from '../types/production';
+import { loadDemoState, saveDemoState } from '../services/demoPersistence';
+import { aggregateBomRequirements, buildStandardRouting, toProductionMaterials } from '../services/productionPlanning';
+import { availableStockFor, ensureCatalogItemCards, resolveCatalogItem } from '../services/materialCatalog';
 import { VariationOrder } from '../types/sales';
 import {
   initialProductionOrders,
@@ -356,6 +375,20 @@ interface ERPContextType {
   // Prompt 7: Production & Installation State
   productionOrders: ProductionOrder[];
   installationRecords: InstallationRecord[];
+
+  // Shop floor (work centers, station work orders, scrap, off-cuts, packages, QC)
+  workCenters: WorkCenter[];
+  setWorkCenters: React.Dispatch<React.SetStateAction<WorkCenter[]>>;
+  workOrders: WorkOrder[];
+  setWorkOrders: React.Dispatch<React.SetStateAction<WorkOrder[]>>;
+  scrapClaims: ScrapClaimRecord[];
+  setScrapClaims: React.Dispatch<React.SetStateAction<ScrapClaimRecord[]>>;
+  offCutReturns: OffCutReturnRecord[];
+  setOffCutReturns: React.Dispatch<React.SetStateAction<OffCutReturnRecord[]>>;
+  manufacturingPackages: ManufacturingPackageItem[];
+  setManufacturingPackages: React.Dispatch<React.SetStateAction<ManufacturingPackageItem[]>>;
+  qualityInspections: QualityGateInspection[];
+  setQualityInspections: React.Dispatch<React.SetStateAction<QualityGateInspection[]>>;
   selectedProductionOrderId: string | null;
 
   // Prompt 8: Central Finance State
@@ -405,7 +438,7 @@ interface ERPContextType {
     orderId?: string;
     projectId?: string;
     notes?: string;
-  }) => CustomerAdvance;
+  }, options?: { silent?: boolean }) => CustomerAdvance;
   applyCustomerAdvanceToInvoice: (invoiceId: string, advanceId: string, amountToApply: number) => boolean;
   createVendorBill: (billData: any) => VendorBill;
   recordVendorBillPayment: (billId: string, amount: number, paymentMethod: string, accountId: string, withholdingTaxRate?: number, notes?: string) => boolean;
@@ -512,6 +545,7 @@ interface ERPContextType {
   reserveProductionMaterials: (productionOrderId: string, materialId: string, qtyToReserve: number) => void;
   consumeProductionMaterials: (productionOrderId: string, materialId: string, qtyToConsume: number, notes?: string) => void;
   completeProductionOrder: (productionOrderId: string, completionPhotos: string[], notes?: string) => void;
+  startProductionOrder: (productionOrderId: string) => boolean;
   scheduleInstallation: (productionOrderId: string, scheduledDate: string, scheduledTime: string, address: string, assignedTeamIds: string[], notes?: string) => InstallationRecord;
   completeInstallation: (installationId: string, afterPhotos: string[], notes?: string) => void;
   completeHandover: (installationId: string, notes?: string) => void;
@@ -590,115 +624,263 @@ interface ERPContextType {
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
 
 export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [company, setCompany] = useState<CompanyConfig>(() => harmonizeMockData(initialCompany));
-  const [branches, setBranches] = useState<Branch[]>(() => harmonizeMockData(initialBranches));
-  const [roles, setRoles] = useState<Role[]>(() => harmonizeMockData(initialRoles));
-  const [users, setUsers] = useState<User[]>(() => harmonizeMockData(initialUsers));
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => harmonizeMockData(initialAuditLogs));
+  // Working data saved in the browser (if any) wins over the seeded scenario
+  const [persistedDemo] = useState(() => loadDemoState());
+  const restore = <T,>(key: string, seed: () => T): T =>
+    persistedDemo && key in persistedDemo ? (persistedDemo[key] as T) : seed();
+
+  const [company, setCompany] = useState<CompanyConfig>(() => restore('company', () => harmonizeMockData(initialCompany)));
+  const [branches, setBranches] = useState<Branch[]>(() => restore('branches', () => harmonizeMockData(initialBranches)));
+  const [roles, setRoles] = useState<Role[]>(() => restore('roles', () => harmonizeMockData(initialRoles)));
+  const [users, setUsers] = useState<User[]>(() => restore('users', () => harmonizeMockData(initialUsers)));
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => restore('auditLogs', () => harmonizeMockData(initialAuditLogs)));
   
   // CRM State
-  const [customers, setCustomers] = useState<Customer[]>(() => harmonizeMockData(initialCustomers));
-  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>(() => harmonizeMockData(initialCampaigns));
-  const [activities, setActivities] = useState<CustomerActivity[]>(() => harmonizeMockData(initialActivities));
-  const [reminders, setReminders] = useState<CustomerReminder[]>(() => harmonizeMockData(initialReminders));
-  const [documents, setDocuments] = useState<CustomerDocument[]>(() => harmonizeMockData(initialDocuments));
-  const [afterSalesRecords, setAfterSalesRecords] = useState<AfterSalesRecord[]>(() => harmonizeMockData(initialAfterSalesRecords));
+  const [customers, setCustomers] = useState<Customer[]>(() => restore('customers', () => harmonizeMockData(initialCustomers)));
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>(() => restore('campaigns', () => harmonizeMockData(initialCampaigns)));
+  const [activities, setActivities] = useState<CustomerActivity[]>(() => restore('activities', () => harmonizeMockData(initialActivities)));
+  const [reminders, setReminders] = useState<CustomerReminder[]>(() => restore('reminders', () => harmonizeMockData(initialReminders)));
+  const [documents, setDocuments] = useState<CustomerDocument[]>(() => restore('documents', () => harmonizeMockData(initialDocuments)));
+  const [afterSalesRecords, setAfterSalesRecords] = useState<AfterSalesRecord[]>(() => restore('afterSalesRecords', () => harmonizeMockData(initialAfterSalesRecords)));
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   // Ready Sales & Suppliers State
-  const [products, setProducts] = useState<Product[]>(() => harmonizeMockData(initialProducts));
-  const [suppliers, setSuppliers] = useState<Supplier[]>(() => harmonizeMockData(initialSuppliers));
-  const [supplierInvoices, setSupplierInvoices] = useState<SupplierPurchaseInvoice[]>(() => harmonizeMockData(initialSupplierInvoices));
-  const [supplierPayments, setSupplierPayments] = useState<SupplierPaymentRecord[]>(() => harmonizeMockData(initialSupplierPayments));
-  const [orders, setOrders] = useState<ReadyOrder[]>(() => harmonizeMockData(initialOrders));
-  const [payments, setPayments] = useState<CustomerPayment[]>(() => harmonizeMockData(initialPayments));
-  const [paymentSchedules, setPaymentSchedules] = useState<PaymentSchedule[]>(() => harmonizeMockData(initialCommercialPaymentSchedules));
-  const [returns, setReturns] = useState<OrderReturn[]>(() => harmonizeMockData(initialReturns));
+  const [products, setProducts] = useState<Product[]>(() => restore('products', () => harmonizeMockData(initialProducts)));
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => restore('suppliers', () => harmonizeMockData(initialSuppliers)));
+  const [supplierInvoices, setSupplierInvoices] = useState<SupplierPurchaseInvoice[]>(() => restore('supplierInvoices', () => harmonizeMockData(initialSupplierInvoices)));
+  const [supplierPayments, setSupplierPayments] = useState<SupplierPaymentRecord[]>(() => restore('supplierPayments', () => harmonizeMockData(initialSupplierPayments)));
+  const [orders, setOrders] = useState<ReadyOrder[]>(() => restore('orders', () => harmonizeMockData(initialOrders)));
+  const [payments, setPayments] = useState<CustomerPayment[]>(() => restore('payments', () => harmonizeMockData(initialPayments)));
+  const [paymentSchedules, setPaymentSchedules] = useState<PaymentSchedule[]>(() => restore('paymentSchedules', () => harmonizeMockData(initialCommercialPaymentSchedules)));
+  const [returns, setReturns] = useState<OrderReturn[]>(() => restore('returns', () => harmonizeMockData(initialReturns)));
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
 
   // Prompt 4 State
-  const [materials, setMaterials] = useState<Material[]>(() => harmonizeMockData(initialMaterials));
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => harmonizeMockData(initialPurchaseOrders));
-  const [stockMovements, setStockMovements] = useState<StockMovement[]>(() => harmonizeMockData(initialStockMovements));
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(() => harmonizeMockData(initialStockTransfers));
-  const [supplierReturns, setSupplierReturns] = useState<SupplierReturn[]>(() => harmonizeMockData(initialSupplierReturns));
-  const [notifications, setNotifications] = useState<SystemNotification[]>(() => harmonizeMockData(initialNotifications));
+  const [materials, setMaterials] = useState<Material[]>(() => restore('materials', () => harmonizeMockData(initialMaterials)));
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => restore('purchaseOrders', () => harmonizeMockData(initialPurchaseOrders)));
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>(() => restore('stockMovements', () => harmonizeMockData(initialStockMovements)));
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(() => restore('stockTransfers', () => harmonizeMockData(initialStockTransfers)));
+  const [supplierReturns, setSupplierReturns] = useState<SupplierReturn[]>(() => restore('supplierReturns', () => harmonizeMockData(initialSupplierReturns)));
+  const [notifications, setNotifications] = useState<SystemNotification[]>(() => restore('notifications', () => harmonizeMockData(initialNotifications)));
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
 
   // Prompt 5 & 6 State
-  const [customProjects, setCustomProjects] = useState<CustomProject[]>(() => harmonizeMockData(initialCustomProjects));
-  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(() => harmonizeMockData(initialSiteVisits));
-  const [projectMeasurements, setProjectMeasurements] = useState<ProjectMeasurement[]>(() => harmonizeMockData(initialProjectMeasurements));
-  const [projectDesigns, setProjectDesigns] = useState<ProjectDesign[]>(() => harmonizeMockData(initialProjectDesigns));
-  const [projectQuotations, setProjectQuotations] = useState<ProjectQuotation[]>(() => harmonizeMockData(initialProjectQuotations));
-  const [projectTimelineEvents, setProjectTimelineEvents] = useState<ProjectTimelineEvent[]>(() => harmonizeMockData(initialProjectTimelineEvents));
-  const [customContracts, setCustomContracts] = useState<CustomContract[]>(() => harmonizeMockData(initialCustomContracts));
-  const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(() => harmonizeMockData(initialProjectHandovers));
-  const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(() => harmonizeMockData(initialPaymentReceipts));
-  const [variationOrders, setVariationOrders] = useState<VariationOrder[]>(() => harmonizeMockData(initialVariationOrders));
+  const [customProjects, setCustomProjects] = useState<CustomProject[]>(() => restore('customProjects', () => harmonizeMockData(initialCustomProjects)));
+  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(() => restore('siteVisits', () => harmonizeMockData(initialSiteVisits)));
+  const [projectMeasurements, setProjectMeasurements] = useState<ProjectMeasurement[]>(() => restore('projectMeasurements', () => harmonizeMockData(initialProjectMeasurements)));
+  const [projectDesigns, setProjectDesigns] = useState<ProjectDesign[]>(() => restore('projectDesigns', () => harmonizeMockData(initialProjectDesigns)));
+  const [projectQuotations, setProjectQuotations] = useState<ProjectQuotation[]>(() => restore('projectQuotations', () => harmonizeMockData(initialProjectQuotations)));
+  const [projectTimelineEvents, setProjectTimelineEvents] = useState<ProjectTimelineEvent[]>(() => restore('projectTimelineEvents', () => harmonizeMockData(initialProjectTimelineEvents)));
+  const [customContracts, setCustomContracts] = useState<CustomContract[]>(() => restore('customContracts', () => harmonizeMockData(initialCustomContracts)));
+  const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(() => restore('projectHandovers', () => harmonizeMockData(initialProjectHandovers)));
+  const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(() => restore('paymentReceipts', () => harmonizeMockData(initialPaymentReceipts)));
+  const [variationOrders, setVariationOrders] = useState<VariationOrder[]>(() => restore('variationOrders', () => harmonizeMockData(initialVariationOrders)));
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [portalCurrentCustomerId, setPortalCurrentCustomerId] = useState<string>('cust-1');
 
   // Technical Office & Engineering State
-  const [technicalProjects, setTechnicalProjects] = useState<TechnicalProject[]>(() => harmonizeMockData(initialTechnicalProjects));
-  const [technicalSurveys, setTechnicalSurveys] = useState<TechnicalSiteSurvey[]>(() => harmonizeMockData(initialTechnicalSurveys));
-  const [technicalDesigns, setTechnicalDesigns] = useState<TechnicalDesignRevision[]>(() => harmonizeMockData(initialTechnicalDesigns));
-  const [technicalBOMs, setTechnicalBOMs] = useState<TechnicalBOM[]>(() => harmonizeMockData(initialTechnicalBOMs));
-  const [technicalReleases, setTechnicalReleases] = useState<TechnicalReleasePackage[]>(() => harmonizeMockData(initialTechnicalReleases));
-  const [engineeringChangeRequests, setEngineeringChangeRequests] = useState<EngineeringChangeRequest[]>(() => harmonizeMockData(initialEngineeringChangeRequests));
+  const [technicalProjects, setTechnicalProjects] = useState<TechnicalProject[]>(() => restore('technicalProjects', () => harmonizeMockData(initialTechnicalProjects)));
+  const [technicalSurveys, setTechnicalSurveys] = useState<TechnicalSiteSurvey[]>(() => restore('technicalSurveys', () => harmonizeMockData(initialTechnicalSurveys)));
+  const [technicalDesigns, setTechnicalDesigns] = useState<TechnicalDesignRevision[]>(() => restore('technicalDesigns', () => harmonizeMockData(initialTechnicalDesigns)));
+  const [technicalBOMs, setTechnicalBOMs] = useState<TechnicalBOM[]>(() => restore('technicalBOMs', () => harmonizeMockData(initialTechnicalBOMs)));
+  const [technicalReleases, setTechnicalReleases] = useState<TechnicalReleasePackage[]>(() => restore('technicalReleases', () => harmonizeMockData(initialTechnicalReleases)));
+  const [engineeringChangeRequests, setEngineeringChangeRequests] = useState<EngineeringChangeRequest[]>(() => restore('engineeringChangeRequests', () => harmonizeMockData(initialEngineeringChangeRequests)));
   const [selectedTechnicalProjectId, setSelectedTechnicalProjectId] = useState<string | null>(null);
 
   // Prompt 7 State
-  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(() => harmonizeMockData(initialProductionOrders));
-  const [installationRecords, setInstallationRecords] = useState<InstallationRecord[]>(() => harmonizeMockData(initialInstallationRecords));
+  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(() => restore('productionOrders', () => harmonizeMockData(initialProductionOrders)));
+  const [installationRecords, setInstallationRecords] = useState<InstallationRecord[]>(() => restore('installationRecords', () => harmonizeMockData(initialInstallationRecords)));
+  const [workCenters, setWorkCenters] = useState<WorkCenter[]>(() => restore('workCenters', () => harmonizeMockData(initialWorkCenters)));
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(() => restore('workOrders', () => harmonizeMockData(initialWorkOrders)));
+  const [scrapClaims, setScrapClaims] = useState<ScrapClaimRecord[]>(() => restore('scrapClaims', () => harmonizeMockData(initialScrapClaims)));
+  const [offCutReturns, setOffCutReturns] = useState<OffCutReturnRecord[]>(() => restore('offCutReturns', () => harmonizeMockData(initialOffCutReturns)));
+  const [manufacturingPackages, setManufacturingPackages] = useState<ManufacturingPackageItem[]>(() => restore('manufacturingPackages', () => harmonizeMockData(initialPackages)));
+  const [qualityInspections, setQualityInspections] = useState<QualityGateInspection[]>(() => restore('qualityInspections', () => harmonizeMockData(initialQualityInspections)));
   const [selectedProductionOrderId, setSelectedProductionOrderId] = useState<string | null>(null);
 
   // Prompt 8 Finance State
-  const [expenses, setExpenses] = useState<CompanyExpense[]>(() => harmonizeMockData(initialCompanyExpenses));
-  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>(() => harmonizeMockData(initialFinancialAccounts));
-  const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>(() => harmonizeMockData(initialFinancialTransactions));
+  const [expenses, setExpenses] = useState<CompanyExpense[]>(() => restore('expenses', () => harmonizeMockData(initialCompanyExpenses)));
+  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>(() => restore('financialAccounts', () => harmonizeMockData(initialFinancialAccounts)));
+  const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>(() => restore('financialTransactions', () => harmonizeMockData(initialFinancialTransactions)));
 
   // Production-Ready Accounting Module State
-  const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>(() => harmonizeMockData(initialChartOfAccounts));
-  const [journals, setJournals] = useState<Journal[]>(() => harmonizeMockData(initialJournals));
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(() => harmonizeMockData(initialJournalEntries));
-  const [fiscalPeriods, setFiscalPeriods] = useState<FiscalPeriod[]>(() => buildFiscalPeriods() as FiscalPeriod[]);
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(() => harmonizeMockData(initialCostCenters));
-  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(() => harmonizeMockData(initialSalesInvoices));
-  const [vendorBills, setVendorBills] = useState<VendorBill[]>(() => harmonizeMockData(initialVendorBills));
-  const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(() => harmonizeMockData(initialCustomerAdvances));
-  const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(() => harmonizeMockData(initialPDCRecords));
+  const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>(() => restore('chartOfAccounts', () => harmonizeMockData(initialChartOfAccounts)));
+  const [journals, setJournals] = useState<Journal[]>(() => restore('journals', () => harmonizeMockData(initialJournals)));
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(() => restore('journalEntries', () => harmonizeMockData(initialJournalEntries)));
+  const [fiscalPeriods, setFiscalPeriods] = useState<FiscalPeriod[]>(() => restore('fiscalPeriods', () => buildFiscalPeriods() as FiscalPeriod[]));
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(() => restore('costCenters', () => harmonizeMockData(initialCostCenters)));
+  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(() => restore('salesInvoices', () => harmonizeMockData(initialSalesInvoices)));
+  const [vendorBills, setVendorBills] = useState<VendorBill[]>(() => restore('vendorBills', () => harmonizeMockData(initialVendorBills)));
+  const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(() => restore('customerAdvances', () => harmonizeMockData(initialCustomerAdvances)));
+  const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(() => restore('pdcRecords', () => harmonizeMockData(initialPDCRecords)));
 
   // Enterprise Warehouses & Inventory State
-  const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(() => harmonizeMockData(initialWarehouses));
-  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(() => harmonizeMockData(initialItemMasterCards));
-  const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(() => harmonizeMockData(initialGoodsReceiptNotes));
-  const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(() => harmonizeMockData(initialGoodsIssueNotes));
-  const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(() => harmonizeMockData(initialMaterialRequisitions));
-  const [stocktakeSessions, setStocktakeSessions] = useState<StocktakeSession[]>(() => harmonizeMockData(initialStocktakeSessions));
-  const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(() => harmonizeMockData(initialStockLedgerEntries));
+  const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(() => restore('warehouses', () => harmonizeMockData(initialWarehouses)));
+  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(() => restore('itemMasterCards', () => harmonizeMockData(ensureCatalogItemCards(initialItemMasterCards))));
+  const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(() => restore('goodsReceiptNotes', () => harmonizeMockData(initialGoodsReceiptNotes)));
+  const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(() => restore('goodsIssueNotes', () => harmonizeMockData(initialGoodsIssueNotes)));
+  const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(() => restore('materialRequisitions', () => harmonizeMockData(initialMaterialRequisitions)));
+  const [stocktakeSessions, setStocktakeSessions] = useState<StocktakeSession[]>(() => restore('stocktakeSessions', () => harmonizeMockData(initialStocktakeSessions)));
+  const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(() => restore('stockLedgerEntries', () => harmonizeMockData(initialStockLedgerEntries)));
   const [selectedItemCardId, setSelectedItemCardId] = useState<string | null>(null);
 
   // Planning & MRP Module State
-  const [planningDemands, setPlanningDemands] = useState<PlanningDemand[]>(() => harmonizeMockData(initialPlanningDemands, { anchor: PLANNING_MOCK_ANCHOR }));
-  const [supplyProposals, setSupplyProposals] = useState<SupplyProposal[]>(() => harmonizeMockData(initialSupplyProposals, { anchor: PLANNING_MOCK_ANCHOR }));
-  const [workCenterCapacities, setWorkCenterCapacities] = useState<WorkCenterCapacity[]>(() => harmonizeMockData(initialWorkCenterCapacities, { anchor: PLANNING_MOCK_ANCHOR }));
-  const [projectReadinessList, setProjectReadinessList] = useState<ProjectPlanningReadiness[]>(() => harmonizeMockData(initialProjectReadinessList, { anchor: PLANNING_MOCK_ANCHOR }));
-  const [planningRuns, setPlanningRuns] = useState<PlanningRun[]>(() => harmonizeMockData(initialPlanningRuns, { anchor: PLANNING_MOCK_ANCHOR }));
-  const [mpsWeeklyBuckets, setMpsWeeklyBuckets] = useState<MPSWeeklyBucket[]>(() => harmonizeMockData(initialMPSWeeklyBuckets, { anchor: PLANNING_MOCK_ANCHOR }));
-  const [mpsItems, setMpsItems] = useState<MPSItemRow[]>(() => harmonizeMockData(initialMPSItems, { anchor: PLANNING_MOCK_ANCHOR }));
-  const [planningAuditLogs, setPlanningAuditLogs] = useState<PlanningAuditEntry[]>(() => harmonizeMockData(initialPlanningAuditLogs, { anchor: PLANNING_MOCK_ANCHOR }));
+  const [planningDemands, setPlanningDemands] = useState<PlanningDemand[]>(() => restore('planningDemands', () => harmonizeMockData(initialPlanningDemands, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [supplyProposals, setSupplyProposals] = useState<SupplyProposal[]>(() => restore('supplyProposals', () => harmonizeMockData(initialSupplyProposals, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [workCenterCapacities, setWorkCenterCapacities] = useState<WorkCenterCapacity[]>(() => restore('workCenterCapacities', () => harmonizeMockData(initialWorkCenterCapacities, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [projectReadinessList, setProjectReadinessList] = useState<ProjectPlanningReadiness[]>(() => restore('projectReadinessList', () => harmonizeMockData(initialProjectReadinessList, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [planningRuns, setPlanningRuns] = useState<PlanningRun[]>(() => restore('planningRuns', () => harmonizeMockData(initialPlanningRuns, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [mpsWeeklyBuckets, setMpsWeeklyBuckets] = useState<MPSWeeklyBucket[]>(() => restore('mpsWeeklyBuckets', () => harmonizeMockData(initialMPSWeeklyBuckets, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [mpsItems, setMpsItems] = useState<MPSItemRow[]>(() => restore('mpsItems', () => harmonizeMockData(initialMPSItems, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [planningAuditLogs, setPlanningAuditLogs] = useState<PlanningAuditEntry[]>(() => restore('planningAuditLogs', () => harmonizeMockData(initialPlanningAuditLogs, { anchor: PLANNING_MOCK_ANCHOR })));
 
   // Complete Procurement & Purchasing Module State
-  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(() => harmonizeMockData(initialPurchaseRequests));
-  const [rfqs, setRFQs] = useState<RequestForQuotation[]>(() => harmonizeMockData(initialRFQs));
-  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(() => harmonizeMockData(initialSupplierQuotations));
-  const [enterprisePurchaseOrders, setEnterprisePurchaseOrders] = useState<EnterprisePurchaseOrder[]>(() => harmonizeMockData(initialEnterprisePurchaseOrders));
-  const [supplierPriceLists, setSupplierPriceLists] = useState<SupplierItemPrice[]>(() => harmonizeMockData(initialSupplierPriceLists));
-  const [procurementSupplierReturns, setProcurementSupplierReturns] = useState<ProcurementSupplierReturn[]>(() => harmonizeMockData(initialProcurementReturns));
-  const [threeWayMatches, setThreeWayMatches] = useState<ThreeWayMatchingRecord[]>(() => harmonizeMockData(initialThreeWayMatches));
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(() => restore('purchaseRequests', () => harmonizeMockData(initialPurchaseRequests)));
+  const [rfqs, setRFQs] = useState<RequestForQuotation[]>(() => restore('rfqs', () => harmonizeMockData(initialRFQs)));
+  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(() => restore('supplierQuotations', () => harmonizeMockData(initialSupplierQuotations)));
+  const [enterprisePurchaseOrders, setEnterprisePurchaseOrders] = useState<EnterprisePurchaseOrder[]>(() => restore('enterprisePurchaseOrders', () => harmonizeMockData(initialEnterprisePurchaseOrders)));
+  const [supplierPriceLists, setSupplierPriceLists] = useState<SupplierItemPrice[]>(() => restore('supplierPriceLists', () => harmonizeMockData(initialSupplierPriceLists)));
+  const [procurementSupplierReturns, setProcurementSupplierReturns] = useState<ProcurementSupplierReturn[]>(() => restore('procurementSupplierReturns', () => harmonizeMockData(initialProcurementReturns)));
+  const [threeWayMatches, setThreeWayMatches] = useState<ThreeWayMatchingRecord[]>(() => restore('threeWayMatches', () => harmonizeMockData(initialThreeWayMatches)));
+
+
+  // When stock arrives (goods receipt), production orders waiting on it are released:
+  // short lines become reserved, the blocked first station becomes ready, and the
+  // matching planning demands are marked supplied.
+  useEffect(() => {
+    const resolved: Array<{ projectNumber: string; code: string }> = [];
+    const releasedOrders: ProductionOrder[] = [];
+    let changed = false;
+    const next = productionOrders.map(mo => {
+      if (mo.status !== 'pending' || !mo.materials.some(m => m.status === 'shortage')) return mo;
+      let touched = false;
+      const materialsNext = mo.materials.map(m => {
+        if (m.status !== 'shortage') return m;
+        const item = resolveCatalogItem(m.materialCode);
+        const available = item ? availableStockFor(item, itemMasterCards, materials) : 0;
+        if (available < m.requiredQuantity) return m;
+        touched = true;
+        resolved.push({ projectNumber: mo.projectNumber, code: item?.key || m.materialCode });
+        return { ...m, reservedQuantity: m.requiredQuantity, status: 'reserved' as const };
+      });
+      if (!touched) return mo;
+      changed = true;
+      const updated = { ...mo, materials: materialsNext };
+      if (!materialsNext.some(m => m.status === 'shortage')) releasedOrders.push(updated);
+      return updated;
+    });
+    if (!changed) return;
+
+    setProductionOrders(next);
+    setPlanningDemands(prev => prev.map(d => resolved.some(r =>
+      r.projectNumber === d.projectNumber && (resolveCatalogItem(d.itemCode)?.key || d.itemCode) === r.code
+    ) ? { ...d, status: 'fully_supplied' } : d));
+
+    if (releasedOrders.length > 0) {
+      const ids = new Set(releasedOrders.map(o => o.id));
+      setWorkOrders(prev => prev.map(wo => ids.has(wo.manufacturingOrderId) && wo.status === 'blocked'
+        ? { ...wo, status: 'ready', specialInstructions: 'تم استلام الخامات الناقصة - جاهز لبدء التشغيل' }
+        : wo));
+      setProjectReadinessList(prev => prev.map(r => releasedOrders.some(o => o.projectId === r.projectId)
+        ? { ...r, overallReadiness: 'ready', readinessPercentage: 100, coveredMaterialsCount: r.totalMaterialDemandsCount, shortageMaterialsCount: 0, criticalShortages: [] }
+        : r));
+      releasedOrders.forEach(o => addTimelineEvent(o.projectId, `اكتمال خامات ${o.productionNumber}`, 'تم استلام الخامات الناقصة بالمخزن وأمر التصنيع جاهز لبدء التشغيل', 'production'));
+      showToast(`📦 تم استلام الخامات: ${releasedOrders.map(o => o.productionNumber).join('، ')} جاهز لبدء التشغيل في الورشة`, 'success');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemMasterCards]);
+
+  // Persist the working data so a refresh keeps what was done on screen
+  useEffect(() => {
+    const timer = window.setTimeout(() => saveDemoState({
+      company,
+      branches,
+      roles,
+      users,
+      auditLogs,
+      customers,
+      campaigns,
+      activities,
+      reminders,
+      documents,
+      afterSalesRecords,
+      products,
+      suppliers,
+      supplierInvoices,
+      supplierPayments,
+      orders,
+      payments,
+      paymentSchedules,
+      returns,
+      materials,
+      purchaseOrders,
+      stockMovements,
+      stockTransfers,
+      supplierReturns,
+      notifications,
+      customProjects,
+      siteVisits,
+      projectMeasurements,
+      projectDesigns,
+      projectQuotations,
+      projectTimelineEvents,
+      customContracts,
+      projectHandovers,
+      paymentReceipts,
+      variationOrders,
+      technicalProjects,
+      technicalSurveys,
+      technicalDesigns,
+      technicalBOMs,
+      technicalReleases,
+      engineeringChangeRequests,
+      productionOrders,
+      installationRecords,
+      workCenters,
+      workOrders,
+      scrapClaims,
+      offCutReturns,
+      manufacturingPackages,
+      qualityInspections,
+      expenses,
+      financialAccounts,
+      financialTransactions,
+      chartOfAccounts,
+      journals,
+      journalEntries,
+      fiscalPeriods,
+      costCenters,
+      salesInvoices,
+      vendorBills,
+      customerAdvances,
+      pdcRecords,
+      warehouses,
+      itemMasterCards,
+      goodsReceiptNotes,
+      goodsIssueNotes,
+      materialRequisitions,
+      stocktakeSessions,
+      stockLedgerEntries,
+      planningDemands,
+      supplyProposals,
+      workCenterCapacities,
+      projectReadinessList,
+      planningRuns,
+      mpsWeeklyBuckets,
+      mpsItems,
+      planningAuditLogs,
+      purchaseRequests,
+      rfqs,
+      supplierQuotations,
+      enterprisePurchaseOrders,
+      supplierPriceLists,
+      procurementSupplierReturns,
+      threeWayMatches
+    }), 400);
+    return () => window.clearTimeout(timer);
+  }, [company, branches, roles, users, auditLogs, customers, campaigns, activities, reminders, documents, afterSalesRecords, products, suppliers, supplierInvoices, supplierPayments, orders, payments, paymentSchedules, returns, materials, purchaseOrders, stockMovements, stockTransfers, supplierReturns, notifications, customProjects, siteVisits, projectMeasurements, projectDesigns, projectQuotations, projectTimelineEvents, customContracts, projectHandovers, paymentReceipts, variationOrders, technicalProjects, technicalSurveys, technicalDesigns, technicalBOMs, technicalReleases, engineeringChangeRequests, productionOrders, installationRecords, workCenters, workOrders, scrapClaims, offCutReturns, manufacturingPackages, qualityInspections, expenses, financialAccounts, financialTransactions, chartOfAccounts, journals, journalEntries, fiscalPeriods, costCenters, salesInvoices, vendorBills, customerAdvances, pdcRecords, warehouses, itemMasterCards, goodsReceiptNotes, goodsIssueNotes, materialRequisitions, stocktakeSessions, stockLedgerEntries, planningDemands, supplyProposals, workCenterCapacities, projectReadinessList, planningRuns, mpsWeeklyBuckets, mpsItems, planningAuditLogs, purchaseRequests, rfqs, supplierQuotations, enterprisePurchaseOrders, supplierPriceLists, procurementSupplierReturns, threeWayMatches]);
   const [selectedPRId, setSelectedPRId] = useState<string | null>(null);
   const [selectedRFQId, setSelectedRFQId] = useState<string | null>(null);
   const [selectedPOId, setSelectedPOId] = useState<string | null>(null);
@@ -2223,12 +2405,72 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newContract;
   };
 
+  // Next number in a document series (e.g. PROD-2026-0015) from the documents already issued.
+  const nextDocNumber = (prefix: string, existing: string[], pad: number) => {
+    const year = new Date().getFullYear();
+    const max = existing.reduce((acc, n) => {
+      const v = Number(String(n).split('-').pop());
+      return Number.isFinite(v) ? Math.max(acc, v) : acc;
+    }, 0);
+    return `${prefix}-${year}-${String(max + 1).padStart(pad, '0')}`;
+  };
+
+  // Next sequential receipt number (RCP-<year>-NNN) based on the receipts already issued.
+  const nextReceiptNumber = () => {
+    const year = new Date().getFullYear();
+    const max = paymentReceipts.reduce((acc, r) => {
+      const n = Number(r.receiptNumber.split('-').pop());
+      return Number.isFinite(n) ? Math.max(acc, n) : acc;
+    }, 0);
+    return `RCP-${year}-${String(max + 1).padStart(3, '0')}`;
+  };
+
+  // Money collected against a bespoke contract is posted to accounting as a customer
+  // advance (Dr bank/cash, Cr customer advances until invoicing) and moves the treasury
+  // balance, so finance sees exactly what sales recorded.
+  const postContractCollection = (contract: CustomContract, amount: number, paymentMethod: string, receiptNumber: string, label: string) => {
+    const method = (['cash', 'bank_transfer', 'check', 'card'].includes(paymentMethod) ? paymentMethod : 'bank_transfer') as 'cash' | 'bank_transfer' | 'check' | 'card';
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    recordCustomerAdvancePayment({
+      customerId: contract.customerId,
+      amount,
+      paymentMethod: method,
+      accountId: '',
+      projectId: contract.projectId,
+      notes: `${label} - ${contract.contractNumber} (${receiptNumber})`
+    }, { silent: true });
+
+    const treasury = financialAccounts.find(a => a.type === (method === 'cash' ? 'cash' : 'bank')) || financialAccounts[0];
+    if (!treasury) return;
+    setFinancialAccounts(prev => prev.map(a => a.id === treasury.id ? { ...a, currentBalance: a.currentBalance + amount } : a));
+    setFinancialTransactions(prev => [{
+      id: `ft-${Date.now()}`,
+      refNumber: receiptNumber,
+      timestamp,
+      type: 'income',
+      category: 'تحصيل دفعات عملاء',
+      description: `${label} - ${contract.customerName} (${contract.projectNumber})`,
+      amount,
+      direction: 'in',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      accountId: treasury.id,
+      accountName: treasury.name,
+      customerId: contract.customerId,
+      customerName: contract.customerName,
+      projectId: contract.projectId,
+      projectNumber: contract.projectNumber,
+      createdByUserName: currentUser.fullName
+    }, ...prev]);
+  };
+
   const verifyContractDeposit = (contractId: string, receiptNumber?: string, amount?: number) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetContract = customContracts.find(c => c.id === contractId);
     if (!targetContract) return;
 
-    const rNumber = receiptNumber || `RCP-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const rNumber = receiptNumber || nextReceiptNumber();
     const depositAmt = amount || (targetContract.milestones[0]?.amount || Math.round(targetContract.totalValue * 0.4));
 
     setCustomContracts(prev => prev.map(c => {
@@ -2266,10 +2508,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notes: `عربون تعاقد لمشروع ${targetContract.projectNumber}`
     };
     setPaymentReceipts(prev => [newReceipt, ...prev]);
+    postContractCollection(targetContract, depositAmt, 'bank_transfer', rNumber, 'عربون تعاقد');
 
     updateProjectStatus(targetContract.projectId, 'deposit_verified');
     addTimelineEvent(targetContract.projectId, `تأكيد استلام عربون التعاقد (${rNumber})`, `تم إيداع مبلغ ${depositAmt.toLocaleString('ar-EG')} ج.م بالخزينة/البنك والتحقق المالي`, 'payment');
-    showToast(`✓ تم التحقق المالي من سداد العربون (${rNumber}) وإيداعه بحسابات الشركة`, 'success');
+    showToast(`✓ تم تحصيل العربون (${rNumber}) وترحيل قيد العربون للحسابات وإضافته لرصيد البنك`, 'success');
   };
 
   const createVariationOrder = (data: Omit<VariationOrder, 'id' | 'orderNumber' | 'status'>): VariationOrder => {
@@ -2299,21 +2542,64 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notes: notes ? `${v.notes || ''} | ${notes}` : v.notes
     } : v));
 
-    // Update the associated Contract's totalValue
+    // Contract value grows by the price impact, spread over the milestones not yet paid
+    // (by their percentage weight) so the payment schedule always adds up to the new total.
     setCustomContracts(prev => prev.map(c => {
-      if (c.id === targetVO.contractId || c.projectId === targetVO.projectId) {
-        const newTotal = c.totalValue + targetVO.totalPriceImpact;
-        return {
-          ...c,
-          totalValue: newTotal,
-          notes: `${c.notes || ''} [مُعدل بأمر تغيير ${targetVO.orderNumber}: +${targetVO.totalPriceImpact} ج.م]`
-        };
-      }
-      return c;
+      if (c.id !== targetVO.contractId && c.projectId !== targetVO.projectId) return c;
+      const newTotal = c.totalValue + targetVO.totalPriceImpact;
+      const open = c.milestones.filter(m => m.status === 'pending' || m.status === 'partially_paid');
+      const targets = open.length > 0 ? open : c.milestones.slice(-1);
+      const weight = targets.reduce((sum, m) => sum + m.percentage, 0) || 1;
+      let distributed = 0;
+      const milestones = c.milestones.map(m => {
+        const idx = targets.findIndex(t => t.id === m.id);
+        if (idx < 0) return m;
+        const share = idx === targets.length - 1
+          ? targetVO.totalPriceImpact - distributed
+          : Math.round((targetVO.totalPriceImpact * m.percentage) / weight);
+        distributed += share;
+        return { ...m, amount: m.amount + share, status: m.status === 'verified_in_finance' ? 'partially_paid' as const : m.status };
+      });
+      return {
+        ...c,
+        totalValue: newTotal,
+        milestones,
+        notes: `${c.notes || ''} [ملحق عقد ${targetVO.orderNumber}: +${targetVO.totalPriceImpact.toLocaleString('ar-EG')} ج.م]`
+      };
     }));
 
+    // Engineering side: the technical office gets an ECR to revise the BOM, and an
+    // order already on the shop floor is flagged.
+    const techProject = technicalProjects.find(tp => tp.salesProjectId === targetVO.projectId);
+    if (techProject) {
+      const bomRev = techProject.activeBomRevision || 'REV-A';
+      const nextRev = /^REV-[A-Z]$/.test(bomRev) ? `REV-${String.fromCharCode(bomRev.charCodeAt(4) + 1)}` : `${bomRev}-B`;
+      createEngineeringChangeRequest({
+        technicalProjectId: techProject.id,
+        projectNumber: techProject.projectNumber,
+        customerName: techProject.customerName,
+        title: `تنفيذ أمر التغيير ${targetVO.orderNumber}: ${targetVO.items.map(i => i.description).join(' + ')}`,
+        reason: targetVO.reason,
+        source: 'customer_request',
+        requestedByUserName: `${approverName} (المبيعات)`,
+        requestedDate: timestamp,
+        previousBomRevision: bomRev,
+        targetNewBomRevision: nextRev,
+        affectedUnits: targetVO.items.map(i => i.newSpec || i.description),
+        impactAssessment: {
+          costImpact: targetVO.totalCostImpact,
+          scheduleDelayDays: targetVO.deliveryDelayDays || 0,
+          materialsWasted: 'يحدده المكتب الفني بعد مراجعة حالة التصنيع',
+          customerApprovalRequired: false
+        }
+      });
+    }
+    setProductionOrders(prev => prev.map(o => o.projectId === targetVO.projectId && o.status !== 'completed'
+      ? { ...o, notes: `⚠️ أمر تغيير معتمد ${targetVO.orderNumber} - راجع الـ ECR قبل المرحلة القادمة | ${o.notes || ''}` }
+      : o));
+
     addTimelineEvent(targetVO.projectId, `اعتماد أمر التغيير (${targetVO.orderNumber})`, `تم اعتماد أمر التغيير وتعديل قيمة المشروع والعقد بفرق (${targetVO.totalPriceImpact >= 0 ? '+' : ''}${targetVO.totalPriceImpact.toLocaleString('ar-EG')} ج.م)`, 'approval');
-    showToast(`✓ تم اعتماد أمر التغيير (${targetVO.orderNumber}) وتحديث قيمة العقد والتشغيل`, 'success');
+    showToast(`✓ اعتماد ${targetVO.orderNumber}: العقد زاد ${targetVO.totalPriceImpact.toLocaleString('ar-EG')} ج.م وتوزع على الدفعات المتبقية، وتم فتح طلب تعديل هندسي (ECR) للمكتب الفني`, 'success');
   };
 
   const rejectVariationOrder = (id: string, approverName: string, notes?: string) => {
@@ -2337,7 +2623,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const recordMilestonePayment = (contractId: string, milestoneId: string, amount: number, paymentMethod: string, notes?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const rNumber = `RCP-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const rNumber = nextReceiptNumber();
 
     setCustomContracts(prev => prev.map(c => {
       if (c.id === contractId) {
@@ -2379,10 +2665,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         notes: notes || `سداد دفعة مرحلية لعقد ${targetContract.contractNumber}`
       };
       setPaymentReceipts(prev => [newReceipt, ...prev]);
+      const milestone = targetContract.milestones.find(m => m.id === milestoneId);
+      postContractCollection(targetContract, amount, paymentMethod, rNumber, milestone ? milestone.title : 'دفعة مرحلية');
       addTimelineEvent(targetContract.projectId, `تحصيل دفعة مرحلية (${rNumber})`, `تم تحصيل مبلغ ${amount.toLocaleString('ar-EG')} ج.م بالخزينة/الحساب`, 'payment');
     }
 
-    showToast(`✓ تم تسجيل تحصيل الدفعة (${rNumber}) بقيمة ${amount.toLocaleString('ar-EG')} ج.م بنجاح`, 'success');
+    showToast(`✓ تم تحصيل الدفعة (${rNumber}) بقيمة ${amount.toLocaleString('ar-EG')} ج.م وترحيل القيد للحسابات`, 'success');
   };
 
   const submitProjectHandover = (projectId: string, checklist: any, notesForTechOffice?: string): ProjectHandoverProtocol => {
@@ -2836,7 +3124,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetBom = technicalBOMs.find(b => b.id === data.bomId);
     if (!targetBom) throw new Error('BOM not found');
 
-    const releaseNumber = `REL-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const releaseNumber = nextDocNumber('REL', technicalReleases.map(r => r.releaseNumber), 3);
 
     const newRelease: TechnicalReleasePackage = {
       id: `rel-${Date.now()}`,
@@ -2862,97 +3150,117 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setTechnicalReleases(prev => [newRelease, ...prev]);
 
-    // Auto-generate Planning Demands from BOM units & parts for MRP
-    const allParts: Array<{
-      id: string;
-      itemCode: string;
-      description: string;
-      category: 'wood' | 'hardware';
-      quantity: number;
-      uom: string;
-    }> = [];
+    // Aggregate the BOM into one requirement per material (sheets / pieces / meters)
+    const salesProject = customProjects.find(sp => sp.id === targetPrj.salesProjectId);
+    const projectId = targetPrj.salesProjectId || targetPrj.id;
+    const projectNumber = targetPrj.salesProjectNumber || targetPrj.projectNumber;
+    const productionStart = data.targetProductionStartDate || daysFromToday(3);
+    const factoryCompletion = data.targetFactoryCompletionDate || daysFromToday(20);
+    const siteInstallation = data.targetSiteInstallationDate || daysFromToday(25);
+    const requirements = aggregateBomRequirements(targetBom, itemMasterCards, materials);
+    const shortages = requirements.filter(r => r.available < r.quantity);
 
-    if (targetBom && targetBom.units && targetBom.units.length > 0) {
-      targetBom.units.forEach(u => {
-        (u.cuttingParts || []).forEach(p => {
-          allParts.push({
-            id: p.id,
-            itemCode: p.materialCode,
-            description: p.materialName,
-            category: 'wood',
-            quantity: p.quantity,
-            uom: 'لوح'
-          });
-        });
-        (u.hardwareParts || []).forEach(h => {
-          allParts.push({
-            id: h.id,
-            itemCode: h.itemCode,
-            description: h.itemName,
-            category: 'hardware',
-            quantity: h.quantity,
-            uom: h.unit
-          });
-        });
-      });
-    }
+    const demandSeqStart = planningDemands.length + 1;
+    const newDemands: PlanningDemand[] = requirements.map((req, idx) => ({
+      id: `dem-${Date.now()}-${idx}`,
+      demandNumber: `DEM-${new Date().getFullYear()}-${String(demandSeqStart + idx).padStart(3, '0')}`,
+      sourceType: 'custom_project',
+      sourceId: targetPrj.id,
+      sourceNumber: releaseNumber,
+      projectId,
+      projectNumber,
+      projectName: targetPrj.projectName,
+      customerName: targetPrj.customerName,
+      itemId: req.code,
+      itemCode: req.code,
+      itemName: req.name,
+      itemCategory: req.category === 'board' ? 'raw_wood' : req.category === 'edge' ? 'edge_banding' : 'hardware',
+      quantityRequired: req.quantity,
+      uom: req.unit,
+      requiredDate: productionStart,
+      leadTimeDays: req.category === 'board' ? 5 : 3,
+      warehouseId: 'wh-main',
+      warehouseName: 'المستودع الرئيسي - العبور',
+      priority: shortages.length > 0 ? 'urgent' : 'high',
+      status: req.available >= req.quantity ? 'fully_supplied' : 'open',
+      bomRevision: targetBom.revisionCode,
+      createdAt: timestamp,
+      notes: `مطلوب لتنفيذ حزمة الإفراج ${releaseNumber} (BOM: ${targetBom.revisionCode})`
+    }));
+    setPlanningDemands(prev => [...newDemands, ...prev]);
 
-    if (allParts.length > 0) {
-      const newDemands: PlanningDemand[] = allParts.map((item, idx) => ({
-        id: `dem-${Date.now()}-${idx}`,
-        demandNumber: `DEM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        sourceType: 'custom_project',
-        sourceId: targetPrj.salesProjectId || targetPrj.id,
-        sourceNumber: releaseNumber,
-        projectId: targetPrj.salesProjectId || targetPrj.id,
-        projectNumber: targetPrj.projectNumber,
-        projectName: targetPrj.projectName,
-        customerName: targetPrj.customerName,
-        itemId: item.id || `item-${idx}`,
-        itemCode: item.itemCode,
-        itemName: item.description,
-        itemCategory: item.category === 'wood' ? 'raw_wood' : 'hardware',
-        quantityRequired: item.quantity,
-        uom: item.uom,
-        requiredDate: data.targetProductionStartDate || new Date(Date.now() + 5 * 86400000).toISOString().substring(0, 10),
-        leadTimeDays: 7,
-        warehouseId: 'wh-main',
-        warehouseName: 'المستودع الرئيسي للخامات - A1',
-        priority: 'high',
-        status: 'open',
-        bomRevision: targetBom.revisionCode,
-        createdAt: timestamp,
-        notes: `مطلوب لتنفيذ حزمة الإفراج ${releaseNumber} (BOM: ${targetBom.revisionCode})`
-      }));
+    const coveredCount = requirements.length - shortages.length;
+    const newReadiness: ProjectPlanningReadiness = {
+      projectId,
+      projectNumber,
+      projectName: targetPrj.projectName,
+      customerName: targetPrj.customerName,
+      projectType: targetPrj.projectType || 'kitchen',
+      techReleaseNumber: releaseNumber,
+      targetDeliveryDate: siteInstallation,
+      plannedManufacturingStartDate: productionStart,
+      plannedManufacturingEndDate: factoryCompletion,
+      plannedSiteInstallationDate: siteInstallation,
+      overallReadiness: shortages.length === 0 ? 'ready' : coveredCount === 0 ? 'blocked_materials' : 'partially_ready',
+      readinessPercentage: requirements.length > 0 ? Math.round((coveredCount / requirements.length) * 100) : 100,
+      totalMaterialDemandsCount: requirements.length,
+      coveredMaterialsCount: coveredCount,
+      shortageMaterialsCount: shortages.length,
+      criticalShortages: shortages.map(r => ({ itemCode: r.code, itemName: r.name, shortageQty: r.quantity - r.available, uom: r.unit, status: 'shortage' as const })),
+      estimatedTotalWorkCenterHours: 0,
+      isCapacityFeasible: true,
+      activeProposalsCount: 0,
+      priority: shortages.length > 0 ? 'urgent' : 'high'
+    };
 
-      setPlanningDemands(prev => [...newDemands, ...prev]);
+    // Production order + station work orders, ready for the shop floor
+    const moId = `prod-${Date.now()}`;
+    const productionNumber = nextDocNumber('PROD', productionOrders.map(o => o.productionNumber), 4);
+    const moMaterials = toProductionMaterials(moId, requirements);
+    const routing = buildStandardRouting({
+      productionOrderId: moId,
+      productionNumber,
+      projectId,
+      projectNumber,
+      customerName: targetPrj.customerName,
+      startDate: productionStart,
+      bom: targetBom,
+      requirements,
+      workCenters,
+      firstWorkOrderSeq: workOrders.length + 101,
+      blocked: shortages.length > 0
+    });
+    newReadiness.estimatedTotalWorkCenterHours = Math.round(routing.reduce((sum, wo) => sum + wo.plannedDurationMinutes, 0) / 60);
+    setProjectReadinessList(prev => [newReadiness, ...prev.filter(r => r.projectId !== newReadiness.projectId)]);
 
-      // Add Project Readiness Entry
-      const newReadiness: ProjectPlanningReadiness = {
-        projectId: targetPrj.salesProjectId || targetPrj.id,
-        projectNumber: targetPrj.projectNumber,
-        projectName: targetPrj.projectName,
-        customerName: targetPrj.customerName,
-        projectType: targetPrj.projectType || 'kitchen',
-        techReleaseNumber: releaseNumber,
-        targetDeliveryDate: data.targetSiteInstallationDate || new Date(Date.now() + 25 * 86400000).toISOString().substring(0, 10),
-        plannedManufacturingStartDate: data.targetProductionStartDate || new Date(Date.now() + 5 * 86400000).toISOString().substring(0, 10),
-        plannedManufacturingEndDate: data.targetFactoryCompletionDate || new Date(Date.now() + 20 * 86400000).toISOString().substring(0, 10),
-        plannedSiteInstallationDate: data.targetSiteInstallationDate || new Date(Date.now() + 25 * 86400000).toISOString().substring(0, 10),
-        overallReadiness: 'partially_ready',
-        readinessPercentage: 65,
-        totalMaterialDemandsCount: allParts.length,
-        coveredMaterialsCount: Math.floor(allParts.length * 0.65),
-        shortageMaterialsCount: Math.ceil(allParts.length * 0.35),
-        criticalShortages: [],
-        estimatedTotalWorkCenterHours: Math.round(allParts.length * 1.8),
-        isCapacityFeasible: true,
-        activeProposalsCount: 1,
-        priority: 'high'
-      };
-
-      setProjectReadinessList(prev => [newReadiness, ...prev.filter(p => p.projectId !== newReadiness.projectId)]);
-    }
+    const contract = customContracts.find(c => c.projectId === projectId);
+    const newMO: ProductionOrder = {
+      id: moId,
+      productionNumber,
+      orderId: contract?.id || projectId,
+      orderNumber: contract?.contractNumber || projectNumber,
+      projectId,
+      projectNumber,
+      customerId: salesProject?.customerId || targetPrj.customerId,
+      customerName: targetPrj.customerName,
+      customerPhone: salesProject?.customerPhone || targetPrj.customerPhone || '',
+      branchId: salesProject?.branchId || targetPrj.branchId,
+      branchName: salesProject?.branchName || targetPrj.branchName,
+      workshopLocation: 'عنبر التقطيع والتجميع - مصنع العبور الرئيسي',
+      startDate: productionStart,
+      expectedCompletionDate: factoryCompletion,
+      assignedTeam: workCenters.slice(0, 3).map(w => w.supervisorName),
+      status: 'pending',
+      notes: `أمر تصنيع ناتج تلقائياً عن الإفراج ${releaseNumber} (BOM ${targetBom.revisionCode})${shortages.length ? ` - بانتظار توريد ${shortages.length} بند` : ''}`,
+      completionPhotos: [],
+      materials: moMaterials,
+      totalEstimatedMaterialCost: moMaterials.reduce((sum, m) => sum + m.estimatedTotalCost, 0),
+      totalActualMaterialCost: 0,
+      materialVariance: 0,
+      createdDate: timestamp
+    };
+    setProductionOrders(prev => [newMO, ...prev]);
+    setWorkOrders(prev => [...routing, ...prev]);
 
     // Update Technical Project Status
     setTechnicalProjects(prev => prev.map(tp => {
@@ -2969,7 +3277,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Update Sales Custom Project status
     if (targetPrj.salesProjectId) {
       updateProjectStatus(targetPrj.salesProjectId, 'ready_for_production');
-      addTimelineEvent(targetPrj.salesProjectId, 'الإفراج الفني للتخطيط والإنتاج', `تم إصدار حزمة الإفراج الهندسي (${releaseNumber}) وتوليد طلبات خامات الـ MRP برقم BOM: ${targetBom.revisionCode}`, 'production');
+      addTimelineEvent(targetPrj.salesProjectId, 'الإفراج الفني للتخطيط والإنتاج', `تم إصدار حزمة الإفراج (${releaseNumber}) وأمر التصنيع ${productionNumber} بـ ${routing.length} مراحل تشغيل${shortages.length ? ` - عجز ${shortages.length} بند خامات` : ''}`, 'production');
     }
 
     addAuditLog({
@@ -2981,14 +3289,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'success'
     });
 
-    showToast(`🚀 تم إصدار حزمة الإفراج الفني (${releaseNumber}) وتمريرها لقسم التخطيط والإنتاج بنجاح!`, 'success');
+    showToast(`🚀 تم الإفراج (${releaseNumber}) وإصدار أمر التصنيع ${productionNumber}${shortages.length ? ` - يوجد عجز في ${shortages.length} بند يحتاج تشغيل الـ MRP` : ' - كل الخامات متوفرة'}`, shortages.length ? 'warning' : 'success');
     return newRelease;
   };
 
   const createEngineeringChangeRequest = (data: Omit<EngineeringChangeRequest, 'id' | 'ecrNumber' | 'createdAt' | 'status'>): EngineeringChangeRequest => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetPrj = technicalProjects.find(p => p.id === data.technicalProjectId);
-    const ecrNumber = `ECR-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const ecrNumber = nextDocNumber('ECR', engineeringChangeRequests.map(x => x.ecrNumber), 3);
 
     const newEcr: EngineeringChangeRequest = {
       ...data,
@@ -3091,7 +3399,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const runNumber = `MRP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const netReqs = calculateNetRequirements(planningDemands);
+    const netReqs = calculateNetRequirements(planningDemands, itemMasterCards);
     let createdProposals: SupplyProposal[] = [];
 
     if (params.autoGenerateProposals !== false) {
@@ -4532,7 +4840,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const batchGenerateProposalsFromShortages = () => {
-    const netReqs = calculateNetRequirements(planningDemands);
+    const netReqs = calculateNetRequirements(planningDemands, itemMasterCards);
     const createdProposals = generateSupplyProposalsFromShortages(netReqs, currentUser.fullName, currentUser.id);
     if (createdProposals.length > 0) {
       setSupplyProposals(prev => [...createdProposals, ...prev]);
@@ -4837,15 +5145,98 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`✓ تم خصم ${qtyToConsume} ${targetMat.unit} من المخزون وتوثيق التكلفة الفعلية (${actualCostTotal.toLocaleString('ar-EG')} ج.م)`, 'success');
   };
 
+  // Station labor + machine time absorbed into WIP (Dr WIP, Cr direct labor) when an order finishes.
+  const postLaborToWip = (moRef: string, amount: number) => {
+    if (amount <= 0) return;
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const laborAcc = getSafeAccount('512', 'expense');
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: daysFromToday(0),
+      periodId: currentOpenPeriod().id,
+      reference: `تحميل مصنعيات أمر التصنيع ${moRef}`,
+      description: `تحميل أجور الفنيين وتشغيل الماكينات على أمر التصنيع ${moRef}`,
+      sourceDocument: moRef,
+      sourceType: 'material_issue_wip',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        { accountId: wipAcc.id, accountCode: wipAcc.code, accountName: wipAcc.nameAr, costCenterId: 'cc-2', costCenterName: 'قسم التجميع والنجارة اليدوية', debit: amount, credit: 0, description: 'تحميل مصنعيات ومحطات التشغيل على الإنتاج تحت التشغيل' },
+        { accountId: laborAcc.id, accountCode: laborAcc.code, accountName: laborAcc.nameAr, debit: 0, credit: amount, description: 'توزيع تكلفة العمالة والماكينات المباشرة على الإنتاج' }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+    if (postResult.entry) setJournalEntries(prev => [postResult.entry!, ...prev]);
+  };
+
+  // First station starts: materials are issued to the order (stock down, WIP up) and the
+  // project moves to "in production". Blocked while any material is short.
+  const startProductionOrder = (productionOrderId: string): boolean => {
+    const mo = productionOrders.find(o => o.id === productionOrderId);
+    if (!mo) return false;
+    if (mo.status !== 'pending') return true;
+
+    const short = mo.materials.filter(m => m.status === 'shortage');
+    if (short.length > 0) {
+      showToast(`⛔ لا يمكن بدء التشغيل: عجز في ${short.map(m => m.materialName).join('، ')}. يجب استلام الخامات أولاً`, 'error');
+      return false;
+    }
+
+    const issuedCost = mo.materials.reduce((sum, m) => sum + m.requiredQuantity * m.estimatedUnitCost, 0);
+    setProductionOrders(prev => prev.map(o => o.id !== productionOrderId ? o : {
+      ...o,
+      status: 'in_production',
+      materials: o.materials.map(m => ({
+        ...m,
+        consumedQuantity: m.requiredQuantity,
+        remainingQuantity: 0,
+        reservedQuantity: m.requiredQuantity,
+        actualTotalCost: m.requiredQuantity * m.actualUnitCost,
+        status: 'consumed' as const
+      })),
+      totalActualMaterialCost: issuedCost,
+      materialVariance: issuedCost - o.totalEstimatedMaterialCost
+    }));
+
+    // Stock leaves the warehouse against this order
+    setItemMasterCards(prev => prev.map(card => {
+      const line = mo.materials.find(m => {
+        const item = resolveCatalogItem(m.materialCode);
+        return item?.aliases.some(a => a.toUpperCase() === card.code.toUpperCase());
+      });
+      if (!line) return card;
+      const currentStock = Math.max(0, card.currentStock - line.requiredQuantity);
+      return { ...card, currentStock, availableStock: Math.max(0, currentStock - (card.reservedStock || 0)) };
+    }));
+
+    recordInventoryWipMovement(productionOrderId, issuedCost, `صرف خامات ${mo.projectNumber} - ${mo.customerName}`);
+    updateProjectStatus(mo.projectId, 'in_production');
+    addTimelineEvent(mo.projectId, `بدء التصنيع ${mo.productionNumber}`, `صرف خامات بقيمة ${issuedCost.toLocaleString('ar-EG')} ج.م للورشة وبدء محطة التقطيع`, 'production');
+    showToast(`⚙️ بدء تشغيل ${mo.productionNumber}: تم صرف الخامات (${issuedCost.toLocaleString('ar-EG')} ج.م) وترحيل قيد الإنتاج تحت التشغيل`, 'success');
+    return true;
+  };
+
   const completeProductionOrder = (productionOrderId: string, completionPhotos: string[], notes?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetProd = productionOrders.find(p => p.id === productionOrderId);
     if (!targetProd) return;
 
+    // Labor + machine cost from the station work orders (actual minutes, else planned)
+    const laborCost = Math.round(workOrders
+      .filter(wo => wo.manufacturingOrderId === productionOrderId)
+      .reduce((sum, wo) => {
+        const wc = workCenters.find(w => w.id === wo.workCenterId);
+        const minutes = wo.actualDurationMinutes || wo.plannedDurationMinutes;
+        return sum + (minutes / 60) * ((wc?.hourlyLaborCost || 120) + (wc?.hourlyMachineCost || 150));
+      }, 0));
+    const materialCost = targetProd.totalActualMaterialCost || targetProd.totalEstimatedMaterialCost;
+
     setProductionOrders(prev => prev.map(p => {
       if (p.id === productionOrderId) {
         return {
           ...p,
+          totalLaborCost: laborCost,
           status: 'completed',
           actualCompletionDate: timestamp,
           completionPhotos: completionPhotos.length > 0 ? completionPhotos : p.completionPhotos,
@@ -4855,12 +5246,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return p;
     }));
 
+    postLaborToWip(targetProd.productionNumber, laborCost);
+    recordProductionCompletionToFinishedGoods(productionOrderId, materialCost + laborCost, `${targetProd.projectNumber} - ${targetProd.customerName}`);
+
     const targetProject = customProjects.find(p => p.id === targetProd.projectId);
     if (targetProject) {
       updateProjectStatus(targetProject.id, 'production_completed');
+      addTimelineEvent(targetProject.id, `اكتمال التصنيع ${targetProd.productionNumber}`, `تكلفة التصنيع الفعلية ${(materialCost + laborCost).toLocaleString('ar-EG')} ج.م (خامات ${materialCost.toLocaleString('ar-EG')} + مصنعيات ${laborCost.toLocaleString('ar-EG')})`, 'production');
     }
 
-    showToast(`🎉 تم إكتمال تصنيع أمر الإنتاج (${targetProd.productionNumber}) وجاهز للتركيب!`, 'success');
+    showToast(`🎉 اكتمل ${targetProd.productionNumber}: تم تحميل المصنعيات وتحويل التكلفة (${(materialCost + laborCost).toLocaleString('ar-EG')} ج.م) لمخزون الإنتاج التام - جاهز لجدولة التركيب`, 'success');
   };
 
   const scheduleInstallation = (
@@ -4875,7 +5270,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetProd = productionOrders.find(p => p.id === productionOrderId);
     if (!targetProd) throw new Error('Production Order not found');
 
-    const installationNumber = `INST-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const installationNumber = nextDocNumber('INST', installationRecords.map(i => i.installationNumber), 3);
     const teamNames = assignedTeamIds.map(id => users.find(u => u.id === id)?.fullName || 'فني تركيبات');
 
     const newInst: InstallationRecord = {
@@ -4967,7 +5362,45 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateProjectStatus(targetProject.id, 'completed');
     }
 
-    showToast(`🎉 تم تسليم المشروع بالكامل للعميل وإغلاق الملف بنجاح 100%!`, 'success');
+    // Final tax invoice for the contract (incl. approved change orders), settled against the
+    // deposits already collected, unless the project was invoiced earlier.
+    const contract = customContracts.find(c => c.projectId === targetInst.projectId);
+    const alreadyInvoiced = salesInvoices.some(i => i.projectId === targetInst.projectId);
+    let balanceNote = '';
+    if (contract && !alreadyInvoiced) {
+      const projectAdvances = customerAdvances.filter(a => a.projectId === targetInst.projectId && a.remainingAmount > 0);
+      const subtotal = contract.totalValue;
+      const taxAmount = Math.round(subtotal * 0.14);
+      const advanceToApply = Math.min(subtotal + taxAmount, projectAdvances.reduce((sum, a) => sum + a.remainingAmount, 0));
+      const invoice = createSalesInvoice({
+        customerId: contract.customerId,
+        customerName: contract.customerName,
+        orderId: contract.id,
+        orderNumber: contract.contractNumber,
+        projectId: contract.projectId,
+        projectNumber: contract.projectNumber,
+        date: daysFromToday(0),
+        dueDate: daysFromToday(2),
+        subtotal,
+        taxAmount,
+        advanceAppliedAmount: advanceToApply,
+        advanceIds: projectAdvances.map(a => a.id),
+        notes: `فاتورة ضريبية نهائية - ${contract.projectNumber} بعد التسليم (${targetInst.installationNumber})`
+      });
+      balanceNote = invoice.balanceDue > 0 ? ` - متبقي على العميل ${invoice.balanceDue.toLocaleString('ar-EG')} ج.م` : ' - العقد محصل بالكامل';
+    }
+
+    // Cost of the delivered order leaves finished goods into cost of sales
+    const mo = productionOrders.find(o => o.id === targetInst.productionOrderId);
+    if (mo) {
+      const cost = (mo.totalActualMaterialCost || mo.totalEstimatedMaterialCost) + (mo.totalLaborCost || 0);
+      recordDeliveryCogsAccounting(mo.productionNumber, cost, `تكلفة مبيعات ${mo.projectNumber} - ${mo.customerName}`);
+    }
+
+    if (targetProject) {
+      addTimelineEvent(targetProject.id, 'التسليم النهائي وإغلاق المشروع', `توقيع محضر الاستلام ${targetInst.installationNumber} وإصدار الفاتورة الضريبية${balanceNote}`, 'handover');
+    }
+    showToast(`🎉 تم التسليم النهائي وإصدار الفاتورة الضريبية وتسجيل تكلفة المبيعات${balanceNote}`, 'success');
   };
 
   // ----------------------------------------------------
@@ -5218,7 +5651,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetEntry = journalEntries.find(e => e.id === entryId);
     if (!targetEntry) return false;
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const result = AccountingService.reverseEntry(targetEntry, reason, currentUser.fullName, currentPeriod.id, fiscalPeriods);
 
     if (result.error) {
@@ -5244,6 +5677,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
+  // The open fiscal period that covers today (falls back to the earliest open one).
+  const currentOpenPeriod = () => {
+    const today = daysFromToday(0);
+    return fiscalPeriods.find(p => !p.isClosed && p.startDate <= today && today <= p.endDate)
+      || fiscalPeriods.find(p => !p.isClosed)
+      || fiscalPeriods[fiscalPeriods.length - 1];
+  };
+
   // Helper to safely get account from Chart of Accounts
   const getSafeAccount = (codePrefix: string, fallbackType?: string): Account => {
     const found = chartOfAccounts.find(a => a.code === codePrefix) ||
@@ -5261,12 +5702,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     orderId?: string;
     projectId?: string;
     notes?: string;
-  }): CustomerAdvance => {
+  }, options?: { silent?: boolean }): CustomerAdvance => {
     const targetCust = customers.find(c => c.id === data.customerId);
     const custName = targetCust?.fullName || 'عميل تعاقد';
     const advanceNumber = `ADV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const today = new Date().toISOString().substring(0, 10);
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const cashOrBankJournal = data.paymentMethod === 'cash' 
       ? (journals.find(j => j.type === 'cash') || journals[2])
       : (journals.find(j => j.type === 'bank') || journals[3]);
@@ -5342,13 +5783,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'success'
     });
 
-    showToast(`✓ تم تسجيل الدفعة المقدمة (${advanceNumber}) بمبلغ ${data.amount.toLocaleString('ar-EG')} ج.م كالتزام دائن`, 'success');
+    if (!options?.silent) {
+      showToast(`✓ تم تسجيل الدفعة المقدمة (${advanceNumber}) بمبلغ ${data.amount.toLocaleString('ar-EG')} ج.م كالتزام دائن`, 'success');
+    }
     return advanceRecord;
   };
 
   const createSalesInvoice = (invoiceData: any): SalesInvoice => {
     const today = new Date().toISOString().substring(0, 10);
-    const invoiceNumber = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const invoiceNumber = nextDocNumber('INV', salesInvoices.map(i => i.invoiceNumber), 4);
     const targetCust = customers.find(c => c.id === invoiceData.customerId);
     const custName = targetCust?.fullName || invoiceData.customerName || 'عميل';
 
@@ -5360,7 +5803,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const netReceivable = Math.max(0, totalAmount - advanceApplied);
 
     const salesJournal = journals.find(j => j.type === 'sales') || journals[0];
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
 
     const arAcc = getSafeAccount('1121', 'asset');
     const revAcc = getSafeAccount('411', 'revenue');
@@ -5470,6 +5913,21 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setJournalEntries(prev => [postResult.entry!, ...prev]);
     }
 
+    // Deduct the applied amount from several advances, oldest first
+    if (advanceApplied > 0 && Array.isArray(invoiceData.advanceIds) && invoiceData.advanceIds.length > 0) {
+      let left = advanceApplied;
+      setCustomerAdvances(prev => [...prev]
+        .sort((x, y) => x.date.localeCompare(y.date))
+        .map(a => {
+          if (!invoiceData.advanceIds.includes(a.id) || left <= 0) return a;
+          const take = Math.min(left, a.remainingAmount);
+          left -= take;
+          const newApplied = a.appliedAmount + take;
+          const newRemaining = Math.max(0, a.amount - newApplied);
+          return { ...a, appliedAmount: newApplied, remainingAmount: newRemaining, status: newRemaining === 0 ? 'fully_applied' : 'partially_applied' };
+        }));
+    }
+
     // Deduct advance remaining if applied
     if (advanceApplied > 0 && invoiceData.advanceId) {
       setCustomerAdvances(prev => prev.map(a => {
@@ -5510,7 +5968,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const advAcc = getSafeAccount('212', 'liability');
     const arAcc = getSafeAccount('1121', 'asset');
@@ -5603,7 +6061,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const netPayable = Math.max(0, totalAmount - withholdingTaxAmount);
 
     const purJournal = journals.find(j => j.type === 'purchase') || journals[1];
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
 
     const grIrAcc = getSafeAccount('213', 'liability');
     const apAcc = getSafeAccount('2111', 'liability');
@@ -5718,7 +6176,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const bill = vendorBills.find(b => b.id === billId);
     if (!bill || amount <= 0) return false;
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const journal = paymentMethod === 'cash' 
       ? (journals.find(j => j.type === 'cash') || journals[2])
       : (journals.find(j => j.type === 'bank') || journals[3]);
@@ -5804,7 +6262,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!targetCheck) return;
 
     if (newStatus === 'cleared') {
-      const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+      const currentPeriod = currentOpenPeriod();
       const bankJournal = journals.find(j => j.type === 'bank') || journals[3];
       const bankAcc = chartOfAccounts.find(a => a.id === clearanceAccountId) || getSafeAccount('11121', 'asset');
       const pdcReceivableAcc = getSafeAccount('1113', 'asset');
@@ -5933,7 +6391,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ----------------------------------------------------
 
   const recordInventoryWipMovement = (productionOrderId: string, totalMaterialCost: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const moRef = productionOrders.find(o => o.id === productionOrderId)?.productionNumber || productionOrderId;
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const wipAcc = getSafeAccount('1133', 'asset');
     const rawAcc = getSafeAccount('1131', 'asset');
@@ -5942,9 +6401,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       journal: genJournal,
       date: new Date().toISOString().substring(0, 10),
       periodId: currentPeriod.id,
-      reference: `صرف خامات لأمر الشغل ${productionOrderId}`,
-      description: `صرف ألواح وخامات للورشة لأمر الشغل (${productionOrderId}) - ${notes || 'صرف وتصنيع'}`,
-      sourceDocument: productionOrderId,
+      reference: `صرف خامات لأمر الشغل ${moRef}`,
+      description: `صرف ألواح وخامات للورشة لأمر الشغل (${moRef}) - ${notes || 'صرف وتصنيع'}`,
+      sourceDocument: moRef,
       sourceType: 'material_issue_wip',
       branchId: currentBranch.id,
       branchName: currentBranch.name,
@@ -5977,7 +6436,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const recordProductionCompletionToFinishedGoods = (productionOrderId: string, finalTotalCost: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const moRef = productionOrders.find(o => o.id === productionOrderId)?.productionNumber || productionOrderId;
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const finAcc = getSafeAccount('1134', 'asset');
     const wipAcc = getSafeAccount('1133', 'asset');
@@ -5986,9 +6446,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       journal: genJournal,
       date: new Date().toISOString().substring(0, 10),
       periodId: currentPeriod.id,
-      reference: `إتمام تصنيع ${productionOrderId}`,
-      description: `استلام منتج تام الصنع (مطبخ / أثاث جاهز) من الورشة (${productionOrderId}) - ${notes || ''}`,
-      sourceDocument: productionOrderId,
+      reference: `إتمام تصنيع ${moRef}`,
+      description: `استلام منتج تام الصنع (مطبخ / أثاث جاهز) من الورشة (${moRef}) - ${notes || ''}`,
+      sourceDocument: moRef,
       sourceType: 'production_completion',
       branchId: currentBranch.id,
       branchName: currentBranch.name,
@@ -6019,7 +6479,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const recordDeliveryCogsAccounting = (orderId: string, cogsAmount: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const cogsAcc = getSafeAccount('514', 'cogs');
     const finAcc = getSafeAccount('1134', 'asset');
@@ -6061,7 +6521,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const recordScrapWasteAccounting = (reason: string, scrapAmount: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const scrapAcc = getSafeAccount('1135', 'expense');
     const rawAcc = getSafeAccount('1131', 'asset');
@@ -6125,6 +6585,22 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }[];
     notes?: string;
   }): GoodsReceiptNote => {
+    // Receiving against a purchase order moves the PO to partially / fully received
+    if (data.purchaseOrderId) {
+      const keyOf = (code: string) => resolveCatalogItem(code)?.key || code.toUpperCase();
+      setEnterprisePurchaseOrders(prev => prev.map(po => {
+        if (po.poNumber !== data.purchaseOrderId) return po;
+        const items = po.items.map(it => {
+          const received = data.items
+            .filter((r: { itemCode: string; receivedQty: number }) => keyOf(r.itemCode) === keyOf(it.itemCode))
+            .reduce((sum: number, r: { receivedQty: number }) => sum + r.receivedQty, 0);
+          return received > 0 ? { ...it, receivedQuantity: Math.min(it.quantity, (it.receivedQuantity || 0) + received) } : it;
+        });
+        const full = items.every(it => (it.receivedQuantity || 0) >= it.quantity);
+        return { ...po, items, status: full ? 'fully_received' : 'partially_received' };
+      }));
+    }
+
     const today = new Date().toISOString().substring(0, 10);
     const grnNumber = `GRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
@@ -6148,7 +6624,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const totalAmount = lineItems.reduce((s, it) => s + it.totalCost, 0);
 
     // 1. Accounting Impact: Debit Inventory / Credit GR-IR Clearing or WIP
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const rawInvAcc = getSafeAccount('1131', 'asset');
     const fgInvAcc = getSafeAccount('1134', 'asset');
@@ -6332,7 +6808,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const totalAmount = lineItems.reduce((s, it) => s + it.totalCost, 0);
 
     // 1. Accounting Impact: Credit Raw Materials / Debit WIP, Maintenance, or Scrap
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const rawInvAcc = getSafeAccount('1131', 'asset');
     const wipAcc = getSafeAccount('1133', 'asset');
@@ -6588,7 +7064,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const session = stocktakeSessions.find(s => s.id === sessionId);
     if (!session || session.status === 'posted') return false;
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const rawInvAcc = getSafeAccount('1131', 'asset');
     const varianceLossAcc = getSafeAccount('1135', 'expense');
@@ -6822,6 +7298,18 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         recordMilestonePayment,
         selectedProjectId,
         portalCurrentCustomerId,
+        workCenters,
+        setWorkCenters,
+        workOrders,
+        setWorkOrders,
+        scrapClaims,
+        setScrapClaims,
+        offCutReturns,
+        setOffCutReturns,
+        manufacturingPackages,
+        setManufacturingPackages,
+        qualityInspections,
+        setQualityInspections,
         productionOrders,
         installationRecords,
         selectedProductionOrderId,
@@ -6949,6 +7437,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createProductionOrderFromCustomOrder,
         reserveProductionMaterials,
         consumeProductionMaterials,
+        startProductionOrder,
         completeProductionOrder,
         scheduleInstallation,
         completeInstallation,

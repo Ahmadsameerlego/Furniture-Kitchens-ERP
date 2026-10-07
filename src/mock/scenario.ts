@@ -257,3 +257,26 @@ export function buildFiscalPeriods(): GeneratedFiscalPeriod[] {
     };
   });
 }
+
+/**
+ * Shift every ISO date in already-harmonized data that was saved on `savedOn`,
+ * so a demo prepared yesterday still reads as "live" today. Names are left as-is.
+ */
+export function shiftMockDates<T>(data: T, savedOn: string): T {
+  const days = dayShiftFor(savedOn);
+  if (days === 0) return data;
+  const visit = (value: unknown): unknown => {
+    if (typeof value === 'string') return shiftDatesInText(value, days, 0);
+    if (Array.isArray(value)) return value.map(visit);
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = visit(v);
+      if (typeof out.periodId === 'string' && PERIOD_ID.test(out.periodId) && typeof out.date === 'string') {
+        out.periodId = `per-${out.date.slice(0, 7)}`;
+      }
+      return out;
+    }
+    return value;
+  };
+  return visit(data) as T;
+}

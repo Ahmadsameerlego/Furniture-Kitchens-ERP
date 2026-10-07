@@ -131,6 +131,11 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
   const salesDesigns = projectDesigns.filter(d => d.projectId === salesPrj?.id);
   const salesApprovedDesign = salesDesigns.find(d => d.status === 'approved') || salesDesigns[salesDesigns.length - 1];
   const salesMeasurements = projectMeasurements.filter(m => m.projectId === salesPrj?.id);
+  const toCm = (value: number, unit?: string) => unit === 'mm' ? value / 10 : unit === 'm' ? value * 100 : value;
+  const latestSalesMeasurement = [...salesMeasurements].sort((a, b) => a.version - b.version).pop();
+  const salesWalls = (latestSalesMeasurement?.items || [])
+    .filter(item => /جدار|حائط|حيطة/.test(item.name))
+    .map(item => ({ name: item.name, cm: toCm(item.value, item.unit) }));
   const latestSalesMeas = salesMeasurements[salesMeasurements.length - 1];
   const salesSiteVisit = siteVisits.find(v => v.projectId === salesPrj?.id);
 
@@ -159,15 +164,17 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
     const latestMeas = measList[measList.length - 1];
 
     let generatedWalls: WallDimension[] = [];
-    if (latestMeas && latestMeas.items && latestMeas.items.length > 0) {
-      generatedWalls = latestMeas.items.map((item, idx) => ({
+    if (salesWalls.length > 0) {
+      // Laser readings typically land a few millimetres off the sales tape measure
+      const laserOffsetsCm = [-0.5, 0, 0.5, -0.3];
+      generatedWalls = salesWalls.map((item, idx) => ({
         id: `w-${idx + 1}`,
         wallName: item.name,
-        lengthCm: item.value || 300,
+        lengthCm: Math.round((item.cm + laserOffsetsCm[idx % laserOffsetsCm.length]) * 10) / 10,
         heightCm: 280,
         angleDegrees: 90,
         plasterQuality: 'straight' as const,
-        notes: item.notes
+        notes: latestMeas?.items.find(i => i.name === item.name)?.notes
       }));
     } else {
       generatedWalls = [
@@ -182,7 +189,7 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
       surveyorName: project.responsibleEngineerName || currentUser.fullName,
       surveyDate: new Date().toISOString().substring(0, 10),
       walls: generatedWalls,
-      ceilingHeightCm: 280,
+      ceilingHeightCm: (() => { const c = latestMeas?.items.find(i => /سقف/.test(i.name)); return c ? toCm(c.value, c.unit) : 280; })(),
       flooringVarianceMm: 2,
       electricalPoints: [
         { id: 'ep-1', purpose: 'مأخذ شفاط 220V', locationWall: 'الجدار B', heightFromFloorCm: 210, distanceFromCornerCm: 150, status: 'ok' },
@@ -872,21 +879,22 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {survey.walls.map((wall, idx) => {
-                    const salesVal = idx === 0 ? 420 : idx === 1 ? 310 : 240;
+                    const salesVal = (salesWalls.find(w => w.name === wall.wallName) || salesWalls[idx])?.cm ?? wall.lengthCm;
                     const laserVal = wall.lengthCm;
-                    const diff = laserVal - salesVal;
+                    const diffMm = Math.round((laserVal - salesVal) * 10);
+                    const diff = diffMm;
                     return (
                       <tr key={wall.id || idx} className="hover:bg-slate-50/60">
                         <td className="p-3 font-black text-slate-900">{wall.wallName}</td>
-                        <td className="p-3 font-mono font-bold text-slate-600">{salesVal * 10} مم ({salesVal} سم)</td>
-                        <td className="p-3 font-mono font-black text-[#C87A38]">{laserVal * 10} مم ({laserVal} سم)</td>
+                        <td className="p-3 font-mono font-bold text-slate-600">{Math.round(salesVal * 10)} مم ({salesVal} سم)</td>
+                        <td className="p-3 font-mono font-black text-[#C87A38]">{Math.round(laserVal * 10)} مم ({laserVal} سم)</td>
                         <td className="p-3 text-center">
                           {diff === 0 ? (
                             <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold font-mono">0 مم (مطابق)</span>
                           ) : diff > 0 ? (
-                            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold font-mono">+{diff * 10} مم</span>
+                            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold font-mono">+{diffMm} مم</span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold font-mono">{diff * 10} مم</span>
+                            <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold font-mono">{diffMm} مم</span>
                           )}
                         </td>
                         <td className="p-3">
@@ -897,7 +905,7 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                         </td>
                         <td className="p-3">
                           <span className="text-emerald-700 font-bold">
-                            {diff === 0 ? 'مطابقة معتمدة للتصنيع' : 'إضافة فيلر خلوص 18مم معالج'}
+                            {diff === 0 ? 'مطابقة معتمدة للتصنيع' : Math.abs(diffMm) <= 5 ? 'ضمن السماحية (±5 مم) - تمتص في خلوص التركيب' : diffMm < 0 ? 'الحائط أقصر: تقليل عرض الفيلر الطرفي' : 'الحائط أطول: إضافة فيلر خلوص 18مم معالج'}
                           </span>
                         </td>
                       </tr>
