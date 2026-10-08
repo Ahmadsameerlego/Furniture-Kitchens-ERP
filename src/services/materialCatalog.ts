@@ -47,6 +47,10 @@ export const MATERIAL_CATALOG: CatalogItem[] = [
   { key: 'HANDLE-BAR-160', name: 'مقبض ألومنيوم أسود مط 16سم', unit: 'قطعة', category: 'hardware', unitCost: 65, aliases: ['HANDLE-BAR-160', 'MAT-HND-006', 'MAT-HDL-BLK', 'mat-8'] },
   { key: 'WARDROBE-RAIL', name: 'ماسورة شماعات ألومنيوم + كوابيل', unit: 'متر', category: 'hardware', unitCost: 140, aliases: ['WARDROBE-RAIL'] },
   { key: 'ALUM-PROF-BLACK', name: 'بروفايل ألومنيوم أسود مط لدلف الزجاج', unit: 'متر', category: 'hardware', unitCost: 320, aliases: ['ALUM-PROF-BLACK'] },
+  { key: 'CORNER-MAGIC', name: 'ميكانيزم ركنة ماجيك كورنر (Kesseböhmer)', unit: 'طقم', category: 'accessory', unitCost: 6500, aliases: ['CORNER-MAGIC'] },
+  { key: 'BOTTLE-PULLOUT-30', name: 'سلة زجاجات سحب جانبي 30سم', unit: 'طقم', category: 'accessory', unitCost: 1800, aliases: ['BOTTLE-PULLOUT-30'] },
+  { key: 'LED-PROFILE', name: 'ليد بروفايل ألومنيوم + شريط 24V', unit: 'متر', category: 'accessory', unitCost: 350, aliases: ['LED-PROFILE'] },
+  { key: 'DW-DOOR-KIT', name: 'طقم تركيب وش غسالة أطباق بلت إن', unit: 'طقم', category: 'hardware', unitCost: 450, aliases: ['DW-DOOR-KIT'] },
   { key: 'MARBLE-GALAXY', name: 'رخام جالاكسي أسود اسباني', unit: 'متر', category: 'stone', unitCost: 3200, aliases: ['MARBLE-GALAXY', 'MAT-MRB-BLK', 'mat-14'] },
   { key: 'QUARTZ-WHITE', name: 'كوارتز أسباني أبيض', unit: 'متر', category: 'stone', unitCost: 4800, aliases: ['QUARTZ-WHITE'] }
 ];
@@ -92,7 +96,11 @@ const OPENING_STOCK: Record<string, number> = {
   'HANDLE-GOLA-BLACK': 60,
   'HANDLE-BAR-160': 220,
   'WARDROBE-RAIL': 48,
-  'ALUM-PROF-BLACK': 30
+  'ALUM-PROF-BLACK': 30,
+  'CORNER-MAGIC': 3,
+  'BOTTLE-PULLOUT-30': 8,
+  'LED-PROFILE': 80,
+  'DW-DOOR-KIT': 10
 };
 
 const CARD_CATEGORY: Record<CatalogCategory, { category: ItemMasterCard['category']; label: string }> = {

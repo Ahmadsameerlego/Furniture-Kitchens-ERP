@@ -1,3 +1,4 @@
+import { NO_IMAGE_PLACEHOLDER } from '../../mock/designDrawings';
 import React, { useState, useEffect, useRef } from 'react';
 import { useERP } from '../../context/ERPContext';
 import {
@@ -164,7 +165,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
         name: f.name,
         url: isImg
           ? URL.createObjectURL(f)
-          : 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+          : NO_IMAGE_PLACEHOLDER,
         type: f.type || 'application/octet-stream',
         size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
         uploadedAt: new Date().toISOString().substring(0, 10)

@@ -1,3 +1,4 @@
+import { KITCHEN_DRAWINGS } from './designDrawings';
 import {
   TechnicalProject,
   TechnicalSiteSurvey,
@@ -323,7 +324,7 @@ export const initialTechnicalSurveys: TechnicalSiteSurvey[] = [
       accessRestrictions: 'فيلا أرضي مدخل مباشر - لا توجد عوائق في النقل والتحميل'
     },
     sitePhotos: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+      KITCHEN_DRAWINGS.elevationA,
       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=600'
     ],
     sketches: [
@@ -362,7 +363,7 @@ export const initialTechnicalDesigns: TechnicalDesignRevision[] = [
       }
     ],
     renders: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'
+      KITCHEN_DRAWINGS.elevationA
     ],
     changeDescription: 'الإصدار المبدئي المعتمد على مقاسات المعاينة الأولية',
     status: 'superseded',
@@ -403,7 +404,7 @@ export const initialTechnicalDesigns: TechnicalDesignRevision[] = [
       }
     ],
     renders: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+      KITCHEN_DRAWINGS.elevationA,
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600'
     ],
     changeDescription: 'تضمين جزيرة وسطية 180×90 سم وتعديل تجاويف علبة العمود الخرساني 15×35 سم',

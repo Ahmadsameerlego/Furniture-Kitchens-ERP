@@ -1,3 +1,4 @@
+import { KITCHEN_DRAWINGS } from '../../mock/designDrawings';
 import React, { useState, useRef } from 'react';
 import { Upload, X, Eye, Image as ImageIcon, Plus, Sparkles, Link as LinkIcon } from 'lucide-react';
 import { ImageZoomModal } from './ImageZoomModal';
@@ -10,8 +11,8 @@ interface LocalImageUploaderProps {
 
 const DEMO_PRESET_IMAGES = [
   {
-    name: 'مطبخ مودرن HPL أوف وايت',
-    url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=800'
+    name: 'مخطط واجهة مطبخ (من الـ Configurator)',
+    url: KITCHEN_DRAWINGS.elevationA
   },
   {
     name: 'مطبخ خشب زان بني دافئ 3D',

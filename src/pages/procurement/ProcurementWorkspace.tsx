@@ -143,21 +143,11 @@ export const ProcurementWorkspace: React.FC<ProcurementWorkspaceProps> = ({ init
   return (
     <div className="space-y-6">
       {/* Top Header with Quick Action Bar */}
-      <div className="bg-gradient-to-r from-[#361D13] via-[#4a281b] to-[#361D13] p-5 rounded-2xl text-white shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-full bg-[#C87A38] text-white text-xs font-bold uppercase tracking-wider">
-              إدارة المشتريات والتوريدات Enterprise
-            </span>
-            <span className="text-xs text-amber-200/80 font-mono">
-              Rewaq ERP Procurement Hub v2.5
-            </span>
-          </div>
-          <h2 className="text-xl font-bold mt-1 text-white">
-            منظومة المشتريات وسلاسل الإمداد المتكاملة
-          </h2>
+      <div className="bg-gradient-to-r from-[#361D13] via-[#4a281b] to-[#361D13] px-5 py-4 rounded-2xl text-white shadow-md flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-bold text-white">المشتريات وسلاسل التوريد</h2>
           <p className="text-xs text-slate-300 mt-0.5">
-            ربط متكامل من احتياجات التخطيط والإنتاج حتى الاستلام المخزني والتسوية المحاسبية والضريبية (14% VAT)
+            من احتياج التخطيط حتى الاستلام المخزني والتسوية المحاسبية
           </p>
         </div>
 
@@ -219,8 +209,8 @@ export const ProcurementWorkspace: React.FC<ProcurementWorkspaceProps> = ({ init
       </div>
 
       {/* Navigation Sub-Tabs Bar */}
-      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm overflow-x-auto">
-        <div className="flex items-center gap-1 min-w-max">
+      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div className="flex flex-wrap items-center gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

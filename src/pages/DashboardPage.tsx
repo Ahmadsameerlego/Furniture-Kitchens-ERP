@@ -290,7 +290,7 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
-              أهلاً بك، {currentUser.fullName} 👋
+              أهلاً بك، {currentUser.fullName}
             </h1>
 
             <p className="text-xs md:text-sm text-emerald-100/90 leading-relaxed font-medium">

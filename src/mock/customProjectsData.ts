@@ -1,3 +1,4 @@
+import { KITCHEN_DRAWINGS } from './designDrawings';
 import {
   CustomProject,
   SiteVisit,
@@ -207,7 +208,7 @@ export const initialSiteVisits: SiteVisit[] = [
     status: 'completed',
     notes: 'تمت معاينة الموقع وتصوير الجدران بالفيديو واكتشاف عمود خرساني بارز بالجدار B وتم رفع المقاسات بدقة.',
     photos: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+      KITCHEN_DRAWINGS.plan,
       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=600',
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600'
     ],
@@ -266,7 +267,7 @@ export const initialProjectMeasurements: ProjectMeasurement[] = [
     createdByUserName: 'عمر فاروق',
     reasonForUpdate: 'رفع المقاسات الفعلي بالموقع مع التقرير الفني الميداني',
     sitePhotos: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+      KITCHEN_DRAWINGS.plan,
       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=600'
     ],
     siteVideos: [
@@ -309,7 +310,7 @@ export const initialProjectDesigns: ProjectDesign[] = [
     designName: 'تصميم مطبخ مودرن رويل 3D',
     version: 1,
     images: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'
+      KITCHEN_DRAWINGS.plan
     ],
     notes: 'النسخة الأولى: دلف علوية باللون الرمادي وجزيرة 150سم.',
     createdByUserName: 'عمر فاروق',
@@ -326,7 +327,7 @@ export const initialProjectDesigns: ProjectDesign[] = [
     designName: 'تصميم مطبخ مودرن رويل 3D المعدل',
     version: 2,
     images: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+      KITCHEN_DRAWINGS.plan,
       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=600'
     ],
     notes: 'النسخة الثانية المعتمدة: دلف أوف وايت HPL + جزيرة 180سم مع رخام جالاكسي أسود.',
@@ -366,7 +367,7 @@ export const initialProjectDesigns: ProjectDesign[] = [
     projectId: 'prj-106',
     designName: 'تصميم مطبخ لاكيه رمادي مط بجزيرة 3D',
     version: 1,
-    images: ['https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'],
+    images: [KITCHEN_DRAWINGS.plan],
     notes: 'لاكيه رمادي مط مع جزيرة 220سم ورخام كوارتز أبيض.',
     createdByUserName: 'عمر فاروق',
     createdDate: '2026-08-26',

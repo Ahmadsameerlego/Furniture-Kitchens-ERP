@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { NO_IMAGE_PLACEHOLDER } from '../mock/designDrawings';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   CompanyConfig, 
   Branch, 
@@ -345,6 +346,7 @@ interface ERPContextType {
   approveTechnicalDesign: (designId: string, approvedBy: string, notes?: string) => void;
   saveTechnicalBOM: (bomData: Partial<TechnicalBOM> & { technicalProjectId: string; revisionCode: string }) => TechnicalBOM;
   approveTechnicalBOM: (bomId: string, approvedBy: string, notes?: string) => void;
+  approveBOMNesting: (bomId: string, plan: { materialCode: string; sheets: number; offcutAreaSqMeters: number; scrapPercentage: number }[]) => void;
   createBOMRevision: (sourceBomId: string, newRevisionCode: string, reason: string) => TechnicalBOM;
   releaseTechnicalPackageToPlanning: (data: { technicalProjectId: string; bomId: string; designRevisionId?: string; surveyId?: string; notes?: string; targetProductionStartDate?: string; targetFactoryCompletionDate?: string; targetSiteInstallationDate?: string; specialManufacturingInstructions?: string }) => TechnicalReleasePackage;
   createEngineeringChangeRequest: (data: Omit<EngineeringChangeRequest, 'id' | 'ecrNumber' | 'createdAt' | 'status'>) => EngineeringChangeRequest;
@@ -1514,6 +1516,63 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('تم تحديث بيانات العميل بنجاح', 'success');
   };
 
+  // Keep each customer's CRM stage in step with their projects and orders:
+  // a signed contract makes them "won", production makes them "active", handover makes them "completed".
+  // The first pass after load only aligns the data silently; later moves are logged on the customer's timeline.
+  const lastPipelineSync = useRef<{ projects: CustomProject[]; orders: ReadyOrder[] } | null>(null);
+  useEffect(() => {
+    const previous = lastPipelineSync.current;
+    if (previous && previous.projects === customProjects && previous.orders === orders) return;
+    lastPipelineSync.current = { projects: customProjects, orders };
+
+    const changes: { customer: Customer; status: CustomerStatus }[] = [];
+    customers.forEach(c => {
+      const next = CrmService.getPipelineStatus(
+        c,
+        customProjects.filter(p => p.customerId === c.id),
+        orders.filter(o => o.customerId === c.id)
+      );
+      if (next) changes.push({ customer: c, status: next });
+    });
+
+    const silent = previous === null;
+    if (changes.length === 0) return;
+
+    const byId = new Map(changes.map(ch => [ch.customer.id, ch.status]));
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setCustomers(prev => prev.map(c => {
+      const status = byId.get(c.id);
+      if (!status) return c;
+      return {
+        ...c,
+        status,
+        lostReason: undefined,
+        lostNote: undefined,
+        hasPurchased: c.hasPurchased || CrmService.isPurchasedStatus(status),
+        isAfterSales: c.isAfterSales || status === 'completed',
+        lastActivityDate: silent ? c.lastActivityDate : timestamp
+      };
+    }));
+
+    if (!silent) {
+      const today = timestamp.substring(0, 10);
+      setActivities(prev => [
+        ...changes.map((ch, i): CustomerActivity => ({
+          id: `act-sync-${Date.now()}-${i}`,
+          customerId: ch.customer.id,
+          type: 'status_change',
+          title: `انتقال تلقائي إلى: ${CrmService.getStatusMeta(ch.status).label}`,
+          note: `تم تحديث مرحلة العميل تلقائياً من "${CrmService.getStatusMeta(ch.customer.status).label}" بناءً على تقدم مشروعه أو طلبه.`,
+          date: today,
+          timestamp,
+          userId: 'system',
+          userName: 'النظام (تلقائي)'
+        })),
+        ...prev
+      ]);
+    }
+  }, [customProjects, orders]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const updateCustomerStatus = (customerId: string, newStatus: CustomerStatus, lostReason?: LostReason, lostNote?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const existing = customers.find(c => c.id === customerId);
@@ -2239,7 +2298,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       projectId,
       designName: designData.designName || `تصميم 3D نسق V${nextVersion}`,
       version: nextVersion,
-      images: designData.images || ['https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'],
+      images: designData.images && designData.images.length ? designData.images : [NO_IMAGE_PLACEHOLDER],
       pdfUrl: designData.pdfUrl,
       notes: designData.notes,
       createdByUserName: currentUser.fullName,
@@ -2308,12 +2367,23 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalSelling: totalSelling - Number(quotationData.discount || 0),
       totalCost,
       estimatedProfit: estimatedProfit - Number(quotationData.discount || 0),
-      notes: quotationData.notes
+      notes: quotationData.notes,
+      breakdown: quotationData.breakdown,
+      configuration: quotationData.configuration
     };
 
     setProjectQuotations(prev => [...prev, newQuotation]);
-    updateProjectStatus(projectId, 'customer_approval');
-    showToast(`تم إرسال عرض السعر V${nextVersion} بمبلغ ${newQuotation.totalSelling.toLocaleString('ar-EG')} ج.م`, 'success');
+    // A re-quote after signing (e.g. a revised configuration) must not pull a contracted project back to sales
+    const preContractStatuses: ProjectStatus[] = ['new', 'opportunity', 'visit_scheduled', 'measured', 'designing', 'design_review', 'design_approved', 'quotation', 'quotation_sent', 'customer_approval', 'approved'];
+    const currentStatus = customProjects.find(p => p.id === projectId)?.status;
+    if (!currentStatus || preContractStatuses.includes(currentStatus)) {
+      updateProjectStatus(projectId, 'customer_approval');
+    }
+    if (quotationData.configuration) {
+      const m = quotationData.configuration.metrics;
+      addTimelineEvent(projectId, `عرض سعر V${nextVersion} بالـ Configurator`, `${m.unitsCount} وحدة (${m.baseMeters} م.ط سفلي / ${m.wallMeters} م.ط علوي / ${m.tallMeters} م.ط طولي) بقيمة ${newQuotation.totalSelling.toLocaleString()} ج.م قبل الضريبة`, 'quotation');
+    }
+    showToast(`تم إرسال عرض السعر V${nextVersion} بمبلغ ${newQuotation.totalSelling.toLocaleString()} ج.م قبل الضريبة`, 'success');
     return newQuotation;
   };
 
@@ -3039,6 +3109,25 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     showToast(`✓ تم حفظ وتحديث الـ BOM (${savedBOM.bomNumber} - ${savedBOM.revisionCode})`, 'success');
     return savedBOM;
+  };
+
+  // The cutting plan fixes the exact sheet count per board; planning orders those sheets from now on
+  const approveBOMNesting = (bomId: string, plan: { materialCode: string; sheets: number; offcutAreaSqMeters: number; scrapPercentage: number }[]) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetBom = technicalBOMs.find(b => b.id === bomId);
+    if (!targetBom) return;
+    const byCode = new Map(plan.map(p => [p.materialCode, p]));
+    setTechnicalBOMs(prev => prev.map(b => b.id !== bomId ? b : {
+      ...b,
+      nestingApprovedAt: timestamp,
+      nestingApprovedBy: currentUser.fullName,
+      materialsSummary: (b.materialsSummary || []).map(m => {
+        const p = byCode.get(resolveCatalogItem(m.materialCode)?.key || m.materialCode) || byCode.get(m.materialCode);
+        return p ? { ...m, nestedSheetsCount: p.sheets, offcutAreaSqMeters: p.offcutAreaSqMeters, scrapPercentage: p.scrapPercentage } : m;
+      })
+    }));
+    const total = plan.reduce((s, p) => s + p.sheets, 0);
+    showToast(`تم اعتماد خطة التقطيع (${total} لوح) — التخطيط هيطلب العدد ده بالظبط`, 'success');
   };
 
   const approveTechnicalBOM = (bomId: string, approvedBy: string, notes?: string) => {
@@ -7449,6 +7538,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         approveTechnicalDesign,
         saveTechnicalBOM,
         approveTechnicalBOM,
+        approveBOMNesting,
         createBOMRevision,
         releaseTechnicalPackageToPlanning,
         createEngineeringChangeRequest,

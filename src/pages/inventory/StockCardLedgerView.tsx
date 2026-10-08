@@ -223,19 +223,19 @@ export const StockCardLedgerView: React.FC = () => {
 
         {/* Ledger Table */}
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right text-xs min-w-[1100px]">
+          <table className="w-full text-right text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">التاريخ</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">نوع المستند</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم السند</th>
-                <th className="py-3.5 px-4 min-w-[160px]">المستودع</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center text-emerald-800">الوارد (+)</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center text-rose-700">المنصرف (-)</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-center font-black">الرصيد بعد الحركة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-left">التكلفة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">إجمالي القيمة</th>
-                <th className="py-3.5 px-4 min-w-[220px]">البيان / ملاحظات التشغيل</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px]">التاريخ</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[80px]">نوع المستند</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[90px]">رقم السند</th>
+                <th className="py-3.5 px-3 min-w-[100px]">المستودع</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px] text-center text-emerald-800">الوارد (+)</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px] text-center text-rose-700">المنصرف (-)</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[80px] text-center font-black">الرصيد بعد الحركة</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px] text-left">التكلفة</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px] text-left">إجمالي القيمة</th>
+                <th className="py-3.5 px-3 min-w-[140px]">البيان / ملاحظات التشغيل</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono">
@@ -248,8 +248,8 @@ export const StockCardLedgerView: React.FC = () => {
               ) : (
                 itemEntries.map(entry => (
                   <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">{entry.date}</td>
-                    <td className="py-3.5 px-4 font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-slate-600 whitespace-nowrap">{entry.date}</td>
+                    <td className="py-3.5 px-3 font-sans whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${
                         entry.documentType === 'GRN' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' :
                         entry.documentType === 'GIN' ? 'bg-rose-100 text-rose-900 border border-rose-300' :
@@ -263,20 +263,20 @@ export const StockCardLedgerView: React.FC = () => {
                         {entry.documentType === 'ADJUSTMENT_OUT' && 'تسوية عجز'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{entry.documentNumber}</td>
-                    <td className="py-3.5 px-4 font-sans text-slate-700">{entry.warehouseName}</td>
-                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700 whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-bold text-slate-900 whitespace-nowrap">{entry.documentNumber}</td>
+                    <td className="py-3.5 px-3 font-sans text-slate-700">{entry.warehouseName}</td>
+                    <td className="py-3.5 px-3 text-center font-bold text-emerald-700 whitespace-nowrap">
                       {entry.qtyIn > 0 ? `+${entry.qtyIn}` : '-'}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-bold text-rose-700 whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-bold text-rose-700 whitespace-nowrap">
                       {entry.qtyOut > 0 ? `-${entry.qtyOut}` : '-'}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-black text-slate-900 text-sm whitespace-nowrap bg-slate-50/80">
+                    <td className="py-3.5 px-3 text-center font-black text-slate-900 text-sm whitespace-nowrap bg-slate-50/80">
                       {entry.balanceAfter} <span className="text-[10px] font-normal text-slate-400">{currentItem?.unitNameAr}</span>
                     </td>
-                    <td className="py-3.5 px-4 text-left text-slate-700 whitespace-nowrap">{entry.unitCost.toLocaleString()} EGP</td>
-                    <td className="py-3.5 px-4 text-left font-black text-slate-900 whitespace-nowrap">{entry.totalCost.toLocaleString()} EGP</td>
-                    <td className="py-3.5 px-4 font-sans text-slate-600 text-xs">{entry.notes}</td>
+                    <td className="py-3.5 px-3 text-left text-slate-700 whitespace-nowrap">{entry.unitCost.toLocaleString()} EGP</td>
+                    <td className="py-3.5 px-3 text-left font-black text-slate-900 whitespace-nowrap">{entry.totalCost.toLocaleString()} EGP</td>
+                    <td className="py-3.5 px-3 font-sans text-slate-600 text-xs">{entry.notes}</td>
                   </tr>
                 ))
               )}

@@ -232,16 +232,16 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-right text-xs">
             <thead className="bg-[#1E110B]/5 text-slate-700 font-black border-b border-slate-200/80">
-              <tr className="whitespace-nowrap">
-                <th className="py-4 px-5 min-w-[130px]">رقم الطلب</th>
-                <th className="py-4 px-4 min-w-[140px]">تاريخ الطلب / الحاجة</th>
-                <th className="py-4 px-4 min-w-[150px]">الطالب والمصدر</th>
-                <th className="py-4 px-4 min-w-[150px]">المشروع المرتبط</th>
-                <th className="py-4 px-4 min-w-[200px]">البنود والكميات</th>
-                <th className="py-4 px-4 text-center min-w-[130px]">القيمة التقديرية</th>
-                <th className="py-4 px-4 text-center min-w-[120px]">الأولوية</th>
-                <th className="py-4 px-4 text-center min-w-[150px]">الحالة</th>
-                <th className="py-4 px-5 text-center min-w-[160px]">الإجراءات</th>
+              <tr>
+                <th className="py-3 px-2 min-w-[80px]">رقم الطلب</th>
+                <th className="py-3 px-2 min-w-[90px]">تاريخ الطلب / الحاجة</th>
+                <th className="py-3 px-2 min-w-[90px]">الطالب والمصدر</th>
+                <th className="py-3 px-2 min-w-[90px]">المشروع المرتبط</th>
+                <th className="py-3 px-2 min-w-[120px]">البنود والكميات</th>
+                <th className="py-3 px-2 text-center min-w-[80px]">القيمة التقديرية</th>
+                <th className="py-3 px-2 text-center min-w-[70px]">الأولوية</th>
+                <th className="py-3 px-2 text-center min-w-[90px]">الحالة</th>
+                <th className="py-3 px-2 text-center min-w-[100px]">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
@@ -259,36 +259,36 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
                   return (
                     <tr key={pr.id} className="hover:bg-amber-50/20 transition-colors">
                       {/* PR Number */}
-                      <td className="py-4 px-5 font-mono font-black text-slate-900 text-xs whitespace-nowrap">
+                      <td className="py-3 px-2 font-mono font-black text-slate-900 text-xs whitespace-nowrap">
                         <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">
                           {pr.prNumber}
                         </span>
                       </td>
 
                       {/* Request & Required Date */}
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="font-mono font-bold text-slate-800 text-xs">{pr.requestDate}</div>
+                      <td className="py-3 px-2">
+                        <div className="font-mono font-bold text-slate-800 text-xs whitespace-nowrap">{pr.requestDate}</div>
                         <div className="text-[10px] text-slate-400 mt-0.5">
-                          مطلوب: <strong className="text-amber-800 font-mono font-black">{pr.requiredDate}</strong>
+                          مطلوب: <strong className="text-amber-800 font-mono font-black whitespace-nowrap">{pr.requiredDate}</strong>
                         </div>
                       </td>
 
                       {/* Requester & Department */}
-                      <td className="py-4 px-4">
+                      <td className="py-3 px-2">
                         <div className="font-bold text-slate-900 text-xs">{pr.requesterName}</div>
                         <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
                           <span className="px-1.5 py-0.2 bg-slate-100 rounded text-slate-600">
                             {pr.department === 'planning' ? 'التخطيط' : pr.department === 'production' ? 'الإنتاج' : 'المخازن'}
                           </span>
-                          {pr.sourceReference && <span className="font-mono text-slate-400">• {pr.sourceReference}</span>}
+                          {pr.sourceReference && <span className="font-mono text-slate-400 whitespace-nowrap">• {pr.sourceReference}</span>}
                         </div>
                       </td>
 
                       {/* Project */}
-                      <td className="py-4 px-4">
+                      <td className="py-3 px-2">
                         {pr.projectNumber ? (
                           <div>
-                            <span className="font-bold text-indigo-700 block font-mono text-xs">{pr.projectNumber}</span>
+                            <span className="font-bold text-indigo-700 block font-mono text-xs whitespace-nowrap">{pr.projectNumber}</span>
                             <span className="text-[10px] text-slate-500 block truncate max-w-[140px] mt-0.5">{pr.projectName}</span>
                           </div>
                         ) : (
@@ -297,40 +297,40 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
                       </td>
 
                       {/* Items */}
-                      <td className="py-4 px-4">
+                      <td className="py-3 px-2">
                         <div className="font-black text-[#1E110B] leading-relaxed text-xs line-clamp-1 max-w-[200px]">
                           {pr.items[0]?.itemName}
                         </div>
                         <div className="text-[10px] text-slate-500 mt-0.5 font-bold">
-                          <span className="font-mono text-indigo-700">{pr.items[0]?.quantity} {pr.items[0]?.uom}</span>
+                          <span className="font-mono text-indigo-700 whitespace-nowrap">{pr.items[0]?.quantity} {pr.items[0]?.uom}</span>
                           {pr.items.length > 1 && <span className="mr-1 text-slate-400 font-normal"> (+{pr.items.length - 1} بنود)</span>}
                         </div>
                       </td>
 
                       {/* Estimated Value */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
-                        <span className="font-mono font-black text-slate-900 text-xs">{pr.totalEstimatedValue.toLocaleString()}</span>
+                      <td className="py-3 px-2 text-center">
+                        <span className="font-mono font-black text-slate-900 text-xs whitespace-nowrap">{pr.totalEstimatedValue.toLocaleString()}</span>
                         <span className="text-[10px] text-slate-500 mr-1 font-bold">ج.م</span>
                       </td>
 
                       {/* Priority Badge (No clipping) */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
-                        <span className={`whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${priorityBadge.bg} ${priorityBadge.text} border-slate-200/60`}>
+                      <td className="py-3 px-2 text-center">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${priorityBadge.bg} ${priorityBadge.text} border-slate-200/60`}>
                           <span className={`w-2 h-2 rounded-full shrink-0 ${priorityBadge.dot}`} />
                           <span>{priorityBadge.label}</span>
                         </span>
                       </td>
 
                       {/* Status Badge (No clipping) */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
-                        <span className={`whitespace-nowrap inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
+                      <td className="py-3 px-2 text-center">
+                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
                           {statusBadge.label}
                         </span>
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-5 text-center whitespace-nowrap">
-                        <div className="flex items-center justify-center gap-1.5">
+                      <td className="py-3 px-2 text-center">
+                        <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-[200px] mx-auto">
                           {/* View details */}
                           <button
                             onClick={() => handleOpenDetails(pr)}
@@ -454,33 +454,33 @@ export const PurchaseRequestsView: React.FC<PurchaseRequestsViewProps> = ({
                   <table className="w-full text-right text-xs">
                     <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                       <tr>
-                        <th className="py-2.5 px-3">كود الصنف</th>
-                        <th className="py-2.5 px-3">اسم الخامة / المواصفات</th>
-                        <th className="py-2.5 px-3">الكمية</th>
-                        <th className="py-2.5 px-3">السعر التقديري</th>
-                        <th className="py-2.5 px-3">الإجمالي التقديري</th>
+                        <th className="py-2.5 px-2">كود الصنف</th>
+                        <th className="py-2.5 px-2">اسم الخامة / المواصفات</th>
+                        <th className="py-2.5 px-2">الكمية</th>
+                        <th className="py-2.5 px-2">السعر التقديري</th>
+                        <th className="py-2.5 px-2">الإجمالي التقديري</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {selectedPR.items.map((it, idx) => (
                         <tr key={idx}>
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-700">{it.itemCode}</td>
-                          <td className="py-2.5 px-3">
+                          <td className="py-2.5 px-2 font-mono font-bold text-slate-700 whitespace-nowrap">{it.itemCode}</td>
+                          <td className="py-2.5 px-2">
                             <span className="font-black text-slate-900 block">{it.itemName}</span>
                             {it.specifications && (
                               <span className="text-[10px] text-slate-400 block mt-0.5">{it.specifications}</span>
                             )}
                           </td>
-                          <td className="py-2.5 px-3 font-bold text-slate-800">{it.quantity} {it.uom}</td>
-                          <td className="py-2.5 px-3 font-mono text-slate-700">{it.estimatedUnitCost.toLocaleString()} ج.م</td>
-                          <td className="py-2.5 px-3 font-mono font-black text-slate-900">{it.estimatedTotalCost.toLocaleString()} ج.م</td>
+                          <td className="py-2.5 px-2 font-bold text-slate-800">{it.quantity} {it.uom}</td>
+                          <td className="py-2.5 px-2 font-mono text-slate-700 whitespace-nowrap">{it.estimatedUnitCost.toLocaleString()} ج.م</td>
+                          <td className="py-2.5 px-2 font-mono font-black text-slate-900 whitespace-nowrap">{it.estimatedTotalCost.toLocaleString()} ج.م</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot className="bg-slate-50/80 font-black border-t border-slate-200">
                       <tr>
-                        <td colSpan={4} className="py-3 px-3 text-slate-700">الإجمالي التقديري لطلب الشراء:</td>
-                        <td className="py-3 px-3 font-mono text-indigo-700 text-sm">
+                        <td colSpan={4} className="py-3 px-2 text-slate-700">الإجمالي التقديري لطلب الشراء:</td>
+                        <td className="py-3 px-2 font-mono text-indigo-700 text-sm">
                           {selectedPR.totalEstimatedValue.toLocaleString()} ج.م
                         </td>
                       </tr>

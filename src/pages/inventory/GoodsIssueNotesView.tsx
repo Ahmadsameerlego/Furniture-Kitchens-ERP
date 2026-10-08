@@ -392,30 +392,30 @@ export const GoodsIssueNotesView: React.FC = () => {
       {activeSubTab === 'gins' ? (
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[1050px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم إذن الصرف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">التاريخ</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">نوع الصرف والتوجيه</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">الجهة / أمر الشغل</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">المستودع المنصرف منه</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">عدد الأصناف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">إجمالي التكلفة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center">الحالة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">الإجراءات</th>
+                  <th className="py-3.5 px-3 min-w-[90px]">رقم إذن الصرف</th>
+                  <th className="py-3.5 px-3 min-w-[70px]">التاريخ</th>
+                  <th className="py-3.5 px-3 min-w-[100px]">نوع الصرف والتوجيه</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">الجهة / أمر الشغل</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">المستودع المنصرف منه</th>
+                  <th className="py-3.5 px-3 min-w-[60px] text-center">عدد الأصناف</th>
+                  <th className="py-3.5 px-3 min-w-[80px] text-left">إجمالي التكلفة</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الحالة</th>
+                  <th className="py-3.5 px-3 min-w-[60px] text-center">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
                 {filteredGINs.map(gin => (
                   <tr key={gin.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-bold text-slate-900 whitespace-nowrap">
                       {gin.ginNumber}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 font-mono whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-slate-500 font-mono whitespace-nowrap">
                       {gin.date}
                     </td>
-                    <td className="py-3.5 px-4 font-sans text-xs whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-sans text-xs">
                       <span className={`px-2.5 py-1 rounded-xl font-bold border ${
                         gin.type === 'production_mo' ? 'bg-amber-50 text-amber-900 border-amber-200' :
                         gin.type === 'maintenance_workshop' ? 'bg-blue-50 text-blue-900 border-blue-200' :
@@ -427,25 +427,25 @@ export const GoodsIssueNotesView: React.FC = () => {
                         {gin.type === 'general_issue' && 'صرف عام'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-sans font-bold text-slate-800">
+                    <td className="py-3.5 px-3 font-sans font-bold text-slate-800">
                       {gin.productionOrderNumber || gin.machineName || gin.costCenterName || 'ورشة التصنيع'}
                     </td>
-                    <td className="py-3.5 px-4 font-sans text-slate-700 font-bold">
+                    <td className="py-3.5 px-3 font-sans text-slate-700 font-bold">
                       {gin.warehouseName}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-bold text-slate-900">
+                    <td className="py-3.5 px-3 text-center font-bold text-slate-900">
                       {gin.items.length} صنف
                     </td>
-                    <td className="py-3.5 px-4 text-left font-black text-rose-700 whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-left font-black text-rose-700 whitespace-nowrap">
                       {gin.totalAmount.toLocaleString()} EGP
                     </td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-sans">
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-50 text-rose-800 border border-rose-200 shadow-2xs">
                         <CheckCircle2 className="w-3 h-3" />
                         <span>منصرف ومرحل</span>
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-sans">
                       <button
                         onClick={() => setSelectedGINForView(gin)}
                         className="px-3 py-1 rounded-xl bg-slate-100 hover:bg-[#361D13] text-slate-700 hover:text-white text-[11px] font-bold transition-all shadow-2xs"
@@ -468,27 +468,27 @@ export const GoodsIssueNotesView: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[950px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم طلب الصرف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">تاريخ الطلب</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">القسم الطالب</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">أمر الإنتاج / الغرض</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">الأصناف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الحالة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الإجراءات</th>
+                  <th className="py-3.5 px-3 min-w-[90px]">رقم طلب الصرف</th>
+                  <th className="py-3.5 px-3 min-w-[70px]">تاريخ الطلب</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">القسم الطالب</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">أمر الإنتاج / الغرض</th>
+                  <th className="py-3.5 px-3 min-w-[60px] text-center">الأصناف</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الحالة</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
                 {materialRequisitions.map(mrn => (
                   <tr key={mrn.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{mrn.requisitionNumber}</td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">{mrn.date}</td>
-                    <td className="py-3.5 px-4 font-sans font-bold text-slate-800">{mrn.department} ({mrn.requestedByUserName})</td>
-                    <td className="py-3.5 px-4 font-sans text-slate-700 font-bold">{mrn.productionOrderNumber || mrn.notes || 'طلب تشغيل'}</td>
-                    <td className="py-3.5 px-4 text-center font-bold text-slate-900">{mrn.items.length} صنف</td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-bold text-slate-900">{mrn.requisitionNumber}</td>
+                    <td className="py-3.5 px-3 text-slate-500">{mrn.date}</td>
+                    <td className="py-3.5 px-3 font-sans font-bold text-slate-800">{mrn.department} ({mrn.requestedByUserName})</td>
+                    <td className="py-3.5 px-3 font-sans text-slate-700 font-bold">{mrn.productionOrderNumber || mrn.notes || 'طلب تشغيل'}</td>
+                    <td className="py-3.5 px-3 text-center font-bold text-slate-900">{mrn.items.length} صنف</td>
+                    <td className="py-3.5 px-3 text-center font-sans">
                       {mrn.status === 'pending' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
                           <span>في انتظار اعتماد مدير الإنتاج</span>
@@ -517,7 +517,7 @@ export const GoodsIssueNotesView: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-sans">
                       <div className="flex items-center justify-center gap-1.5">
                         {mrn.status === 'pending' && (
                           <>

@@ -1,3 +1,4 @@
+import { KITCHEN_DRAWINGS } from '../mock/designDrawings';
 import React, { useState } from 'react';
 import { useERP } from '../context/ERPContext';
 import { CustomProjectService } from '../services/customProjectService';
@@ -40,6 +41,9 @@ import { LocalImageUploader } from '../components/common/LocalImageUploader';
 import { ImageZoomModal } from '../components/common/ImageZoomModal';
 import { OfficialQuotationModal } from '../components/modals/OfficialQuotationModal';
 import { ProjectQuotation, PaymentMilestone } from '../types/erp';
+import type { KitchenConfiguration } from '../types/configurator';
+import { KitchenConfiguratorModal } from '../components/configurator/KitchenConfiguratorModal';
+import { VAT_RATE } from '../services/kitchenConfigurator';
 
 interface CustomProjectDetailsPageProps {
   projectId: string;
@@ -87,7 +91,7 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
   const [isAddMeasurementOpen, setIsAddMeasurementOpen] = useState(false);
   const [updateReason, setUpdateReason] = useState('رفع المقاسات الفعلي وتوثيق فحص الموقع الميداني');
   const [measPhotos, setMeasPhotos] = useState<string[]>([
-    'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+    KITCHEN_DRAWINGS.elevationA,
     'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=600'
   ]);
   const [measVideoUrl, setMeasVideoUrl] = useState('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
@@ -121,13 +125,15 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
   const [isAddDesignOpen, setIsAddDesignOpen] = useState(false);
   const [designName, setDesignName] = useState('تصميم 3D أوف وايت HPL');
   const [designImages, setDesignImages] = useState<string[]>([
-    'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'
+    KITCHEN_DRAWINGS.elevationA
   ]);
   const [designNotes, setDesignNotes] = useState('النسخة المعدلة مع جزيرة وسطية 180سم');
   const [activeLightbox, setActiveLightbox] = useState<{ images: string[]; index: number; title: string } | null>(null);
 
   // Quotation Builder State
   const [isAddQuotationOpen, setIsAddQuotationOpen] = useState(false);
+  const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
+  const [configToView, setConfigToView] = useState<KitchenConfiguration | null>(null);
   const [selectedMatId, setSelectedMatId] = useState(materials[0]?.id || '');
   const [itemCategory, setItemCategory] = useState<'base_unit' | 'upper_unit' | 'tall_unit' | 'material' | 'mechanism' | 'accessory' | 'marble' | 'work'>('material');
   const [itemQty, setItemQty] = useState(8);
@@ -196,6 +202,8 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
   const projectMeasList = projectMeasurements.filter(m => m.projectId === project.id);
   const projectDesignsList = projectDesigns.filter(d => d.projectId === project.id);
   const projectQuotesList = projectQuotations.filter(q => q.projectId === project.id);
+  const latestMeasurement = [...projectMeasList].sort((a, b) => b.version - a.version)[0];
+  const isKitchenProject = project.projectType === 'kitchen';
   const projectTimeline = projectTimelineEvents.filter(t => t.projectId === project.id);
   const projectContract = customContracts.find(c => c.projectId === project.id);
   const projectHandover = projectHandovers.find(h => h.projectId === project.id);
@@ -949,13 +957,25 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
               <p className="text-xs text-slate-500 mt-0.5">تسعير مبوب ومرن يمثل ما يشتريه العميل بدقة مع حساب الربحية</p>
             </div>
 
-            <button
-              onClick={() => setIsAddQuotationOpen(true)}
-              className="px-4 py-2.5 bg-[#1E110B] hover:bg-black text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all self-start sm:self-auto"
-            >
-              <Plus className="w-4 h-4 text-[#C87A38]" />
-              <span>إصدار عرض سعر جديد (New Quotation)</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              {isKitchenProject && (
+                <button
+                  onClick={() => setIsConfiguratorOpen(true)}
+                  className="px-4 py-2.5 bg-[#C87A38] hover:bg-[#b06325] text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                  title="المقاسات تطلّع الوحدات، والوحدات تطلّع السعر"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>تسعير بالـ Configurator</span>
+                </button>
+              )}
+              <button
+                onClick={() => setIsAddQuotationOpen(true)}
+                className="px-4 py-2.5 bg-[#1E110B] hover:bg-black text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all"
+              >
+                <Plus className="w-4 h-4 text-[#C87A38]" />
+                <span>عرض سعر يدوي بالبنود</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -970,7 +990,10 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                         V{qte.version}
                       </span>
                       <div>
-                        <p className="font-black text-slate-900 text-sm">عرض سعر رسمي V{qte.version}</p>
+                        <p className="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                          عرض سعر رسمي V{qte.version}
+                          {qte.configuration && <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-black border border-amber-200">Configurator</span>}
+                        </p>
                         <p className="text-[11px] text-slate-400">{qte.createdDate} — بواسطة: {qte.createdByUserName}</p>
                       </div>
                     </div>
@@ -980,6 +1003,15 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                         {quoteMeta.label}
                       </span>
 
+                      {qte.configuration && (
+                        <button
+                          onClick={() => setConfigToView(qte.configuration!)}
+                          className="px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-900 font-bold text-xs rounded-xl flex items-center gap-1.5"
+                        >
+                          <Layers className="w-3.5 h-3.5" />
+                          <span>الوحدات والرسومات</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => setSelectedQuoteForOfficialModal(qte)}
                         className="px-3 py-1.5 bg-[#1E110B] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-2xs"
@@ -1036,9 +1068,9 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                               {item.description && <span className="text-[10px] text-slate-400 block font-normal">{item.description}</span>}
                             </td>
                             <td className="p-3 text-center font-mono">{item.quantity} {item.unit}</td>
-                            <td className="p-3 text-left font-mono text-slate-400">{item.totalCost.toLocaleString('ar-EG')} ج.م</td>
-                            <td className="p-3 text-left font-mono font-bold text-slate-900">{item.unitSellingPrice.toLocaleString('ar-EG')} ج.م</td>
-                            <td className="p-3 text-left font-mono font-black text-slate-900">{item.totalSellingPrice.toLocaleString('ar-EG')} ج.م</td>
+                            <td className="p-3 text-left font-mono text-slate-400">{item.totalCost.toLocaleString()} ج.م</td>
+                            <td className="p-3 text-left font-mono font-bold text-slate-900">{item.unitSellingPrice.toLocaleString()} ج.م</td>
+                            <td className="p-3 text-left font-mono font-black text-slate-900">{item.totalSellingPrice.toLocaleString()} ج.م</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1049,17 +1081,28 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
                   <div className="p-4 bg-slate-900 text-white rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
                     <div>
                       <span className="text-slate-400 block text-[10px] font-bold">التكلفة المرجعية المقدرة:</span>
-                      <span className="font-mono text-xs font-bold text-slate-200">{qte.totalCost.toLocaleString('ar-EG')} ج.م</span>
+                      <span className="font-mono text-xs font-bold text-slate-200">{qte.totalCost.toLocaleString()} ج.م</span>
                     </div>
 
                     <div>
-                      <span className="text-slate-400 block text-[10px] font-bold">إجمالي سعر البيع للعميل:</span>
-                      <span className="font-mono text-base font-black text-white">{qte.totalSelling.toLocaleString('ar-EG')} ج.م</span>
+                      <span className="text-slate-400 block text-[10px] font-bold">الإجمالي قبل الضريبة:</span>
+                      <span className="font-mono text-base font-black text-white">{qte.totalSelling.toLocaleString()} ج.م</span>
+                      {qte.discount > 0 && <span className="block text-[10px] text-rose-300 font-bold">بعد خصم {qte.discount.toLocaleString()} ج.م</span>}
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block text-[10px] font-bold">ضريبة القيمة المضافة 14%:</span>
+                      <span className="font-mono text-xs font-bold text-slate-200">{Math.round(qte.totalSelling * VAT_RATE).toLocaleString()} ج.م</span>
+                    </div>
+
+                    <div>
+                      <span className="text-amber-300 block text-[10px] font-bold">الإجمالي شامل الضريبة:</span>
+                      <span className="font-mono text-base font-black text-amber-200">{Math.round(qte.totalSelling * (1 + VAT_RATE)).toLocaleString()} ج.م</span>
                     </div>
 
                     <div className="px-3 py-2 bg-emerald-900/80 rounded-xl border border-emerald-500/40 text-left dir-ltr">
                       <span className="text-emerald-300 text-[10px] font-bold block">Gross Margin:</span>
-                      <span className="font-mono text-sm font-black text-emerald-400">+{qte.estimatedProfit.toLocaleString('ar-EG')} EGP</span>
+                      <span className="font-mono text-sm font-black text-emerald-400">+{qte.estimatedProfit.toLocaleString()} ج.م</span>
                     </div>
                   </div>
                 </div>
@@ -1867,6 +1910,31 @@ export const CustomProjectDetailsPage: React.FC<CustomProjectDetailsPageProps> =
       )}
 
       {/* Official Quotation Modal */}
+      {isConfiguratorOpen && (
+        <KitchenConfiguratorModal
+          isOpen={true}
+          onClose={() => setIsConfiguratorOpen(false)}
+          project={project}
+          measurement={latestMeasurement}
+          nextVersion={projectQuotesList.length + 1}
+          onIssue={(payload) => {
+            createProjectQuotation(project.id, payload);
+            setIsConfiguratorOpen(false);
+            setActiveTab('quotations');
+          }}
+        />
+      )}
+
+      {configToView && (
+        <KitchenConfiguratorModal
+          isOpen={true}
+          onClose={() => setConfigToView(null)}
+          project={project}
+          nextVersion={projectQuotesList.length}
+          readOnlyConfig={configToView}
+        />
+      )}
+
       {selectedQuoteForOfficialModal && (
         <OfficialQuotationModal
           isOpen={true}

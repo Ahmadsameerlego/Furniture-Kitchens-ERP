@@ -226,7 +226,7 @@ export const ManufacturingWorkspace: React.FC<ManufacturingWorkspaceProps> = ({
       
       {/* Top Navigation Tabs Header */}
       <div className="bg-white rounded-3xl border border-slate-200 p-2 shadow-sm">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+        <div className="flex flex-wrap items-center gap-1.5">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

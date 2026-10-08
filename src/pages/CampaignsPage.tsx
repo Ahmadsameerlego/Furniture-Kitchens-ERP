@@ -6,7 +6,7 @@ import { CrmService } from '../services/crmService';
 import { CustomerAvatar } from '../components/common/CustomerAvatar';
 
 export const CampaignsPage: React.FC = () => {
-  const { campaigns, customers, addCampaign, updateCampaign, setSelectedCustomerId, setActiveModule } = useERP();
+  const { campaigns, customers, customContracts, orders, addCampaign, updateCampaign, setSelectedCustomerId, setActiveModule } = useERP();
 
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,8 +78,7 @@ export const CampaignsPage: React.FC = () => {
         {campaigns.map((cmp) => {
           const sourceMeta = CrmService.getSourceLabel(cmp.platform);
           const isSelected = selectedCampaignId === cmp.id;
-          const attributedRev = cmp.revenueAttributed || 0;
-          const convRate = cmp.customersCount > 0 ? Math.round((cmp.purchasedCount / cmp.customersCount) * 100) : 0;
+          const perf = CrmService.getCampaignPerformance(cmp, customers, customContracts, orders);
 
           return (
             <div
@@ -111,24 +110,36 @@ export const CampaignsPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-2 text-center p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
                 <div>
                   <span className="text-slate-400 font-bold text-[10px] block">العملاء:</span>
-                  <span className="font-black text-slate-900 text-sm">{cmp.customersCount}</span>
+                  <span className="font-black text-slate-900 text-sm">{perf.customersCount}</span>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 font-bold text-[10px] block">التعاقدات:</span>
-                  <span className="font-black text-emerald-800 text-sm">{cmp.purchasedCount}</span>
+                  <span className="text-slate-400 font-bold text-[10px] block">اشتروا:</span>
+                  <span className="font-black text-emerald-800 text-sm">{perf.purchasedCount}</span>
                 </div>
 
                 <div>
                   <span className="text-slate-400 font-bold text-[10px] block">التحويل:</span>
-                  <span className="font-black text-[#C87A38] text-sm">{convRate}%</span>
+                  <span className="font-black text-[#C87A38] text-sm">{perf.conversionRate}%</span>
                 </div>
               </div>
 
-              {/* Financial Attribution */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-500">العائد المحقق:</span>
-                <span className="text-[#361D13] text-sm">{attributedRev.toLocaleString('ar-EG')} ج.م</span>
+              {/* Financial Attribution — computed from signed contracts and orders of this campaign's customers */}
+              <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs font-bold">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">الميزانية:</span>
+                  <span className="text-slate-700">{cmp.budget.toLocaleString()} ج.م</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">العائد من العقود والطلبات:</span>
+                  <span className="text-[#361D13] text-sm">{perf.revenueAttributed.toLocaleString()} ج.م</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">العائد على الإنفاق:</span>
+                  <span className={perf.revenueAttributed > 0 ? 'text-emerald-700' : 'text-slate-400'}>
+                    {perf.revenueAttributed > 0 ? `${(perf.revenueAttributed / Math.max(cmp.budget, 1)).toFixed(1)}x` : 'لا يوجد تعاقد بعد'}
+                  </span>
+                </div>
               </div>
 
               <div className="text-[10px] text-slate-400 text-center font-bold">

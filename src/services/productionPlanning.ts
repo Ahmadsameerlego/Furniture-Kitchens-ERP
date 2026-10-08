@@ -53,6 +53,8 @@ export function aggregateBomRequirements(
 
   const lines: MaterialRequirement[] = [];
   const summarySheets = new Map((bom.materialsSummary || []).map(m => [m.materialCode, m.estimatedSheetsCount]));
+  // An approved cutting plan knows the exact sheet count, so it replaces the area estimate
+  const nestedSheets = new Map((bom.materialsSummary || []).filter(m => m.nestedSheetsCount).map(m => [resolveCatalogItem(m.materialCode)?.key || m.materialCode, m.nestedSheetsCount as number]));
 
   boardArea.forEach((v, code) => {
     const item = resolveCatalogItem(code);
@@ -61,7 +63,7 @@ export function aggregateBomRequirements(
       name: item?.name || v.name,
       unit: 'لوح',
       category: 'board',
-      quantity: Math.max(summarySheets.get(code) || 0, sheetsForArea(v.area)),
+      quantity: nestedSheets.get(item?.key || code) ?? Math.max(summarySheets.get(code) || 0, sheetsForArea(v.area)),
       unitCost: item?.unitCost || FALLBACK_BOARD_COST,
       available: item ? availableStockFor(item, itemMasterCards, materials) : 0
     });
@@ -87,7 +89,7 @@ export function aggregateBomRequirements(
       name: item?.name || v.name,
       unit: item?.unit || v.unit,
       category: item?.category || 'hardware',
-      quantity: v.qty,
+      quantity: Math.round(v.qty * 100) / 100,
       unitCost: item?.unitCost || 0,
       available: item ? availableStockFor(item, itemMasterCards, materials) : 0
     });

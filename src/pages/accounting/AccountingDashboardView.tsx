@@ -269,34 +269,34 @@ export const AccountingDashboardView: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right text-xs min-w-[920px]">
+          <table className="w-full text-right text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">رقم القيد</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">التاريخ</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[180px]">دفتر اليومية</th>
-                <th className="py-3.5 px-4 min-w-[220px]">البيان والشرح</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px]">المرجع</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">إجمالي القيد</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-center">الحالة</th>
+                <th className="py-3.5 px-3 min-w-[80px]">رقم القيد</th>
+                <th className="py-3.5 px-3 min-w-[70px]">التاريخ</th>
+                <th className="py-3.5 px-3 min-w-[110px]">دفتر اليومية</th>
+                <th className="py-3.5 px-3 min-w-[140px]">البيان والشرح</th>
+                <th className="py-3.5 px-3 min-w-[70px]">المرجع</th>
+                <th className="py-3.5 px-3 min-w-[80px] text-left">إجمالي القيد</th>
+                <th className="py-3.5 px-3 min-w-[80px] text-center">الحالة</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {recentEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">{entry.entryNumber}</td>
-                  <td className="py-3.5 px-4 text-slate-500 font-mono text-xs whitespace-nowrap">{entry.date}</td>
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <span className="inline-block px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs whitespace-nowrap">
+                  <td className="py-3.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">{entry.entryNumber}</td>
+                  <td className="py-3.5 px-3 text-slate-500 font-mono text-xs whitespace-nowrap">{entry.date}</td>
+                  <td className="py-3.5 px-3">
+                    <span className="inline-block px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs leading-snug">
                       {entry.journalName || entry.journalId}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-medium text-slate-800 leading-relaxed">{entry.description}</td>
-                  <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px] whitespace-nowrap">{entry.reference}</td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-slate-900 text-left whitespace-nowrap">
+                  <td className="py-3.5 px-3 font-medium text-slate-800 leading-relaxed">{entry.description}</td>
+                  <td className="py-3.5 px-3 text-slate-500 text-[11px] leading-relaxed">{entry.reference}</td>
+                  <td className="py-3.5 px-3 font-mono font-bold text-slate-900 text-left whitespace-nowrap">
                     {entry.totalDebit.toLocaleString()} EGP
                   </td>
-                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                  <td className="py-3.5 px-3 text-center">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                       <span>مرحل بالكامل</span>

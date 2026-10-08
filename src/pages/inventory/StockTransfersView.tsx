@@ -183,17 +183,17 @@ export const StockTransfersView: React.FC = () => {
       {/* 4. TRANSFERS TABLE */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right text-xs min-w-[1050px]">
+          <table className="w-full text-right text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم التحويل</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">التاريخ</th>
-                <th className="py-3.5 px-4 min-w-[200px]">الصنف المنقول</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">الكمية</th>
-                <th className="py-3.5 px-4 min-w-[180px]">المستودع المصدر</th>
-                <th className="py-3.5 px-4 min-w-[180px]">المستودع الوجهة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">حالة الشحن</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-center">الإجراءات</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[90px]">رقم التحويل</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px]">التاريخ</th>
+                <th className="py-3.5 px-3 min-w-[120px]">الصنف المنقول</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[60px] text-center">الكمية</th>
+                <th className="py-3.5 px-3 min-w-[110px]">المستودع المصدر</th>
+                <th className="py-3.5 px-3 min-w-[110px]">المستودع الوجهة</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px] text-center">حالة الشحن</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[80px] text-center">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono">
@@ -203,23 +203,23 @@ export const StockTransfersView: React.FC = () => {
 
                 return (
                   <tr key={t.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{t.transferNumber}</td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">{t.requestedDate || t.sentDate || '-'}</td>
-                    <td className="py-3.5 px-4 font-sans font-bold text-slate-800">
+                    <td className="py-3.5 px-3 font-bold text-slate-900 whitespace-nowrap">{t.transferNumber}</td>
+                    <td className="py-3.5 px-3 text-slate-500 whitespace-nowrap">{t.requestedDate || t.sentDate || '-'}</td>
+                    <td className="py-3.5 px-3 font-sans font-bold text-slate-800">
                       <div>{firstItem?.itemName || 'صنف تحويل'}</div>
-                      <span className="text-[10px] text-slate-400 font-mono">[{firstItem?.itemCode || '-'}]</span>
+                      <span className="text-[10px] text-slate-400 font-mono whitespace-nowrap">[{firstItem?.itemCode || '-'}]</span>
                     </td>
-                    <td className="py-3.5 px-4 text-center font-black text-slate-900 text-sm whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-black text-slate-900 text-sm whitespace-nowrap">
                       {firstItem?.quantity || 1} <span className="text-[10px] text-slate-500">{firstItem?.unit || 'وحدة'}</span>
                     </td>
-                    <td className="py-3.5 px-4 font-sans text-slate-700">{t.sourceBranchName}</td>
-                    <td className="py-3.5 px-4 font-sans text-slate-700 font-bold">{t.destinationBranchName}</td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-sans text-slate-700">{t.sourceBranchName}</td>
+                    <td className="py-3.5 px-3 font-sans text-slate-700 font-bold">{t.destinationBranchName}</td>
+                    <td className="py-3.5 px-3 text-center font-sans whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border ${statusMeta.bgClass}`}>
                         <span>{statusMeta.label}</span>
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-sans whitespace-nowrap">
                       {t.status !== 'received' && (
                         <button
                           onClick={() => confirmWarehouseTransfer(t.id)}

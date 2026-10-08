@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
@@ -74,8 +74,14 @@ import { PlaceholderModulePage } from '../../pages/PlaceholderModulePage';
 import { Building2, MapPin, Users as UsersIcon, ShieldCheck, History, Terminal } from 'lucide-react';
 
 export const ApplicationShell: React.FC = () => {
-  const { activeModule } = useERP();
+  const { activeModule, selectedProjectId, selectedCustomerId } = useERP();
   const [settingsSubTab, setSettingsSubTab] = useState<'company' | 'branches' | 'users' | 'roles' | 'audit' | 'security'>('company');
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Every new screen or opened record starts from the top instead of the previous scroll position
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [activeModule, selectedProjectId, selectedCustomerId]);
 
   // If customer portal is active, render customer portal cleanly without the internal ERP app shell!
   if (activeModule === 'portal') {
@@ -379,7 +385,7 @@ export const ApplicationShell: React.FC = () => {
         <Header />
 
         {/* Scrollable Main Workspace Body */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-4 2xl:p-6 custom-scrollbar">
           <div className="max-w-7xl w-full mx-auto animate-in fade-in duration-200">
             {renderMainContent()}
           </div>

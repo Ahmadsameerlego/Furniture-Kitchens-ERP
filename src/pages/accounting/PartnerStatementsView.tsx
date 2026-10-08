@@ -258,16 +258,16 @@ export const PartnerStatementsView: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[950px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
-                  <th className="py-3 px-4 whitespace-nowrap min-w-[110px]">التاريخ</th>
-                  <th className="py-3 px-4 whitespace-nowrap min-w-[130px]">رقم الحركة / المستند</th>
-                  <th className="py-3 px-4 whitespace-nowrap min-w-[120px]">النوع</th>
-                  <th className="py-3 px-4 min-w-[220px]">البيان والشرح التفصيلي</th>
-                  <th className="py-3 px-4 whitespace-nowrap min-w-[120px] text-left">مدين (Debit)</th>
-                  <th className="py-3 px-4 whitespace-nowrap min-w-[120px] text-left">دائن (Credit)</th>
-                  <th className="py-3 px-4 whitespace-nowrap min-w-[140px] text-left">الرصيد التراكمي (Balance)</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[70px]">التاريخ</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[80px]">رقم الحركة / المستند</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[70px]">النوع</th>
+                  <th className="py-3 px-3 min-w-[140px]">البيان والشرح التفصيلي</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[70px] text-left">مدين (Debit)</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[70px] text-left">دائن (Credit)</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[90px] text-left">الرصيد التراكمي (Balance)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
@@ -280,17 +280,17 @@ export const PartnerStatementsView: React.FC = () => {
                 ) : (
                   statement.rows.map((row, idx) => (
                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-4 text-slate-600 font-mono text-xs whitespace-nowrap">{row.date}</td>
-                      <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">{row.documentNumber}</td>
-                      <td className="py-3 px-4 font-sans text-[11px] text-slate-500 whitespace-nowrap">{row.documentType}</td>
-                      <td className="py-3 px-4 font-sans text-slate-800 leading-relaxed">{row.description}</td>
-                      <td className="py-3 px-4 text-left font-bold text-emerald-700 whitespace-nowrap">
+                      <td className="py-3 px-3 text-slate-600 font-mono text-xs whitespace-nowrap">{row.date}</td>
+                      <td className="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">{row.documentNumber}</td>
+                      <td className="py-3 px-3 font-sans text-[11px] text-slate-500 whitespace-nowrap">{row.documentType}</td>
+                      <td className="py-3 px-3 font-sans text-slate-800 leading-relaxed">{row.description}</td>
+                      <td className="py-3 px-3 text-left font-bold text-emerald-700 whitespace-nowrap">
                         {row.debit > 0 ? `${row.debit.toLocaleString()} EGP` : '-'}
                       </td>
-                      <td className="py-3 px-4 text-left font-bold text-rose-600 whitespace-nowrap">
+                      <td className="py-3 px-3 text-left font-bold text-rose-600 whitespace-nowrap">
                         {row.credit > 0 ? `${row.credit.toLocaleString()} EGP` : '-'}
                       </td>
-                      <td className="py-3 px-4 text-left font-black text-slate-900 whitespace-nowrap">
+                      <td className="py-3 px-3 text-left font-black text-slate-900 whitespace-nowrap">
                         {row.runningBalance.toLocaleString()} EGP
                       </td>
                     </tr>
@@ -299,10 +299,10 @@ export const PartnerStatementsView: React.FC = () => {
               </tbody>
               <tfoot>
                 <tr className="bg-slate-50 border-t-2 border-slate-300 font-bold font-mono">
-                  <td colSpan={4} className="py-3 px-4 font-sans text-slate-800 whitespace-nowrap">الإجمالي النهائي للرصيد</td>
-                  <td className="py-3 px-4 text-left text-emerald-700 whitespace-nowrap">{statement.totalDebit.toLocaleString()} EGP</td>
-                  <td className="py-3 px-4 text-left text-rose-600 whitespace-nowrap">{statement.totalCredit.toLocaleString()} EGP</td>
-                  <td className="py-3 px-4 text-left text-[#361D13] font-black whitespace-nowrap">{statement.endingBalance.toLocaleString()} EGP</td>
+                  <td colSpan={4} className="py-3 px-3 font-sans text-slate-800 whitespace-nowrap">الإجمالي النهائي للرصيد</td>
+                  <td className="py-3 px-3 text-left text-emerald-700 whitespace-nowrap">{statement.totalDebit.toLocaleString()} EGP</td>
+                  <td className="py-3 px-3 text-left text-rose-600 whitespace-nowrap">{statement.totalCredit.toLocaleString()} EGP</td>
+                  <td className="py-3 px-3 text-left text-[#361D13] font-black whitespace-nowrap">{statement.endingBalance.toLocaleString()} EGP</td>
                 </tr>
               </tfoot>
             </table>

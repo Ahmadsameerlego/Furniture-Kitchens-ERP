@@ -266,19 +266,19 @@ export const ItemMasterCardsView: React.FC = () => {
       {/* 3. ITEM MASTER CARDS TABLE */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right text-xs min-w-[1150px]">
+          <table className="w-full text-right text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">كود الصنف / SKU</th>
-                <th className="py-3.5 px-4 min-w-[240px]">اسم الصنف والوصف</th>
-                <th className="py-3.5 px-4 min-w-[160px]">المستودع والموقع المادي</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">الرصيد الفعلي</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">المحجوز</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">المتاح للطلب</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">متوسط التكلفة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">إجمالي القيمة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الحالة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الإجراءات</th>
+                <th className="py-3.5 px-2 min-w-[90px]">كود الصنف / SKU</th>
+                <th className="py-3.5 px-2 min-w-[130px]">اسم الصنف والوصف</th>
+                <th className="py-3.5 px-2 min-w-[90px]">المستودع والموقع المادي</th>
+                <th className="py-3.5 px-2 min-w-[60px] text-center">الرصيد الفعلي</th>
+                <th className="py-3.5 px-2 min-w-[60px] text-center">المحجوز</th>
+                <th className="py-3.5 px-2 min-w-[60px] text-center">المتاح للطلب</th>
+                <th className="py-3.5 px-2 min-w-[70px] text-left">متوسط التكلفة</th>
+                <th className="py-3.5 px-2 min-w-[80px] text-left">إجمالي القيمة</th>
+                <th className="py-3.5 px-2 min-w-[70px] text-center">الحالة</th>
+                <th className="py-3.5 px-2 min-w-[70px] text-center">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono">
@@ -288,15 +288,15 @@ export const ItemMasterCardsView: React.FC = () => {
 
                 return (
                   <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="font-bold text-slate-900">{item.code}</div>
-                      <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+                    <td className="py-3.5 px-2">
+                      <div className="font-bold text-slate-900 whitespace-nowrap">{item.code}</div>
+                      <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1 whitespace-nowrap">
                         <Barcode className="w-3 h-3" />
                         <span>{item.barcode}</span>
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 font-sans">
+                    <td className="py-3.5 px-2 font-sans">
                       <div className="font-black text-slate-800 text-xs">{item.nameAr}</div>
                       <div className="text-[10px] text-slate-400 font-mono">{item.nameEn}</div>
                       <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">
@@ -304,37 +304,37 @@ export const ItemMasterCardsView: React.FC = () => {
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 font-sans text-xs">
+                    <td className="py-3.5 px-2 font-sans text-xs">
                       <div className="font-bold text-slate-700">{item.defaultWarehouseName}</div>
-                      <div className="text-[10px] text-amber-700 font-mono bg-amber-50 px-1.5 py-0.5 rounded inline-block mt-0.5 border border-amber-200/50">
+                      <div className="text-[10px] text-amber-700 font-mono bg-amber-50 px-1.5 py-0.5 rounded inline-block mt-0.5 border border-amber-200/50 whitespace-nowrap">
                         {item.locationBin}
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center font-black text-slate-900 text-sm whitespace-nowrap">
+                    <td className="py-3.5 px-2 text-center font-black text-slate-900 text-sm">
                       {item.currentStock} <span className="text-[11px] font-normal text-slate-500">{item.unitNameAr}</span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center font-bold text-amber-700 whitespace-nowrap">
+                    <td className="py-3.5 px-2 text-center font-bold text-amber-700">
                       {item.reservedStock} <span className="text-[10px] text-slate-400">{item.unitNameAr}</span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                    <td className="py-3.5 px-2 text-center">
                       <span className={`font-black text-sm ${item.availableStock <= 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
                         {item.availableStock}
                       </span>{' '}
                       <span className="text-[10px] text-slate-400">{item.unitNameAr}</span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-left font-bold text-slate-700 whitespace-nowrap">
+                    <td className="py-3.5 px-2 text-left font-bold text-slate-700 whitespace-nowrap">
                       {item.weightedAvgCost.toLocaleString()} EGP
                     </td>
 
-                    <td className="py-3.5 px-4 text-left font-black text-slate-900 whitespace-nowrap">
+                    <td className="py-3.5 px-2 text-left font-black text-slate-900 whitespace-nowrap">
                       {totalVal.toLocaleString()} EGP
                     </td>
 
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-2 text-center font-sans">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black shadow-2xs ${
                         item.currentStock === 0 ? 'bg-rose-100 text-rose-800 border border-rose-300' :
                         isReorderTriggered ? 'bg-amber-100 text-amber-900 border border-amber-300' :
@@ -346,7 +346,7 @@ export const ItemMasterCardsView: React.FC = () => {
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-2 text-center font-sans">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => {

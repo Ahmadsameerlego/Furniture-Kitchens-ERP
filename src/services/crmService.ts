@@ -1,4 +1,4 @@
-import { Customer, CustomerStatus, CustomerSource, LostReason } from '../types/erp';
+import { Customer, CustomerStatus, CustomerSource, LostReason, CustomContract, ReadyOrder, MarketingCampaign, CustomProject, ProjectStatus } from '../types/erp';
 
 export class CrmService {
   /**
@@ -278,5 +278,105 @@ export class CrmService {
       code = `CUST-${year}-${String(counter).padStart(4, '0')}`;
     }
     return code;
+  }
+
+  /**
+   * Campaign results derived from live records instead of stored counters:
+   * customers tagged with the campaign, signed contracts, and ready-furniture orders
+   * (orders already covered by a contract are not counted twice).
+   */
+  static getCampaignPerformance(
+    campaign: MarketingCampaign,
+    customers: Customer[],
+    contracts: CustomContract[],
+    orders: ReadyOrder[]
+  ): { customersCount: number; purchasedCount: number; revenueAttributed: number; conversionRate: number; roi: number } {
+    const campaignCustomerIds = new Set(customers.filter(c => c.campaignId === campaign.id).map(c => c.id));
+    const signedContracts = contracts.filter(c => c.status === 'signed' && campaignCustomerIds.has(c.customerId));
+    const directOrders = orders.filter(o => o.orderStatus !== 'cancelled' && o.orderStatus !== 'draft' && !o.contractId && campaignCustomerIds.has(o.customerId));
+
+    const buyers = new Set([...signedContracts.map(c => c.customerId), ...directOrders.map(o => o.customerId)]);
+    const revenueAttributed =
+      signedContracts.reduce((sum, c) => sum + (c.totalValue || 0), 0) +
+      directOrders.reduce((sum, o) => sum + (o.orderTotal || 0), 0);
+
+    const customersCount = campaignCustomerIds.size;
+    return {
+      customersCount,
+      purchasedCount: buyers.size,
+      revenueAttributed,
+      conversionRate: customersCount > 0 ? Math.round((buyers.size / customersCount) * 100) : 0,
+      roi: campaign.budget > 0 ? Math.round(((revenueAttributed - campaign.budget) / campaign.budget) * 100) : 0
+    };
+  }
+
+  private static readonly PIPELINE_RANK: Record<CustomerStatus, number> = {
+    new: 0, contacted: 1, interested: 2, measurement_scheduled: 3, measured: 4,
+    quotation: 5, won: 6, customer: 7, completed: 8, lost: -1
+  };
+
+  private static projectStatusToCustomerStatus(status: ProjectStatus): CustomerStatus | null {
+    switch (status) {
+      case 'new':
+      case 'opportunity':
+        return 'interested';
+      case 'visit_scheduled':
+        return 'measurement_scheduled';
+      case 'measured':
+      case 'designing':
+      case 'design_review':
+      case 'design_approved':
+        return 'measured';
+      case 'quotation':
+      case 'quotation_sent':
+      case 'customer_approval':
+      case 'approved':
+      case 'contract_draft':
+        return 'quotation';
+      case 'contract_signed':
+      case 'deposit_verified':
+        return 'won';
+      case 'ready_for_handover':
+      case 'handed_over_to_tech_office':
+      case 'ready_for_production':
+      case 'in_production':
+      case 'production_completed':
+      case 'installation_scheduled':
+      case 'installed':
+        return 'customer';
+      case 'completed':
+        return 'completed';
+      default:
+        return null; // rejected / cancelled projects never move the customer
+    }
+  }
+
+  /**
+   * The stage a customer should be at given their projects and ready-furniture orders.
+   * Only ever moves a customer forward. A lost customer is revived only once they actually sign or buy.
+   * Returns null when the current status should stay as it is.
+   */
+  static getPipelineStatus(customer: Customer, projects: CustomProject[], orders: ReadyOrder[]): CustomerStatus | null {
+    const candidates: CustomerStatus[] = [];
+    projects.forEach(p => {
+      const mapped = CrmService.projectStatusToCustomerStatus(p.status);
+      if (mapped) candidates.push(mapped);
+    });
+    orders.forEach(o => {
+      if (o.orderStatus === 'draft' || o.orderStatus === 'cancelled') return;
+      candidates.push(o.orderStatus === 'delivered' || o.orderStatus === 'completed' ? 'completed' : 'customer');
+    });
+    if (candidates.length === 0) return null;
+
+    const rank = CrmService.PIPELINE_RANK;
+    const furthest = candidates.reduce((a, b) => (rank[b] > rank[a] ? b : a));
+    if (customer.status === 'lost') {
+      return rank[furthest] >= rank.won ? furthest : null;
+    }
+    return rank[furthest] > rank[customer.status] ? furthest : null;
+  }
+
+  static isPurchasedStatus(status: CustomerStatus): boolean {
+    return CrmService.PIPELINE_RANK[status] >= CrmService.PIPELINE_RANK.won;
   }
 }

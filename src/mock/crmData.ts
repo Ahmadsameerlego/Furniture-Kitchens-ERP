@@ -1,3 +1,4 @@
+import { KITCHEN_DRAWINGS } from './designDrawings';
 import { 
   Customer, 
   MarketingCampaign, 
@@ -113,7 +114,7 @@ export const initialCustomers: Customer[] = [
       {
         id: 'att-1',
         name: 'كروكي_مساحة_المطبخ_الأولي.jpg',
-        url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=800',
+        url: KITCHEN_DRAWINGS.plan,
         type: 'image/jpeg',
         size: '1.8 MB',
         uploadedAt: '2026-08-20'

@@ -315,7 +315,7 @@ export const initialProducts: Product[] = [
     model: 'Ready Kitchen 120',
     description: 'وحدة مطبخ جاهزة علوية وسفلية 120سم طبقة HPL هندي مقاوم للماء والحرارة مع رخام جالاكسي.',
     images: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600'
     ],
     status: 'active',
     sellingPrice: 22000,

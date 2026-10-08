@@ -272,17 +272,17 @@ export const JournalEntriesView: React.FC = () => {
       {/* 3. JOURNAL ENTRIES TABLE */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right text-xs min-w-[1000px]">
+          <table className="w-full text-right text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم القيد</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">التاريخ</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[180px]">الدفتر</th>
-                <th className="py-3.5 px-4 min-w-[240px]">البيان والشرح</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px]">المرجع</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">إجمالي القيد</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-center">الحالة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center">الإجراءات</th>
+                <th className="py-3.5 px-3 min-w-[90px]">رقم القيد</th>
+                <th className="py-3.5 px-3 min-w-[70px]">التاريخ</th>
+                <th className="py-3.5 px-3 min-w-[110px]">الدفتر</th>
+                <th className="py-3.5 px-3 min-w-[150px]">البيان والشرح</th>
+                <th className="py-3.5 px-3 min-w-[70px]">المرجع</th>
+                <th className="py-3.5 px-3 min-w-[80px] text-left">إجمالي القيد</th>
+                <th className="py-3.5 px-3 min-w-[80px] text-center">الحالة</th>
+                <th className="py-3.5 px-3 min-w-[70px] text-center">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -291,32 +291,32 @@ export const JournalEntriesView: React.FC = () => {
                 return (
                   <React.Fragment key={entry.id}>
                     <tr className="hover:bg-amber-50/40 transition-colors cursor-pointer" onClick={() => toggleRowExpand(entry.id)}>
-                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap flex items-center gap-2">
+                      <td className="py-3.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap flex items-center gap-2">
                         <button className="text-slate-400 hover:text-slate-600">
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
                         <span>{entry.entryNumber}</span>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-600 font-mono text-xs whitespace-nowrap">{entry.date}</td>
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="inline-block px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-slate-600 font-mono text-xs whitespace-nowrap">{entry.date}</td>
+                      <td className="py-3.5 px-3">
+                        <span className="inline-block px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs leading-snug">
                           {journals.find(j => j.id === entry.journalId)?.nameAr || entry.journalId}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-900 leading-relaxed">
+                      <td className="py-3.5 px-3 font-medium text-slate-900 leading-relaxed">
                         {entry.description}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px] whitespace-nowrap">{entry.reference}</td>
-                      <td className="py-3.5 px-4 font-mono font-black text-slate-900 text-left whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-slate-500 text-[11px] leading-relaxed">{entry.reference}</td>
+                      <td className="py-3.5 px-3 font-mono font-black text-slate-900 text-left whitespace-nowrap">
                         {entry.totalDebit.toLocaleString()} EGP
                       </td>
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-center">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                           <span>مرحل بالكامل</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-center">
                         <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => {
@@ -348,7 +348,7 @@ export const JournalEntriesView: React.FC = () => {
                     {/* Expandable Breakdown of Lines */}
                     {isExpanded && (
                       <tr className="bg-slate-50/90 border-b border-slate-200">
-                        <td colSpan={8} className="p-4">
+                        <td colSpan={8} className="px-3 py-3">
                           <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-xs">
                             <div className="flex items-center justify-between text-xs font-bold text-slate-600 border-b border-slate-100 pb-2">
                               <span>تفاصيل أطراف القيد المحاسبي:</span>

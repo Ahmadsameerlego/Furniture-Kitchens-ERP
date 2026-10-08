@@ -217,13 +217,13 @@ export const MaterialsListPage: React.FC = () => {
           <table className="w-full text-right text-xs">
             <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
-                <th className="p-4 min-w-[240px] text-right whitespace-nowrap">الخامة والكود</th>
-                <th className="p-4 min-w-[140px] text-right whitespace-nowrap">الفئة والوحدة</th>
-                <th className="p-4 min-w-[130px] text-left whitespace-nowrap">التكلفة الحالية</th>
-                <th className="p-4 min-w-[120px] text-center whitespace-nowrap">المخزون المتاح</th>
-                <th className="p-4 min-w-[110px] text-center whitespace-nowrap">حد الأمان</th>
-                <th className="p-4 min-w-[160px] text-right whitespace-nowrap">المورد المفضل</th>
-                <th className="p-4 min-w-[140px] text-center whitespace-nowrap">الإجراءات</th>
+                <th className="px-3 py-3 min-w-[150px] text-right whitespace-nowrap">الخامة والكود</th>
+                <th className="px-3 py-3 min-w-[90px] text-right whitespace-nowrap">الفئة والوحدة</th>
+                <th className="px-3 py-3 min-w-[80px] text-left whitespace-nowrap">التكلفة الحالية</th>
+                <th className="px-3 py-3 min-w-[70px] text-center whitespace-nowrap">المخزون المتاح</th>
+                <th className="px-3 py-3 min-w-[70px] text-center whitespace-nowrap">حد الأمان</th>
+                <th className="px-3 py-3 min-w-[100px] text-right whitespace-nowrap">المورد المفضل</th>
+                <th className="px-3 py-3 min-w-[90px] text-center whitespace-nowrap">الإجراءات</th>
               </tr>
             </thead>
 
@@ -236,20 +236,20 @@ export const MaterialsListPage: React.FC = () => {
                   <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
                     
                     {/* Material Name & Code */}
-                    <td className="p-4">
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-50 text-[#C87A38] flex items-center justify-center border border-amber-200 shrink-0 font-bold">
                           <Layers className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="font-black text-slate-900 text-sm">{m.name}</p>
-                          <span className="font-mono text-[11px] text-slate-500 font-bold block">{m.code}</span>
+                          <span className="font-mono text-[11px] text-slate-500 font-bold block whitespace-nowrap">{m.code}</span>
                         </div>
                       </div>
                     </td>
 
                     {/* Category & Unit */}
-                    <td className="p-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <p className="font-bold text-slate-800">{m.categoryName}</p>
                       <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg border border-slate-200">
                         الوحدة: {m.unit}
@@ -257,12 +257,12 @@ export const MaterialsListPage: React.FC = () => {
                     </td>
 
                     {/* Reference Cost */}
-                    <td className="p-4 text-left font-black text-amber-900 font-mono text-sm whitespace-nowrap">
+                    <td className="px-3 py-3 text-left font-black text-amber-900 font-mono text-sm whitespace-nowrap">
                       {m.currentReferenceCost.toLocaleString('ar-EG')} <span className="text-[10px] text-slate-400 font-sans">ج.م/{m.unit}</span>
                     </td>
 
                     {/* Available Stock & Low Stock Badge */}
-                    <td className="p-4 text-center whitespace-nowrap">
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
                       <span className={`inline-block px-3 py-1 rounded-xl text-xs font-black whitespace-nowrap ${
                         isLow
                           ? 'bg-rose-100 text-rose-900 border border-rose-300 animate-pulse'
@@ -274,17 +274,17 @@ export const MaterialsListPage: React.FC = () => {
                     </td>
 
                     {/* Min Stock Level */}
-                    <td className="p-4 text-center font-mono font-bold text-slate-500 whitespace-nowrap">
+                    <td className="px-3 py-3 text-center font-mono font-bold text-slate-500 whitespace-nowrap">
                       {m.minStockLevel} {m.unit}
                     </td>
 
                     {/* Preferred Supplier */}
-                    <td className="p-4 text-slate-700 font-bold text-xs whitespace-nowrap">
+                    <td className="px-3 py-3 text-slate-700 font-bold text-xs whitespace-nowrap">
                       {prefSup ? prefSup.supplierName : 'غير محدد'}
                     </td>
 
                     {/* Actions */}
-                    <td className="p-4 text-center whitespace-nowrap">
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
                       <button
                         onClick={() => setSelectedMaterialId(m.id)}
                         className="px-3.5 py-1.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5 mx-auto shrink-0 whitespace-nowrap"

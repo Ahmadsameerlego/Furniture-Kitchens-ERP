@@ -1,6 +1,11 @@
+import { NO_IMAGE_PLACEHOLDER } from '../../mock/designDrawings';
 import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { TechnicalOfficeService } from '../../services/technicalOfficeService';
+import { explodeToBomUnits, LAYOUT_LABELS, TIER_PRESETS } from '../../services/kitchenConfigurator';
+import { resolveBomSource } from '../../services/technicalBomBuilder';
+import { NestingPanel } from '../../components/technicalOffice/NestingPanel';
+import { PartLabelsModal } from '../../components/technicalOffice/PartLabelsModal';
 import {
   Compass,
   Ruler,
@@ -38,7 +43,9 @@ import {
   Package,
   Wrench,
   GitPullRequest,
-  Upload
+  Upload,
+  Scissors,
+  Tag
 } from 'lucide-react';
 import { TechnicalReleaseModal } from './modals/TechnicalReleaseModal';
 import { CreateBOMRevisionModal } from './modals/CreateBOMRevisionModal';
@@ -69,6 +76,7 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
     customProjects,
     projectDesigns,
     projectMeasurements,
+    projectQuotations,
     siteVisits,
     saveTechnicalSurvey,
     verifyTechnicalSurvey,
@@ -76,6 +84,7 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
     approveTechnicalDesign,
     saveTechnicalBOM,
     approveTechnicalBOM,
+    approveBOMNesting,
     approveEngineeringChangeRequest,
     rejectEngineeringChangeRequest,
     currentUser
@@ -93,6 +102,8 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
   });
 
   const [showReleaseModal, setShowReleaseModal] = useState(false);
+  const [showNesting, setShowNesting] = useState(true);
+  const [showPartLabels, setShowPartLabels] = useState(false);
   const [showBOMRevisionModal, setShowBOMRevisionModal] = useState(false);
   const [showECRModal, setShowECRModal] = useState(false);
   const [showHandoverModal, setShowHandoverModal] = useState(false);
@@ -248,55 +259,39 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
     });
   };
 
+  // The configuration the customer actually signed: the contract's quotation, else the latest accepted one
+  const salesProjectForBom = customProjects.find(p => p.id === project.salesProjectId || p.projectNumber === project.salesProjectNumber);
+  const signedQuote = (() => {
+    if (!salesProjectForBom) return undefined;
+    const contract = customContracts.find(c => c.projectId === salesProjectForBom.id);
+    const quotes = projectQuotations.filter(q => q.projectId === salesProjectForBom.id);
+    return quotes.find(q => q.id === contract?.quotationId) || [...quotes].reverse().find(q => q.status === 'accepted');
+  })();
+  const signedConfiguration = signedQuote?.configuration;
+
+  // Every BOM comes from the real walls: the signed configuration, else the survey, else the sales measurement
+  const bomSource = resolveBomSource({ signedQuote, survey, measurement: latestSalesMeasurement, projectName: project.projectName });
+  const hasApprovedCad = designs.some(d => d.status === 'approved');
+  const bomGate = [
+    // Seed projects created before handovers existed have no record; only an open (unaccepted) handover blocks
+    { ok: !handover || handover.status === 'accepted_by_tech_office', label: 'استلام المشروع من المبيعات مقبول', tab: 'commercial_handover' as const },
+    { ok: !!survey, label: 'رفع مساحي مسجل', tab: 'site_survey' as const },
+    { ok: hasApprovedCad, label: 'مخطط تنفيذي (CAD) معتمد', tab: 'cad_drawings' as const },
+    { ok: !!bomSource, label: 'مقاسات حوائط يتبني عليها التوزيع', tab: 'site_survey' as const }
+  ];
+  const canGenerateBom = bomGate.every(g => g.ok);
+
   const handleAutoGenerateBOM = () => {
+    if (!canGenerateBom || !bomSource) return;
+    const cfg = bomSource.configuration;
+    const m = cfg.metrics;
     saveTechnicalBOM({
       technicalProjectId: project.id,
       revisionCode: 'REV-01',
       revisionNumber: 1,
       status: 'approved',
-      units: [
-        {
-          id: 'unit-1',
-          unitCode: 'BASE-90-SINK',
-          unitName: 'وحدة حوض أرضية 90 سم (Sink Base Unit)',
-          unitType: 'sink_unit',
-          widthMm: 900,
-          heightMm: 720,
-          depthMm: 580,
-          dimensions: { widthMm: 900, heightMm: 720, depthMm: 580 },
-          quantity: 1,
-          cuttingParts: [
-            { id: 'cp-1', partName: 'جنب يمين وحدة حوض', materialId: 'mat-1', materialCode: 'MDF-WHITE-18', materialName: 'MDF ملامين أبيض 18مم', lengthMm: 720, widthMm: 580, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm', bottom: 'PVC 0.4mm' } },
-            { id: 'cp-2', partName: 'جنب شمال وحدة حوض', materialId: 'mat-1', materialCode: 'MDF-WHITE-18', materialName: 'MDF ملامين أبيض 18مم', lengthMm: 720, widthMm: 580, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm', bottom: 'PVC 0.4mm' } },
-            { id: 'cp-3', partName: 'قاعدة سفلية معالجة', materialId: 'mat-1', materialCode: 'MDF-WHITE-18', materialName: 'MDF ملامين أبيض 18مم', lengthMm: 864, widthMm: 580, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm' } },
-            { id: 'cp-4', partName: 'درفة يمين HPL كود 812', materialId: 'mat-2', materialCode: 'HPL-812-BEIGE', materialName: 'HPL تركي كود 812 بيج مط', lengthMm: 716, widthMm: 446, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm', bottom: 'PVC 2mm', left: 'PVC 2mm', right: 'PVC 2mm' } },
-            { id: 'cp-5', partName: 'درفة شمال HPL كود 812', materialId: 'mat-2', materialCode: 'HPL-812-BEIGE', materialName: 'HPL تركي كود 812 بيج مط', lengthMm: 716, widthMm: 446, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm', bottom: 'PVC 2mm', left: 'PVC 2mm', right: 'PVC 2mm' } }
-          ],
-          hardwareParts: [
-            { id: 'hw-1', itemId: 'item-1', itemCode: 'BLUM-HINGE-CLIP-110', itemName: 'مفصلة بلوم كليب توب 110 سوفت كلوز', quantity: 4, unit: 'قطعة' },
-            { id: 'hw-2', itemId: 'item-2', itemCode: 'LEG-ADJ-100', itemName: 'رجل ضبط مطبخ 10 سم + كلبس وزرة', quantity: 4, unit: 'طقم' }
-          ]
-        },
-        {
-          id: 'unit-2',
-          unitCode: 'BASE-60-DRAWERS',
-          unitName: 'وحدة 3 أدراج بلوم تاندم 60 سم (Drawer Base Unit)',
-          unitType: 'drawer_unit',
-          widthMm: 600,
-          heightMm: 720,
-          depthMm: 580,
-          dimensions: { widthMm: 600, heightMm: 720, depthMm: 580 },
-          quantity: 1,
-          cuttingParts: [
-            { id: 'cp-6', partName: 'جنب يمين وحدة أدراج', materialId: 'mat-1', materialCode: 'MDF-WHITE-18', materialName: 'MDF ملامين أبيض 18مم', lengthMm: 720, widthMm: 580, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm' } },
-            { id: 'cp-7', partName: 'جنب شمال وحدة أدراج', materialId: 'mat-1', materialCode: 'MDF-WHITE-18', materialName: 'MDF ملامين أبيض 18مم', lengthMm: 720, widthMm: 580, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm' } },
-            { id: 'cp-8', partName: 'وش درج سفلي HPL', materialId: 'mat-2', materialCode: 'HPL-812-BEIGE', materialName: 'HPL تركي كود 812 بيج مط', lengthMm: 356, widthMm: 596, thicknessMm: 18, quantity: 1, grainDirection: 'length', edgeBanding: { top: 'PVC 2mm', bottom: 'PVC 2mm', left: 'PVC 2mm', right: 'PVC 2mm' } }
-          ],
-          hardwareParts: [
-            { id: 'hw-3', itemId: 'item-3', itemCode: 'BLUM-TANDEM-500', itemName: 'مجرى درج بلوم تاندم سوفت كلوز 50 سم', quantity: 3, unit: 'طقم' }
-          ]
-        }
-      ]
+      units: explodeToBomUnits(cfg),
+      revisionNotes: `مولّد من ${bomSource.label}: ${LAYOUT_LABELS[cfg.layout].label}${bomSource.kind === 'configurator' ? `، مستوى ${TIER_PRESETS[cfg.tier].label}` : ''}، ${m.unitsCount} وحدة (${m.baseMeters} م.ط سفلي / ${m.wallMeters} م.ط علوي / ${m.tallMeters} م.ط طولي)`
     });
   };
 
@@ -602,7 +597,7 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
               {/* 3D Image Preview */}
               <div className="lg:col-span-5 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 relative group aspect-video lg:aspect-auto min-h-[220px] flex items-center justify-center">
                 <img 
-                  src={salesApprovedDesign?.images?.[0] || 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'} 
+                  src={salesApprovedDesign?.images?.[0] || NO_IMAGE_PLACEHOLDER} 
                   alt="Approved Sales 3D Design"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -1411,11 +1406,30 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                     </span>
                   </div>
                   <h3 className="text-lg font-black text-[#1E110B]">
-                    تفجير الـ BOM المعياري وقوائم التقطيع لوحدات المشروع
+                    تفجير الـ BOM وقوائم التقطيع لوحدات المشروع
                   </h3>
+                  {activeBom.revisionNotes && (
+                    <p className="text-xs text-[#C87A38] font-bold mt-1">{activeBom.revisionNotes}</p>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2.5">
+                  <button
+                    onClick={() => setShowNesting(v => !v)}
+                    className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer ${showNesting ? 'bg-[#361D13] text-white' : 'bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100'}`}
+                  >
+                    <Scissors className="w-4 h-4" />
+                    <span>خطة التقطيع (Nesting)</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowPartLabels(true)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs transition-all cursor-pointer"
+                  >
+                    <Tag className="w-4 h-4 text-slate-600" />
+                    <span>ملصقات باركود القطع</span>
+                  </button>
+
                   <button
                     onClick={handleExportCSV}
                     className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs transition-all cursor-pointer"
@@ -1465,8 +1479,8 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                         <div className="text-sm font-black text-[#1E110B] font-mono">{mat.totalAreaSqMeters} م²</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-400 font-bold">تقدير الألواح</div>
-                        <div className="text-sm font-black text-[#C87A38] font-mono">{mat.estimatedSheetsCount} لوح</div>
+                        <div className="text-[10px] text-slate-400 font-bold">{mat.nestedSheetsCount ? 'حسب خطة التقطيع' : 'تقدير الألواح'}</div>
+                        <div className="text-sm font-black text-[#C87A38] font-mono">{mat.nestedSheetsCount ?? mat.estimatedSheetsCount} لوح</div>
                       </div>
                       <div>
                         <div className="text-[10px] text-slate-400 font-bold">نسبة الهالك</div>
@@ -1476,6 +1490,10 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                   </div>
                 ))}
               </div>
+
+              {showNesting && (
+                <NestingPanel bom={activeBom} onApprove={(plan) => approveBOMNesting(activeBom.id, plan)} />
+              )}
 
               {/* Unit-by-Unit Tree & Cutting Lists */}
               <div className="space-y-4">
@@ -1566,9 +1584,15 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
                                         </span>
                                       </td>
                                       <td className="p-2.5 text-center font-mono text-xs">
-                                        <span className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[#C87A38] font-bold">
-                                          {part.edgeBanding?.top || 'PVC 2mm'}
-                                        </span>
+                                        {(() => {
+                                          const eb = part.edgeBanding || {};
+                                          const sides = [eb.top && 'أعلى', eb.bottom && 'أسفل', eb.right && 'يمين', eb.left && 'شمال'].filter(Boolean);
+                                          return sides.length ? (
+                                            <span className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[#C87A38] font-bold whitespace-nowrap">
+                                              {sides.length === 4 ? '4 جهات' : sides.join(' + ')}
+                                            </span>
+                                          ) : <span className="text-slate-400">بدون</span>;
+                                        })()}
                                       </td>
                                     </tr>
                                   ))}
@@ -1614,22 +1638,27 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
               </div>
               <div>
                 <h3 className="text-base font-black text-[#1E110B]">لم يتم تفجير الـ BOM لهذا المشروع بعد</h3>
-                <p className="text-xs text-slate-500 mt-1">قم بتفكيك وحدات المطبخ النمطية وتوليد قوائم التقطيع بالمليمتر</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {bomSource ? <>الوحدات هتتولد من <strong className="text-slate-800">{bomSource.label}</strong> ({bomSource.configuration.metrics.unitsCount} وحدة) ثم تتفكك لقطع بالمليمتر</> : 'سجّل الرفع المساحي الأول عشان النظام يرصّ الوحدات على الحوائط الحقيقية'}
+                </p>
+              </div>
+              <div className="max-w-md mx-auto text-right space-y-1.5">
+                {bomGate.map(g => (
+                  <button key={g.label} onClick={() => !g.ok && setActiveTab(g.tab)} className={`w-full flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold ${g.ok ? 'bg-emerald-50 border-emerald-200 text-emerald-800 cursor-default' : 'bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100'}`}>
+                    <span className="flex items-center gap-1.5">{g.ok ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}{g.label}</span>
+                    {!g.ok && <span className="text-[10px]">افتح التبويب ←</span>}
+                  </button>
+                ))}
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <button
                   onClick={handleAutoGenerateBOM}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:opacity-95 text-white font-black text-xs transition-all shadow-md shadow-purple-600/20 flex items-center gap-2 cursor-pointer"
+                  disabled={!canGenerateBom}
+                  title={canGenerateBom ? undefined : 'لازم الرفع المساحي والمخطط التنفيذي المعتمد الأول'}
+                  className="px-6 py-2.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>توليد وتفجير الـ BOM المعياري للوحدات والتقطيع</span>
-                </button>
-                <button
-                  onClick={() => setShowBOMRevisionModal(true)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4 text-slate-600" />
-                  <span>إنشاء BOM يدوياً</span>
+                  <span>{signedConfiguration ? `توليد الـ BOM من الـ Configurator (${signedConfiguration.metrics.unitsCount} وحدة)` : bomSource ? `توليد الـ BOM من ${bomSource.label} (${bomSource.configuration.metrics.unitsCount} وحدة)` : 'توليد الـ BOM'}</span>
                 </button>
               </div>
             </div>
@@ -1880,6 +1909,10 @@ export const TechnicalProjectDetailsView: React.FC<TechnicalProjectDetailsViewPr
       )}
 
       {/* Modals */}
+      {showPartLabels && activeBom && (
+        <PartLabelsModal bom={activeBom} projectNumber={project.salesProjectNumber || project.projectNumber} customerName={project.customerName} onClose={() => setShowPartLabels(false)} />
+      )}
+
       {showReleaseModal && activeBom && (
         <TechnicalReleaseModal
           isOpen={true}

@@ -1,3 +1,4 @@
+import { NO_IMAGE_PLACEHOLDER } from '../mock/designDrawings';
 import React, { useState } from 'react';
 import { useERP } from '../context/ERPContext';
 import { CustomProjectService } from '../services/customProjectService';
@@ -366,7 +367,7 @@ export const CustomerPortalPage: React.FC = () => {
                     assignedUser: 'المهندس / عمر فاروق',
                     status: 'مكتملة الفحص والرفع',
                     photos: [
-                      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+                      NO_IMAGE_PLACEHOLDER,
                       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=600',
                       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600'
                     ],

@@ -200,11 +200,11 @@ export const Header: React.FC = () => {
       </div>
 
       {/* CENTER SECTION: Global Search Bar */}
-      <div className="hidden lg:flex items-center relative max-w-xs xl:max-w-md w-full mx-4">
+      <div className="hidden lg:flex items-center relative flex-1 min-w-[140px] max-w-md mx-3">
         <Search className="w-4 h-4 text-slate-400 absolute right-3.5 pointer-events-none" />
         <input
           type="text"
-          placeholder="ابحث بالشفرة، اسم المشروع، أو بيانات العميل..."
+          placeholder="ابحث عن مشروع، عميل، أو مستند..."
           className="w-full pl-4 pr-10 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200/90 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#361D13]/20 transition-all"
         />
       </div>
@@ -228,7 +228,7 @@ export const Header: React.FC = () => {
           title="دخول بوابة العملاء التفاعلية"
         >
           <UserIcon className="w-4 h-4 text-[#C87A38]" />
-          <span>بوابة العملاء 🌐</span>
+          <span>بوابة العملاء</span>
         </button>
 
         {/* Demo Persona / Scenario Switcher */}
@@ -240,7 +240,7 @@ export const Header: React.FC = () => {
             <Sparkles className="w-3.5 h-3.5 text-[#C87A38] shrink-0" />
             <span className="hidden sm:inline text-slate-500 font-normal">السيناريو:</span>
             <span className="font-black text-[#C87A38]">
-              {currentUser.fullName.split(' ')[0]}
+              {currentUser.fullName.replace(/^(م|د|أ)\.\s*/, '').split(' ')[0]}
             </span>
             <ChevronDown className={`w-3.5 h-3.5 text-amber-700 transition-transform ${isPersonaDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -296,7 +296,7 @@ export const Header: React.FC = () => {
           >
             <Bell className="w-4 h-4" />
             {unreadNotifications.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#C87A38] text-white text-[9px] font-black flex items-center justify-center animate-pulse border-2 border-white">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C87A38] text-white text-[10px] font-black flex items-center justify-center border-2 border-white">
                 {unreadNotifications.length}
               </span>
             )}
@@ -394,7 +394,7 @@ export const Header: React.FC = () => {
               className="w-8 h-8 rounded-xl object-cover ring-2 ring-[#361D13]/20 shadow-xs shrink-0"
             />
             
-            <div className="text-right hidden xl:block">
+            <div className="text-right hidden 2xl:block">
               <p className="text-xs font-black text-slate-900 leading-tight">
                 {currentUser.fullName}
               </p>

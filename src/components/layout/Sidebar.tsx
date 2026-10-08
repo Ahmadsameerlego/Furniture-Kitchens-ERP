@@ -74,13 +74,14 @@ const menuGroups: MenuGroup[] = [
     icon: Users,
     permissionCheck: 'customers',
     items: [
-      { id: 'customers', label: 'دليل وسجل العملاء (Directory)', labelEn: 'Customers & Leads', icon: Users },
-      { id: 'portal', label: 'بوابة متابعة العميل (Portal)', labelEn: 'Customer Portal', icon: Globe }
+      { id: 'customers', label: 'دليل وسجل العملاء', labelEn: 'Customers & Leads', icon: Users },
+      { id: 'campaigns', label: 'الحملات التسويقية', labelEn: 'Marketing Campaigns', icon: Sparkles },
+      { id: 'portal', label: 'بوابة متابعة العميل', labelEn: 'Customer Portal', icon: Globe }
     ]
   },
   {
     id: 'sales_projects',
-    title: 'المبيعات والمشاريع (Sales)',
+    title: 'المبيعات والمشاريع',
     titleEn: 'Sales & Custom Projects',
     icon: ShoppingBag,
     permissionCheck: 'sales',
@@ -89,7 +90,7 @@ const menuGroups: MenuGroup[] = [
       { id: 'custom_projects', label: 'مشاريع التفصيل والعمولة', labelEn: 'Custom & Bespoke Projects', icon: Ruler },
       { id: 'sales_quotations', label: 'عروض الأسعار والمقايسات الفنية', labelEn: 'Quotations & BOQ', icon: FileSpreadsheet },
       { id: 'sales_contracts', label: 'العقود والاتفاقيات وجدول الدفعات', labelEn: 'Contracts & Milestone Terms', icon: FileText },
-      { id: 'sales_change_orders', label: 'أوامر التغيير والتعديلات (Variation)', labelEn: 'Variation & Change Orders', icon: History },
+      { id: 'sales_change_orders', label: 'أوامر التغيير والتعديلات', labelEn: 'Variation & Change Orders', icon: History },
       { id: 'sales', label: 'صالة الأثاث الجاهز ونقاط البيع (POS)', labelEn: 'Ready Furniture & POS', icon: ShoppingBag }
     ]
   },
@@ -138,7 +139,7 @@ const menuGroups: MenuGroup[] = [
       { id: 'proc_quotations', label: 'عروض أسعار الموردين والمقارنة', labelEn: 'Quotations & Comparison', icon: Scale },
       { id: 'proc_orders', label: 'أوامر الشراء الرسمية (PO)', labelEn: 'Purchase Orders (PO)', icon: ShoppingCart },
       { id: 'proc_deliveries', label: 'متابعة التوريدات والاستلامات', labelEn: 'Expected Deliveries', icon: Truck },
-      { id: 'proc_returns', label: 'مرتجعات المشتريات (Returns)', labelEn: 'Supplier Returns', icon: ArrowLeftRight },
+      { id: 'proc_returns', label: 'مرتجعات المشتريات', labelEn: 'Supplier Returns', icon: ArrowLeftRight },
       { id: 'proc_suppliers', label: 'دليل الموردين والمصانع', labelEn: 'Suppliers Directory', icon: Building2 },
       { id: 'proc_prices', label: 'قوائم وتاريخ أسعار الموردين', labelEn: 'Supplier Price Lists', icon: FileSpreadsheet },
       { id: 'proc_reports', label: 'تقارير المشتريات والـ 3-Way Match', labelEn: 'Procurement Reports', icon: BarChart3 }
@@ -255,8 +256,9 @@ export const Sidebar: React.FC = () => {
         (group.id === 'inventory' && (activeModule === 'inventory' || activeModule.startsWith('inv_'))) ||
         (group.id === 'tech_office' && (activeModule === 'tech_office' || activeModule.startsWith('tech_')));
       
+      // Keep only the active module's group open so the menu stays short
       if (isGroupActive) {
-        setOpenGroups(prev => ({ ...prev, [group.id]: true }));
+        setOpenGroups({ [group.id]: true });
       }
     });
   }, [activeModule]);
@@ -271,10 +273,7 @@ export const Sidebar: React.FC = () => {
       return;
     }
 
-    setOpenGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
+    setOpenGroups(prev => ({ [groupId]: !prev[groupId] }));
   };
 
   // Filter groups and items based on company business model and role permissions
@@ -425,13 +424,9 @@ export const Sidebar: React.FC = () => {
 
                 {!isSidebarCollapsed && (
                   <div className="flex items-center gap-1.5">
-                    {group.id === 'system' && unreadCount > 0 ? (
+                    {group.id === 'system' && unreadCount > 0 && (
                       <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white font-mono">
                         {unreadCount}
-                      </span>
-                    ) : (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-black/40 text-amber-200/80 font-mono">
-                        {group.items.length}
                       </span>
                     )}
                     <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -451,7 +446,8 @@ export const Sidebar: React.FC = () => {
                       <button
                         key={sub.id}
                         onClick={() => setActiveModule(sub.id)}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                        title={sub.label}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                           isSubActive
                             ? 'bg-[#C87A38] text-white font-black shadow-sm'
                             : 'text-slate-400 hover:text-white hover:bg-white/5'

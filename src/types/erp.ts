@@ -1,3 +1,5 @@
+import type { KitchenConfiguration } from './configurator';
+
 export type BusinessType = 'furniture' | 'kitchens' | 'furniture_kitchens';
 export type BusinessModel = 'ready_made' | 'custom_made' | 'ready_custom';
 export type LocationType = 'showroom' | 'warehouse' | 'workshop';
@@ -720,6 +722,8 @@ export interface ProjectQuotation {
   acceptedAt?: string;
   acceptedByCustomerName?: string;
   breakdown?: QuotationBreakdown;
+  /** Present when the quotation was produced by the kitchen configurator; drives the BOM later. */
+  configuration?: KitchenConfiguration;
 }
 
 export interface ProjectTimelineEvent {
