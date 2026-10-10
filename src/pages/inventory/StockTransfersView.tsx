@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { StockTransfer, StockTransferStatus } from '../../types/erp';
 import { InventoryService } from '../../services/inventoryService';
+import { stockAt } from '../../services/warehouseStock';
 import {
   ArrowLeftRight,
   Truck,
@@ -29,7 +30,7 @@ export const StockTransfersView: React.FC = () => {
     stockTransfers,
     warehouses,
     itemMasterCards,
-    createStockTransfer,
+    createWarehouseTransfer,
     confirmWarehouseTransfer,
     showToast
   } = useERP();
@@ -40,7 +41,7 @@ export const StockTransfersView: React.FC = () => {
 
   // Transfer Form State
   const [sourceWhId, setSourceWhId] = useState<string>(warehouses[0]?.id || '');
-  const [destWhId, setDestWhId] = useState<string>(warehouses[1]?.id || '');
+  const [destWhId, setDestWhId] = useState<string>((warehouses.find(w => w.type === 'showroom_floor') || warehouses[1])?.id || '');
   const [selectedItemId, setSelectedItemId] = useState<string>(itemMasterCards[0]?.id || '');
   const [transferQty, setTransferQty] = useState<number>(10);
   const [driverName, setDriverName] = useState<string>('أسامة عبد الرحيم (سائق سيارة الجامبو 1)');
@@ -58,25 +59,22 @@ export const StockTransfersView: React.FC = () => {
       return;
     }
 
-    const sourceWh = warehouses.find(w => w.id === sourceWhId);
-    const destWh = warehouses.find(w => w.id === destWhId);
-
-    createStockTransfer({
+    const transfer = createWarehouseTransfer({
+      sourceWarehouseId: sourceWhId,
+      destinationWarehouseId: destWhId,
       itemId: selectedItem.id,
-      itemType: 'material',
-      itemName: selectedItem.nameAr,
-      itemCode: selectedItem.code,
       quantity: Number(transferQty),
-      unit: selectedItem.unitNameAr,
-      sourceBranchId: sourceWh?.branchId || 'branch-1',
-      sourceBranchName: sourceWh?.name || 'مستودع العبور',
-      destinationBranchId: destWh?.branchId || 'branch-2',
-      destinationBranchName: destWh?.name || 'مستودع القاهرة',
       driverName,
       notes: transferNotes
     });
 
-    setShowAddModal(false);
+    if (transfer) setShowAddModal(false);
+  };
+
+  // Free stock of the selected item on the source shelves
+  const sourceAvailable = (itemId: string) => {
+    const card = itemMasterCards.find(c => c.id === itemId);
+    return card ? Math.min(stockAt(card, sourceWhId), card.availableStock) : 0;
   };
 
   // Filter transfers
@@ -208,6 +206,7 @@ export const StockTransfersView: React.FC = () => {
                     <td className="py-3.5 px-3 font-sans font-bold text-slate-800">
                       <div>{firstItem?.itemName || 'صنف تحويل'}</div>
                       <span className="text-[10px] text-slate-400 font-mono whitespace-nowrap">[{firstItem?.itemCode || '-'}]</span>
+                      {t.driverName && <div className="text-[10px] text-slate-500 font-sans">🚚 {t.driverName}</div>}
                     </td>
                     <td className="py-3.5 px-3 text-center font-black text-slate-900 text-sm whitespace-nowrap">
                       {firstItem?.quantity || 1} <span className="text-[10px] text-slate-500">{firstItem?.unit || 'وحدة'}</span>
@@ -293,7 +292,7 @@ export const StockTransfersView: React.FC = () => {
                 >
                   {itemMasterCards.map(item => (
                     <option key={item.id} value={item.id}>
-                      [{item.code}] {item.nameAr} (الرصيد المتاح: {item.availableStock} {item.unitNameAr})
+                      [{item.code}] {item.nameAr} (متاح في المصدر: {sourceAvailable(item.id)} {item.unitNameAr})
                     </option>
                   ))}
                 </select>
@@ -306,8 +305,15 @@ export const StockTransfersView: React.FC = () => {
                     type="number"
                     value={transferQty}
                     onChange={(e) => setTransferQty(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-center"
+                    className={`w-full px-3 py-2 border rounded-xl font-mono font-bold text-center ${
+                      transferQty > sourceAvailable(selectedItem.id) ? 'bg-rose-50 border-rose-500 text-rose-700' : 'bg-slate-50 border-slate-200'
+                    }`}
                   />
+                  {transferQty > sourceAvailable(selectedItem.id) && (
+                    <span className="text-[10px] font-bold text-rose-600 block mt-0.5">
+                      ⚠️ المتاح في المصدر {sourceAvailable(selectedItem.id)} بس
+                    </span>
+                  )}
                 </div>
 
                 <div>

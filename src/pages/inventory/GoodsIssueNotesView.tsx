@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { GoodsIssueNote, GINType, MaterialRequisition } from '../../types/erp';
+import { stockAt } from '../../services/warehouseStock';
 import {
   ArrowUpRight,
   Plus,
@@ -47,6 +48,8 @@ export const GoodsIssueNotesView: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRequisitionModal, setShowRequisitionModal] = useState(false);
   const [selectedGINForView, setSelectedGINForView] = useState<GoodsIssueNote | null>(null);
+  // The approved workshop request this issue fulfils (set when opened from the requests tab)
+  const [issuingRequisitionId, setIssuingRequisitionId] = useState<string | null>(null);
 
   // New GIN Form State
   const [formType, setFormType] = useState<GINType>('production_mo');
@@ -186,6 +189,8 @@ export const GoodsIssueNotesView: React.FC = () => {
   const handleItemSelect = (index: number, itemId: string) => {
     const targetItem = itemMasterCards.find(i => i.id === itemId);
     if (!targetItem) return;
+    // The first item decides the issuing warehouse: where that item lives
+    if (index === 0) setFormWarehouseId(targetItem.defaultWarehouseId);
 
     setFormItems(prev => prev.map((row, idx) => {
       if (idx === index) {
@@ -223,6 +228,12 @@ export const GoodsIssueNotesView: React.FC = () => {
 
   const formTotalAmount = formItems.reduce((s, it) => s + (it.issuedQty * it.unitCost), 0);
 
+  // Free stock of an item on the shelves of the issuing warehouse
+  const availableHere = (itemId: string) => {
+    const card = itemMasterCards.find(c => c.id === itemId);
+    return card ? Math.min(card.availableStock, stockAt(card, formWarehouseId)) : 0;
+  };
+
   const handleSubmitGIN = () => {
     if (formItems.length === 0 || formTotalAmount <= 0) {
       showToast('يرجى إضافة أصناف وتحديد الكميات المنصرفة', 'warning');
@@ -232,7 +243,9 @@ export const GoodsIssueNotesView: React.FC = () => {
     const targetPO = productionOrders.find(p => p.id === formProdOrderId);
     const targetCC = costCenters.find(c => c.id === formCostCenterId);
 
-    const gin = createGoodsIssueNote({
+    let gin: GoodsIssueNote | null = null;
+    try {
+    gin = createGoodsIssueNote({
       type: formType,
       productionOrderId: formType === 'production_mo' ? formProdOrderId : undefined,
       productionOrderNumber: formType === 'production_mo' ? (targetPO?.productionNumber || 'PROD-2026-0012') : undefined,
@@ -240,12 +253,17 @@ export const GoodsIssueNotesView: React.FC = () => {
       costCenterName: targetCC?.nameAr,
       machineName: formType === 'maintenance_workshop' ? formMachineName : undefined,
       warehouseId: formWarehouseId,
+      requisitionId: issuingRequisitionId || undefined,
       items: formItems,
       notes: formNotes
     });
+    } catch {
+      return; // the stock check already explained why in a toast
+    }
 
     if (gin) {
       setShowAddModal(false);
+      setIssuingRequisitionId(null);
     }
   };
 
@@ -316,7 +334,7 @@ export const GoodsIssueNotesView: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => { setIssuingRequisitionId(null); setShowAddModal(true); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-black text-xs rounded-2xl shadow-lg transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -508,7 +526,7 @@ export const GoodsIssueNotesView: React.FC = () => {
                       {mrn.status === 'fully_issued' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
                           <CheckCircle2 className="w-3 h-3" />
-                          <span>تم الصرف الفعلي (GIN)</span>
+                          <span>تم الصرف الفعلي {mrn.ginNumber || '(GIN)'}</span>
                         </span>
                       )}
                       {mrn.status === 'rejected' && (
@@ -541,6 +559,11 @@ export const GoodsIssueNotesView: React.FC = () => {
                         {mrn.status === 'approved' && (
                           <button
                             onClick={() => {
+                              setIssuingRequisitionId(mrn.id);
+                              setFormType(mrn.purpose === 'maintenance' ? 'maintenance_workshop' : mrn.purpose === 'sample' ? 'general_issue' : 'production_mo');
+                              setFormNotes(`صرف طلب الورشة ${mrn.requisitionNumber}${mrn.productionOrderNumber ? ` لأمر ${mrn.productionOrderNumber}` : ''}`);
+                              const firstCard = itemMasterCards.find(c => c.id === mrn.items[0]?.itemId || c.code === mrn.items[0]?.itemCode);
+                              if (firstCard) setFormWarehouseId(firstCard.defaultWarehouseId);
                               setFormProdOrderId(mrn.productionOrderId || '');
                               if (mrn.items.length > 0) {
                                 setFormItems(mrn.items.map(it => {
@@ -592,6 +615,11 @@ export const GoodsIssueNotesView: React.FC = () => {
             </div>
 
             <div className="space-y-4 text-xs">
+              {issuingRequisitionId && (
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 font-bold">
+                  صرف لطلب الورشة {materialRequisitions.find(m => m.id === issuingRequisitionId)?.requisitionNumber}: الطلب هيتقفل "تم الصرف" بعد اعتماد الإذن.
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 mb-1 block">نوع وتوجيه الصرف:</label>
@@ -677,7 +705,7 @@ export const GoodsIssueNotesView: React.FC = () => {
                         >
                           {itemMasterCards.map(item => (
                             <option key={item.id} value={item.id}>
-                              [{item.code}] {item.nameAr} (متاح: {item.availableStock} {item.unitNameAr})
+                              [{item.code}] {item.nameAr} (متاح هنا: {availableHere(item.id)} {item.unitNameAr})
                             </option>
                           ))}
                         </select>
@@ -685,8 +713,7 @@ export const GoodsIssueNotesView: React.FC = () => {
 
                       <div className="sm:col-span-2">
                         {(() => {
-                          const targetCard = itemMasterCards.find(c => c.id === row.itemId);
-                          const avail = targetCard ? targetCard.availableStock : 0;
+                          const avail = availableHere(row.itemId);
                           const isOver = row.issuedQty > avail;
 
                           return (

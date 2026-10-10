@@ -141,8 +141,8 @@ export function ensureCatalogItemCards(cards: ItemMasterCard[]): ItemMasterCard[
         weightedAvgCost: item.unitCost,
         lastPurchasePrice: item.unitCost,
         sellingPrice: Math.round(item.unitCost * 1.5),
-        defaultWarehouseId: isBoard ? 'wh-obr-01' : 'wh-obr-02',
-        defaultWarehouseName: isBoard ? 'مستودع الخامات والألواح الرئيسي' : 'مخزن الإكسسوارات والمفصلات',
+        defaultWarehouseId: isBoard ? 'wh-obr-01' : 'wh-obr-acc',
+        defaultWarehouseName: isBoard ? 'مستودع الخامات والألواح الرئيسي' : 'مستودع الإكسسوارات والعدد وقطع الغيار',
         locationBin: isBoard ? `ممر A${(i % 4) + 1} - باكية ${String(i + 3).padStart(2, '0')}` : `رف H${(i % 6) + 1}`,
         specifications: [],
         status: stock <= (isBoard ? 8 : 20) ? 'low_stock' : 'active'

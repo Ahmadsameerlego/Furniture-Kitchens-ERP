@@ -26,6 +26,7 @@ import {
   TrendingDown
 } from 'lucide-react';
 import { exportItemCatalogToExcel } from '../../utils/excelExport';
+import { stockAt, stockLocations } from '../../services/warehouseStock';
 
 export const ItemMasterCardsView: React.FC = () => {
   const {
@@ -71,8 +72,12 @@ export const ItemMasterCardsView: React.FC = () => {
       item.barcode.includes(searchQuery) ||
       item.locationBin.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    const matchesWarehouse = selectedWarehouseFilter === 'all' || item.defaultWarehouseId === selectedWarehouseFilter;
+    // Hinges and runners live in their own catalog family but belong under the fittings filter
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory ||
+      (selectedCategory === 'hardware_accessories' && item.category === 'hardware_hinges') ||
+      (selectedCategory === 'finished_kitchen' && item.category === 'finished_furniture');
+    const matchesWarehouse = selectedWarehouseFilter === 'all' || item.defaultWarehouseId === selectedWarehouseFilter ||
+      stockAt(item, selectedWarehouseFilter) > 0;
     const matchesReorder = !showOnlyReorder || item.currentStock <= item.reorderPoint;
 
     return matchesSearch && matchesCategory && matchesWarehouse && matchesReorder;
@@ -309,6 +314,12 @@ export const ItemMasterCardsView: React.FC = () => {
                       <div className="text-[10px] text-amber-700 font-mono bg-amber-50 px-1.5 py-0.5 rounded inline-block mt-0.5 border border-amber-200/50 whitespace-nowrap">
                         {item.locationBin}
                       </div>
+                      {/* Stock sitting outside the home warehouse */}
+                      {stockLocations(item).filter(l => l.warehouseId !== item.defaultWarehouseId).map(l => (
+                        <div key={l.warehouseId} className="text-[10px] text-blue-700 font-bold mt-0.5">
+                          + {l.qty} {item.unitNameAr} في {warehouses.find(w => w.id === l.warehouseId)?.name || l.warehouseId}
+                        </div>
+                      ))}
                     </td>
 
                     <td className="py-3.5 px-2 text-center font-black text-slate-900 text-sm">

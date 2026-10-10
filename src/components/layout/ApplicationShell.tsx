@@ -10,7 +10,6 @@ import { AnalyticsPage } from '../../pages/AnalyticsPage';
 import { CustomersListPage } from '../../pages/CustomersListPage';
 import { CampaignsPage } from '../../pages/CampaignsPage';
 import { ProductsListPage } from '../../pages/ProductsListPage';
-import { MaterialsListPage } from '../../pages/MaterialsListPage';
 import { InventoryPage } from '../../pages/InventoryPage';
 import { ReadyOrdersListPage } from '../../pages/ReadyOrdersListPage';
 import { CustomProjectsListPage } from '../../pages/CustomProjectsListPage';
@@ -213,8 +212,9 @@ export const ApplicationShell: React.FC = () => {
       case 'products':
         return <ProductsListPage />;
 
+      // The old materials list is replaced by the inventory item cards
       case 'materials':
-        return <MaterialsListPage />;
+        return <ItemMasterCardsView />;
 
       case 'inventory':
       case 'inv_dashboard':

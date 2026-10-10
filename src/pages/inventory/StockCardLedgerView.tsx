@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { exportStockLedgerToExcel } from '../../utils/excelExport';
+import { stockLocations } from '../../services/warehouseStock';
 
 export const StockCardLedgerView: React.FC = () => {
   const {
@@ -45,7 +46,8 @@ export const StockCardLedgerView: React.FC = () => {
   // Ledger entries for this item
   const itemEntries = stockLedgerEntries
     .filter(e => e.itemId === currentItem?.id || e.itemCode === currentItem?.code)
-    .filter(e => selectedDocTypeFilter === 'all' || e.documentType === selectedDocTypeFilter)
+    // TRANSFER and ADJUSTMENT cover both directions (_IN / _OUT)
+    .filter(e => selectedDocTypeFilter === 'all' || e.documentType === selectedDocTypeFilter || e.documentType.startsWith(`${selectedDocTypeFilter}_`))
     .filter(e => !searchNotes || (e.notes && e.notes.toLowerCase().includes(searchNotes.toLowerCase())) || e.documentNumber.includes(searchNotes));
 
   // Totals for this item
@@ -139,6 +141,15 @@ export const StockCardLedgerView: React.FC = () => {
               <div className="text-left">
                 <span className="text-[10px] text-slate-400 font-bold block">المستودع والموقع:</span>
                 <span className="font-bold text-slate-800">{currentItem.defaultWarehouseName} ({currentItem.locationBin})</span>
+                {stockLocations(currentItem).length > 0 && (
+                  <div className="flex flex-wrap justify-end gap-1 mt-1">
+                    {stockLocations(currentItem).map(loc => (
+                      <span key={loc.warehouseId} className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white border border-amber-200 text-amber-900">
+                        {warehouses.find(w => w.id === loc.warehouseId)?.name || loc.warehouseId}: {loc.qty} {currentItem.unitNameAr}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

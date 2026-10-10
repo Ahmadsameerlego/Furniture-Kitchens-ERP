@@ -1099,6 +1099,9 @@ export interface StockTransfer {
   sourceBranchName: string;
   destinationBranchId: string;
   destinationBranchName: string;
+  sourceWarehouseId?: string;
+  destinationWarehouseId?: string;
+  driverName?: string;
   status: StockTransferStatus;
   items: StockTransferItem[];
   requestedDate: string;
@@ -1483,6 +1486,7 @@ export interface ItemMasterCard {
   sellingPrice: number;    // EGP
   defaultWarehouseId: string;
   defaultWarehouseName: string;
+  warehouseStock?: Record<string, number>; // on-hand quantity per warehouse id (goods in transit are in no warehouse)
   locationBin: string;     // e.g. "ممر 2 - رف B - خانة 04"
   specifications: { key: string; value: string }[];
   supplierId?: string;
@@ -1573,6 +1577,8 @@ export interface GoodsIssueNote {
   requestedByUserName: string;
   approvedByUserName?: string;
   issuedByUserName: string;
+  requisitionId?: string;
+  requisitionNumber?: string;
   notes?: string;
 }
 
@@ -1598,6 +1604,7 @@ export interface MaterialRequisition {
   }[];
   status: 'pending' | 'approved' | 'partially_issued' | 'fully_issued' | 'rejected';
   ginId?: string;
+  ginNumber?: string;
   notes?: string;
 }
 

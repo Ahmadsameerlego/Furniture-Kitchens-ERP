@@ -34,6 +34,7 @@ import {
   PurchaseOrderItem,
   StockMovement,
   StockTransfer,
+  StockTransferItem,
   SupplierReturn,
   SystemNotification,
   CustomProject,
@@ -191,6 +192,7 @@ import { BackendSecurityService } from '../services/backendSecurity';
 import { CrmService } from '../services/crmService';
 import { ReadySalesService } from '../services/readySalesService';
 import { InventoryService } from '../services/inventoryService';
+import { adjustWarehouseStock, normalizeItemCards, pickFromWarehouses, stockAt } from '../services/warehouseStock';
 import { CustomProjectService } from '../services/customProjectService';
 import {
   TechnicalProject,
@@ -592,6 +594,7 @@ interface ERPContextType {
   approveMaterialRequisition: (reqId: string) => void;
   rejectMaterialRequisition: (reqId: string, reason?: string) => void;
   confirmWarehouseTransfer: (transferId: string) => void;
+  createWarehouseTransfer: (data: { sourceWarehouseId: string; destinationWarehouseId: string; itemId: string; quantity: number; driverName?: string; notes?: string }) => StockTransfer | null;
 
   // Complete Procurement & Purchasing State
   purchaseRequests: PurchaseRequest[];
@@ -733,7 +736,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Enterprise Warehouses & Inventory State
   const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(() => restore('warehouses', () => harmonizeMockData(initialWarehouses)));
-  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(() => restore('itemMasterCards', () => harmonizeMockData(ensureCatalogItemCards(initialItemMasterCards))));
+  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(() => normalizeItemCards(restore('itemMasterCards', () => harmonizeMockData(ensureCatalogItemCards(initialItemMasterCards))), warehouses));
   const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(() => restore('goodsReceiptNotes', () => harmonizeMockData(initialGoodsReceiptNotes)));
   const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(() => restore('goodsIssueNotes', () => harmonizeMockData(initialGoodsIssueNotes)));
   const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(() => restore('materialRequisitions', () => harmonizeMockData(initialMaterialRequisitions)));
@@ -5316,16 +5319,84 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       materialVariance: issuedCost - o.totalEstimatedMaterialCost
     }));
 
-    // Stock leaves the warehouse against this order
-    setItemMasterCards(prev => prev.map(card => {
-      const line = mo.materials.find(m => {
-        const item = resolveCatalogItem(m.materialCode);
-        return item?.aliases.some(a => a.toUpperCase() === card.code.toUpperCase());
+    // Stock leaves the warehouse against this order, on one issue note per warehouse
+    const today = new Date().toISOString().substring(0, 10);
+    const picks = mo.materials.flatMap(m => {
+      const item = resolveCatalogItem(m.materialCode);
+      const card = itemMasterCards.find(c => item?.aliases.some(a => a.toUpperCase() === c.code.toUpperCase()));
+      if (!card || m.requiredQuantity <= 0) return [];
+      return pickFromWarehouses(card, m.requiredQuantity).map(p => ({ ...p, card, unitCost: m.estimatedUnitCost }));
+    });
+    const byWarehouse = new Map<string, typeof picks>();
+    picks.forEach(p => byWarehouse.set(p.warehouseId, [...(byWarehouse.get(p.warehouseId) || []), p]));
+
+    const existingGins = goodsIssueNotes.map(g => g.ginNumber);
+    const newGins: GoodsIssueNote[] = [];
+    const newLedger: StockLedgerEntry[] = [];
+    const runningStock = new Map(itemMasterCards.map(c => [c.id, c.currentStock]));
+    byWarehouse.forEach((lines, warehouseId) => {
+      const wh = warehouses.find(w => w.id === warehouseId);
+      const ginNumber = nextDocNumber('GIN', [...existingGins, ...newGins.map(g => g.ginNumber)], 4);
+      const items: GINLineItem[] = lines.map((l, idx) => ({
+        id: `gin-line-${Date.now()}-${newGins.length}-${idx}`,
+        itemId: l.card.id,
+        itemCode: l.card.code,
+        itemName: l.card.nameAr,
+        unit: l.card.unitNameAr,
+        requestedQty: l.qty,
+        issuedQty: l.qty,
+        unitCost: l.unitCost,
+        totalCost: l.qty * l.unitCost,
+        locationBin: l.card.locationBin,
+        notes: 'صرف تلقائي عند بدء أول محطة'
+      }));
+      newGins.push({
+        id: `gin-${Date.now()}-${newGins.length}`,
+        ginNumber,
+        type: 'production_mo',
+        productionOrderId: mo.id,
+        productionOrderNumber: mo.productionNumber,
+        costCenterId: 'cc-1',
+        costCenterName: 'قسم تقطيع الـ CNC وشريط الشاط',
+        warehouseId,
+        warehouseName: wh?.name || '',
+        date: today,
+        items,
+        totalAmount: items.reduce((s, it) => s + it.totalCost, 0),
+        status: 'posted',
+        requestedByUserName: currentUser.fullName,
+        issuedByUserName: wh?.managerName || currentUser.fullName,
+        notes: `صرف خامات ${mo.productionNumber} - ${mo.customerName} (تلقائي عند بدء التشغيل)`
       });
-      if (!line) return card;
-      const currentStock = Math.max(0, card.currentStock - line.requiredQuantity);
-      return { ...card, currentStock, availableStock: Math.max(0, currentStock - (card.reservedStock || 0)) };
-    }));
+      lines.forEach((l, idx) => {
+        const balanceAfter = Math.max(0, (runningStock.get(l.card.id) || 0) - l.qty);
+        runningStock.set(l.card.id, balanceAfter);
+        newLedger.push({
+          id: `sle-${Date.now()}-${newGins.length}-${idx}`,
+          itemId: l.card.id,
+          itemCode: l.card.code,
+          itemName: l.card.nameAr,
+          date: today,
+          documentType: 'GIN',
+          documentNumber: ginNumber,
+          warehouseId,
+          warehouseName: wh?.name || '',
+          qtyIn: 0,
+          qtyOut: l.qty,
+          balanceAfter,
+          unitCost: l.unitCost,
+          totalCost: l.qty * l.unitCost,
+          userName: currentUser.fullName,
+          notes: `إذن صرف ${ginNumber} - صرف خامات لأمر تصنيع (${mo.productionNumber})`
+        });
+      });
+    });
+
+    setItemMasterCards(prev => prev.map(card => picks
+      .filter(p => p.card.id === card.id)
+      .reduce((c, p) => adjustWarehouseStock(c, p.warehouseId, -p.qty), card)));
+    if (newGins.length > 0) setGoodsIssueNotes(prev => [...newGins, ...prev]);
+    if (newLedger.length > 0) setStockLedgerEntries(prev => [...newLedger, ...prev]);
 
     if (issuedCost > 0) recordInventoryWipMovement(productionOrderId, issuedCost, `صرف خامات ${mo.projectNumber} - ${mo.customerName}`);
     updateProjectStatus(mo.projectId, 'in_production');
@@ -7048,14 +7119,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const newAvgCost = oldStock + addQty > 0
           ? Math.round(((oldStock * item.weightedAvgCost) + (addQty * receiptLine.unitCost)) / newStock)
           : receiptLine.unitCost;
-        
+
         return {
-          ...item,
-          currentStock: newStock,
-          availableStock: item.availableStock + addQty,
+          ...adjustWarehouseStock(item, targetWh.id, addQty),
           weightedAvgCost: newAvgCost,
-          lastPurchasePrice: receiptLine.unitCost,
-          status: newStock <= 0 ? 'out_of_stock' : (newStock < item.minStockLevel ? 'low_stock' : 'active')
+          lastPurchasePrice: receiptLine.unitCost
         };
       }
       return item;
@@ -7108,6 +7176,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     costCenterName?: string;
     machineName?: string;
     warehouseId: string;
+    requisitionId?: string;
     items: {
       itemId: string;
       itemCode: string;
@@ -7124,13 +7193,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const today = new Date().toISOString().substring(0, 10);
     const ginNumber = nextDocNumber('GIN', goodsIssueNotes.map(x => x.ginNumber), 4);
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
+    const requisition = data.requisitionId ? materialRequisitions.find(m => m.id === data.requisitionId) : undefined;
 
-    // 0. Strict Negative Stock Prevention Check
+    // 0. Strict Negative Stock Prevention Check: free stock overall, and on the shelves of this warehouse
     for (const item of data.items) {
       const card = itemMasterCards.find(c => c.id === item.itemId || c.code === item.itemCode);
-      const available = card ? card.availableStock : 0;
+      const available = card ? Math.min(card.availableStock, stockAt(card, targetWh.id)) : 0;
       if (item.issuedQty > available) {
-        const errorMsg = `عفواً: الكمية المتاحة للصنف [${card?.nameAr || item.itemName}] في المستودع هي (${available} ${card?.unitNameAr || item.unit}) فقط، ولا يمكن صرف (${item.issuedQty}).`;
+        const errorMsg = `عفواً: الكمية المتاحة للصنف [${card?.nameAr || item.itemName}] في (${targetWh.name}) هي (${available} ${card?.unitNameAr || item.unit}) فقط، ولا يمكن صرف (${item.issuedQty}).`;
         showToast(errorMsg, 'error');
         throw new Error(errorMsg);
       }
@@ -7224,8 +7294,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalAmount,
       status: 'posted',
       journalEntryId: postResult.entry?.id,
-      requestedByUserName: currentUser.fullName,
+      requestedByUserName: requisition?.requestedByUserName || currentUser.fullName,
+      approvedByUserName: requisition?.approvedByUserName,
       issuedByUserName: targetWh.managerName || currentUser.fullName,
+      requisitionId: requisition?.id,
+      requisitionNumber: requisition?.requisitionNumber,
       notes: data.notes
     };
 
@@ -7234,20 +7307,17 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setJournalEntries(prev => [postResult.entry!, ...prev]);
     }
 
-    // 2. Decrease Stock in itemMasterCards
+    // The workshop request is closed by the issue that fulfils it
+    if (requisition) {
+      setMaterialRequisitions(prev => prev.map(m => m.id === requisition.id
+        ? { ...m, status: 'fully_issued', ginId: newGIN.id, ginNumber }
+        : m));
+    }
+
+    // 2. Decrease Stock in itemMasterCards (from the issuing warehouse)
     setItemMasterCards(prev => prev.map(item => {
       const issueLine = lineItems.find(l => l.itemId === item.id || l.itemCode === item.code);
-      if (issueLine) {
-        const newStock = Math.max(0, item.currentStock - issueLine.issuedQty);
-        const newAvail = Math.max(0, item.availableStock - issueLine.issuedQty);
-        return {
-          ...item,
-          currentStock: newStock,
-          availableStock: newAvail,
-          status: newStock <= 0 ? 'out_of_stock' : (newStock < item.minStockLevel ? 'low_stock' : 'active')
-        };
-      }
-      return item;
+      return issueLine ? adjustWarehouseStock(item, targetWh.id, -issueLine.issuedQty) : item;
     }));
 
     // 3. Add to Stock Ledger History
@@ -7359,7 +7429,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createStocktakeSession = (data: any): StocktakeSession => {
-    const sessionNumber = `STK-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const sessionNumber = nextDocNumber('STK', stocktakeSessions.map(s => s.sessionNumber), 4);
     const today = new Date().toISOString().substring(0, 10);
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
 
@@ -7476,19 +7546,42 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    // Update item stocks to match countedQty
+    // Book each counted difference on the counted warehouse, so stock and the variance entry agree
+    const sessionWh = warehouses.find(w => w.id === session.warehouseId);
+    const whId = sessionWh?.id || session.warehouseId;
+    const today = new Date().toISOString().substring(0, 10);
+    const varianceLines = session.lines
+      .filter(l => l.varianceQty !== 0)
+      .map(l => ({ line: l, card: itemMasterCards.find(c => c.id === l.itemId || c.code === l.itemCode) }))
+      .filter((x): x is { line: StocktakeLine; card: ItemMasterCard } => !!x.card);
+
     setItemMasterCards(prev => prev.map(item => {
-      const stkLine = session.lines.find(l => l.itemId === item.id || l.itemCode === item.code);
-      if (stkLine) {
-        return {
-          ...item,
-          currentStock: stkLine.countedQty,
-          availableStock: Math.max(0, stkLine.countedQty - item.reservedStock),
-          status: stkLine.countedQty <= 0 ? 'out_of_stock' : (stkLine.countedQty < item.minStockLevel ? 'low_stock' : 'active')
-        };
-      }
-      return item;
+      const v = varianceLines.find(x => x.card.id === item.id);
+      return v ? adjustWarehouseStock(item, whId, v.line.varianceQty) : item;
     }));
+    if (varianceLines.length > 0) {
+      setStockLedgerEntries(prev => [
+        ...varianceLines.map(({ line, card }, idx): StockLedgerEntry => ({
+          id: `sle-${Date.now()}-${idx}`,
+          itemId: card.id,
+          itemCode: card.code,
+          itemName: card.nameAr,
+          date: today,
+          documentType: line.varianceQty > 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT',
+          documentNumber: session.sessionNumber,
+          warehouseId: whId,
+          warehouseName: session.warehouseName,
+          qtyIn: Math.max(0, line.varianceQty),
+          qtyOut: Math.max(0, -line.varianceQty),
+          balanceAfter: Math.max(0, card.currentStock + line.varianceQty),
+          unitCost: line.unitCost,
+          totalCost: Math.abs(line.varianceAmount),
+          userName: currentUser.fullName,
+          notes: `تسوية جرد ${session.sessionNumber}: ${line.varianceQty > 0 ? 'زيادة' : 'عجز'} ${Math.abs(line.varianceQty)} ${line.unit}${line.notes ? ` - ${line.notes}` : ''}`
+        })),
+        ...prev
+      ]);
+    }
 
     setStocktakeSessions(prev => prev.map(s => {
       if (s.id === sessionId) {
@@ -7506,7 +7599,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createMaterialRequisition = (data: any): MaterialRequisition => {
-    const requisitionNumber = `MRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const requisitionNumber = nextDocNumber('MRN', materialRequisitions.map(m => m.requisitionNumber), 4);
     const today = new Date().toISOString().substring(0, 10);
     const newMRN: MaterialRequisition = {
       id: `mrn-${Date.now()}`,
@@ -7569,7 +7662,118 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('تم رفض طلب صرف الخامات وإعادته للتعديل', 'info');
   };
 
+  // A transfer note: the goods leave the source shelves now (in transit) and land on the
+  // destination shelves when the receiving warehouse confirms.
+  const createWarehouseTransfer = (data: {
+    sourceWarehouseId: string;
+    destinationWarehouseId: string;
+    itemId: string;
+    quantity: number;
+    driverName?: string;
+    notes?: string;
+  }): StockTransfer | null => {
+    const sourceWh = warehouses.find(w => w.id === data.sourceWarehouseId);
+    const destWh = warehouses.find(w => w.id === data.destinationWarehouseId);
+    const card = itemMasterCards.find(c => c.id === data.itemId);
+    if (!sourceWh || !destWh || !card) return null;
+    if (sourceWh.id === destWh.id) {
+      showToast('لا يمكن التحويل لنفس المستودع', 'warning');
+      return null;
+    }
+    const onShelf = Math.min(stockAt(card, sourceWh.id), card.availableStock);
+    if (data.quantity <= 0 || data.quantity > onShelf) {
+      showToast(`الكمية المتاحة من (${card.nameAr}) في ${sourceWh.name} هي ${onShelf} ${card.unitNameAr} فقط`, 'error');
+      return null;
+    }
+
+    const today = new Date().toISOString().substring(0, 10);
+    const transferNumber = nextDocNumber('TRF', stockTransfers.map(t => t.transferNumber), 3);
+    const transfer: StockTransfer = {
+      id: `trf-${Date.now()}`,
+      transferNumber,
+      sourceBranchId: sourceWh.branchId,
+      sourceBranchName: sourceWh.name,
+      destinationBranchId: destWh.branchId,
+      destinationBranchName: destWh.name,
+      sourceWarehouseId: sourceWh.id,
+      destinationWarehouseId: destWh.id,
+      driverName: data.driverName,
+      status: 'sent',
+      items: [{ itemId: card.id, itemType: 'material', itemName: card.nameAr, itemCode: card.code, quantity: data.quantity, unit: card.unitNameAr }],
+      requestedDate: today,
+      sentDate: today,
+      requestedByUserId: currentUser.id,
+      requestedByUserName: currentUser.fullName,
+      approvedByUserName: sourceWh.managerName,
+      notes: data.notes
+    };
+
+    setStockTransfers(prev => [transfer, ...prev]);
+    setItemMasterCards(prev => prev.map(c => c.id === card.id ? adjustWarehouseStock(c, sourceWh.id, -data.quantity) : c));
+    setStockLedgerEntries(prev => [{
+      id: `sle-${Date.now()}`,
+      itemId: card.id,
+      itemCode: card.code,
+      itemName: card.nameAr,
+      date: today,
+      documentType: 'TRANSFER_OUT',
+      documentNumber: transferNumber,
+      warehouseId: sourceWh.id,
+      warehouseName: sourceWh.name,
+      qtyIn: 0,
+      qtyOut: data.quantity,
+      balanceAfter: Math.max(0, card.currentStock - data.quantity),
+      unitCost: card.weightedAvgCost,
+      totalCost: data.quantity * card.weightedAvgCost,
+      userName: currentUser.fullName,
+      notes: `تحويل صادر ${transferNumber} إلى ${destWh.name}${data.driverName ? ` (${data.driverName})` : ''} - في الطريق`
+    }, ...prev]);
+    addAuditLog({
+      category: 'inventory',
+      action: 'إذن تحويل مخزني',
+      actionEn: 'Warehouse Transfer Sent',
+      target: transferNumber,
+      details: `${data.quantity} ${card.unitNameAr} ${card.nameAr} من ${sourceWh.name} إلى ${destWh.name}`,
+      status: 'success'
+    });
+    showToast(`🚚 تم إصدار التحويل ${transferNumber}: ${data.quantity} ${card.unitNameAr} خرجت من ${sourceWh.name} وفي الطريق`, 'success');
+    return transfer;
+  };
+
   const confirmWarehouseTransfer = (transferId: string) => {
+    const transfer = stockTransfers.find(t => t.id === transferId);
+    const destWh = transfer?.destinationWarehouseId ? warehouses.find(w => w.id === transfer.destinationWarehouseId) : undefined;
+    if (transfer && destWh && transfer.status !== 'received') {
+      const today = new Date().toISOString().substring(0, 10);
+      const arriving = transfer.items
+        .map(it => ({ it, card: itemMasterCards.find(c => c.id === it.itemId || c.code === it.itemCode) }))
+        .filter((x): x is { it: StockTransferItem; card: ItemMasterCard } => !!x.card);
+      setItemMasterCards(prev => prev.map(c => {
+        const line = arriving.find(a => a.card.id === c.id);
+        return line ? adjustWarehouseStock(c, destWh.id, line.it.quantity) : c;
+      }));
+      setStockLedgerEntries(prev => [
+        ...arriving.map(({ it, card }, idx): StockLedgerEntry => ({
+          id: `sle-${Date.now()}-${idx}`,
+          itemId: card.id,
+          itemCode: card.code,
+          itemName: card.nameAr,
+          date: today,
+          documentType: 'TRANSFER_IN',
+          documentNumber: transfer.transferNumber,
+          warehouseId: destWh.id,
+          warehouseName: destWh.name,
+          qtyIn: it.quantity,
+          qtyOut: 0,
+          balanceAfter: card.currentStock + it.quantity,
+          unitCost: card.weightedAvgCost,
+          totalCost: it.quantity * card.weightedAvgCost,
+          userName: currentUser.fullName,
+          notes: `تحويل وارد ${transfer.transferNumber} من ${transfer.sourceBranchName}`
+        })),
+        ...prev
+      ]);
+    }
     setStockTransfers(prev => prev.map(t => {
       if (t.id === transferId) {
         return {
@@ -7816,6 +8020,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         approveMaterialRequisition,
         rejectMaterialRequisition,
         confirmWarehouseTransfer,
+        createWarehouseTransfer,
         planningDemands,
         supplyProposals,
         workCenterCapacities,

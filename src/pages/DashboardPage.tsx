@@ -52,6 +52,7 @@ export const DashboardPage: React.FC = () => {
     variationOrders,
     projectHandovers,
     materials,
+    itemMasterCards,
     setActiveModule,
     setSelectedProjectId,
     setSelectedProductionOrderId
@@ -87,7 +88,10 @@ export const DashboardPage: React.FC = () => {
   const activeInstallations = installationRecords.filter(ir => ir.status === 'scheduled' || ir.status === 'confirmed' || ir.status === 'in_progress');
 
   // 5. Critical Materials Alert
-  const lowStockMaterials = materials.filter(m => (m.currentStock || 0) <= (m.minStockLevel || 0) + 2);
+  // Item cards closest to their reorder point first (the inventory module's real stock)
+  const criticalItemCards = [...itemMasterCards]
+    .filter(c => c.reorderPoint > 0)
+    .sort((a, b) => a.currentStock / a.reorderPoint - b.currentStock / b.reorderPoint);
 
   // Filtered projects list for the Live Monitor
   const filteredProjects = customProjects.filter(p => {
@@ -987,7 +991,7 @@ export const DashboardPage: React.FC = () => {
                 <p className="text-[11px] text-slate-500">مستويات الألواح والمفصلات الحرجة</p>
               </div>
               <button
-                onClick={() => setActiveModule('materials')}
+                onClick={() => setActiveModule('inv_items')}
                 className="text-[11px] font-black text-[#C87A38] hover:underline"
               >
                 المخازن
@@ -995,24 +999,24 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {materials.slice(0, 4).map((mat) => {
-                const isLow = (mat.currentStock || 0) <= (mat.minStockLevel || 0);
+              {criticalItemCards.slice(0, 4).map((card) => {
+                const isLow = card.currentStock <= card.reorderPoint;
 
                 return (
                   <div
-                    key={mat.id}
+                    key={card.id}
                     className="p-3 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
                   >
                     <div className="space-y-0.5">
-                      <h5 className="font-bold text-xs text-slate-900">{mat.name}</h5>
-                      <span className="text-[10px] text-slate-500 font-mono">{mat.code}</span>
+                      <h5 className="font-bold text-xs text-slate-900">{card.nameAr}</h5>
+                      <span className="text-[10px] text-slate-500 font-mono">{card.code}</span>
                     </div>
 
                     <div className="text-left shrink-0">
                       <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
                         isLow ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-800'
                       }`}>
-                        {mat.currentStock} {mat.unit}
+                        {card.currentStock} {card.unitNameAr}
                       </span>
                       {isLow && (
                         <span className="block text-[9px] font-bold text-red-600 mt-0.5">
