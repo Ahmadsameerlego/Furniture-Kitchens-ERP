@@ -65,6 +65,9 @@ export type ModuleId =
   | 'mfg_job_cards'
   | 'mfg_scrap'
   | 'mfg_qc'
+  | 'mfg_daily'
+  | 'mfg_remake'
+  | 'mfg_workforce'
   | 'installation'
   | 'finance'
   | 'acc_dashboard'
@@ -792,7 +795,38 @@ export interface ProductionOrder {
   materialVariance: number;
   /** Station labor + machine cost absorbed when the order is completed. */
   totalLaborCost?: number;
+  /** Outside-shop work (lacquer, glass...) charged to this order. */
+  totalSubcontractCost?: number;
   createdDate: string;
+  /** main = the project's order; remake = missing or broken parts made again. */
+  kind?: 'main' | 'remake';
+  parentProductionId?: string;
+  priority?: 'normal' | 'high' | 'urgent';
+  remake?: RemakeDetails;
+}
+
+export type RemakeSource = 'factory_qc' | 'site_installation' | 'after_handover';
+export type RemakeReason = 'transport_damage' | 'site_measure_error' | 'manufacturing_defect' | 'cutting_error' | 'customer_change' | 'missing_part';
+export type RemakeChargeTo = 'factory' | 'customer' | 'supplier' | 'transport';
+
+export interface RemakePart {
+  partName: string;
+  materialCode: string;
+  materialName: string;
+  lengthMm: number;
+  widthMm: number;
+  quantity: number;
+  needsPaint?: boolean;
+}
+
+export interface RemakeDetails {
+  source: RemakeSource;
+  reason: RemakeReason;
+  chargeTo: RemakeChargeTo;
+  reportedBy: string;
+  parts: RemakePart[];
+  fromOffcuts: boolean;
+  includesAssembly: boolean;
 }
 
 export type InstallationStatus =
@@ -1623,3 +1657,9 @@ export interface StockLedgerEntry {
 
 export * from './procurement';
 export * from './sales';
+
+export interface RemakeOrderInput extends RemakeDetails {
+  projectId: string;
+  parentProductionId?: string;
+  notes?: string;
+}

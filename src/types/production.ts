@@ -30,6 +30,66 @@ export interface WorkCenter {
   efficiencyRate: number;        // OEE % معدل الكفاءة التشغيلية
   maintenanceNextDate?: string;
   supportedMaterials?: string[]; // e.g. ["MDF", "HPL", "Acrylic", "Solid Wood"]
+  /** Outside shops this station's work is often sent to (e.g. lacquer doors). */
+  commonSubcontractors?: string[];
+}
+
+// ----------------------------------------------------
+// 1b. SHOP WORKERS (الصنايعية وطريقة حسابهم)
+// ----------------------------------------------------
+
+/** How a worker is paid: by the day, by the piece, or a fixed monthly salary. */
+export type WorkerPayBasis = 'daily' | 'piece' | 'monthly';
+
+/** What the worker carries, which decides how they can report work. */
+export type WorkerDeviceAccess = 'none' | 'basic_phone' | 'smartphone';
+
+export interface ShopWorker {
+  id: string;
+  name: string;
+  section: WorkCenterCategory;
+  role: string;                  // أسطى / مساعد / مشغل ماكينة / صبي
+  payBasis: WorkerPayBasis;
+  dailyWage?: number;            // ج.م per day (monthly salaries ÷ 26)
+  pieceRate?: number;            // ج.م per piece (piece workers)
+  pieceUnit?: string;            // وحدة / ضلفة / قطعة
+  device: WorkerDeviceAccess;
+}
+
+/** Who typed the event into the system. */
+export type CaptureSource = 'kiosk' | 'supervisor' | 'manager';
+
+export type StopReason =
+  | 'machine_breakdown'
+  | 'material_missing'
+  | 'waiting_drawing'
+  | 'waiting_previous'
+  | 'no_workers'
+  | 'customer_hold'
+  | 'other';
+
+export interface WorkOrderLogEntry {
+  id: string;
+  at: string;            // when it happened on the floor (YYYY-MM-DD HH:mm)
+  recordedAt: string;    // when it was entered into the system
+  action: 'start' | 'progress' | 'pause' | 'stop' | 'resume' | 'complete' | 'sent_out' | 'received_back';
+  qtyDelta?: number;     // pieces finished in this entry
+  crew?: string[];
+  source: CaptureSource;
+  recordedBy: string;
+  note?: string;
+  stopReason?: StopReason;
+}
+
+/** Station work done outside the factory (lacquer shop, glass, marble...). */
+export interface SubcontractInfo {
+  vendorName: string;
+  agreedCost: number;
+  sentAt?: string;
+  expectedBackAt: string;
+  receivedAt?: string;
+  rejectedQty?: number;
+  costPosted?: boolean;
 }
 
 // ----------------------------------------------------
@@ -83,6 +143,14 @@ export interface WorkOrder {
   qualityCheckPassed?: boolean;
   qualityInspectorName?: string;
   scrapGeneratedCount?: number;   // عدد الألواح أو الأمتار المهدرة في هذه المرحلة
+
+  /** Stations that must finish first. Missing means the previous station by sequence. */
+  predecessorIds?: string[];
+  /** carcass = هياكل, fronts = ضلف ووشوش; lets painted doors run alongside the bodies. */
+  track?: 'all' | 'carcass' | 'fronts';
+  stopReason?: StopReason;
+  subcontract?: SubcontractInfo;
+  log?: WorkOrderLogEntry[];
 }
 
 // ----------------------------------------------------
@@ -107,9 +175,15 @@ export interface ManufacturingPackageItem {
   title: string;                 // e.g. "كرتونة 1/6 - شاسيه حوض + مفصلات Blum"
   dimensions: string;            // "90x60x85 سم"
   weightKg: number;
-  status: 'packed' | 'staged' | 'shipped';
+  status: 'packed' | 'staged' | 'shipped'; // مغلف ← اتحمل على العربية ← خرج من المصنع
   qrCode: string;
   itemsContained: string[];      // ["شاسيه حوض 90سم", "مفصلة بلوم 4 قطع", "رجلاش سفلي 4 قطع"]
+  manufacturingOrderId?: string;
+  kind?: 'carcass' | 'fronts' | 'hardware_kit' | 'fillers' | 'remake';
+  loadedAt?: string;
+  shippedAt?: string;
+  /** Why this package stayed behind when the truck left (partial dispatch). */
+  heldBackReason?: string;
 }
 
 export interface ScrapClaimRecord {
@@ -131,6 +205,8 @@ export interface ScrapClaimRecord {
   reportedAt: string;
   status: 'pending_warehouse' | 'replacement_issued' | 'rejected';
   replacementGINNumber?: string; // إذن الصرف التعويضي من المخازن
+  /** The replacement left stock and was charged to the order's WIP. */
+  wipPosted?: boolean;
 }
 
 export interface OffCutReturnRecord {
@@ -182,6 +258,7 @@ export interface JobCostingBreakdown {
   machineOverheadEstimated: number;
   machineOverheadActual: number;
   scrapCostActual: number;
+  subcontractCostActual: number;
   totalEstimatedCost: number;
   totalActualCost: number;
   varianceAmount: number;

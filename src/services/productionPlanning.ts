@@ -129,9 +129,16 @@ interface RoutingStep {
   minutes: number;
   parts: number;
   instructions: string;
+  track: 'all' | 'carcass' | 'fronts';
+  /** Categories of the steps that must finish first. */
+  after: WorkCenterCategory[];
 }
 
-/** Standard station routing for a bespoke kitchen / wardrobe order. */
+/**
+ * Standard station routing for a bespoke kitchen / wardrobe order. Painted
+ * fronts leave the line right after cutting and come back for packing, so
+ * the bodies are not held up by the days the lacquer needs to cure.
+ */
 export function buildStandardRouting(params: {
   productionOrderId: string;
   productionNumber: string;
@@ -154,17 +161,18 @@ export function buildStandardRouting(params: {
     .reduce((p, c) => p + c.quantity, 0) * (u.quantity || 1), 0);
 
   const steps: RoutingStep[] = [
-    { category: 'cutting_cnc', name: `تقطيع ونيستينج الألواح (${sheets} لوح)`, minutes: Math.max(60, sheets * 12), parts: partCount, instructions: 'الالتزام باتجاه الثمرة الموضح بقائمة التقطيع وترقيم القطع بملصقات الباركود' },
-    { category: 'edge_banding', name: 'لزق شريط الحرف PVC وقشاط الحواف', minutes: Math.max(45, partCount * 3), parts: partCount, instructions: 'قشاط الحواف حسب الـ BOM - غراء مقاوم للرطوبة لكبائن الحوض' },
-    { category: 'drilling_routing', name: 'تخريم المفصلات ومجاري الأدراج والكامات', minutes: Math.max(30, partCount * 2), parts: partCount, instructions: 'تخريم مفصلات Blum قطر 35مم عمق 12.5مم على نظام 32مم' }
+    { category: 'cutting_cnc', name: `تقطيع ونيستينج الألواح (${sheets} لوح)`, minutes: Math.max(60, sheets * 12), parts: partCount, instructions: 'الالتزام باتجاه الثمرة الموضح بقائمة التقطيع وترقيم القطع بملصقات الباركود', track: 'all', after: [] },
+    { category: 'edge_banding', name: 'لزق شريط الحرف PVC وقشاط الحواف', minutes: Math.max(45, partCount * 3), parts: Math.max(1, partCount - paintedParts), instructions: 'قشاط الحواف حسب الـ BOM - غراء مقاوم للرطوبة لكبائن الحوض', track: 'carcass', after: ['cutting_cnc'] },
+    { category: 'drilling_routing', name: 'تخريم المفصلات ومجاري الأدراج والكامات', minutes: Math.max(30, partCount * 2), parts: Math.max(1, partCount - paintedParts), instructions: 'تخريم مفصلات Blum قطر 35مم عمق 12.5مم على نظام 32مم', track: 'carcass', after: ['edge_banding'] }
   ];
   if (paintedParts > 0) {
-    steps.push({ category: 'paint_finishing', name: `دهان وتشطيب الدلف (${paintedParts} قطعة)`, minutes: paintedParts * 15, parts: paintedParts, instructions: 'سيلر + طبقتين دهان، ومطابقة درجة اللون مع العينة المعتمدة' });
+    steps.push({ category: 'paint_finishing', name: `دهان وتشطيب الدلف (${paintedParts} قطعة)`, minutes: paintedParts * 15, parts: paintedParts, instructions: 'سيلر + طبقتين دهان، ومطابقة درجة اللون مع العينة المعتمدة. الضلف بتمشي بالتوازي مع الهياكل', track: 'fronts', after: ['cutting_cnc'] });
   }
   steps.push(
-    { category: 'assembly', name: `تجميع الكبائن وتركيب الإكسسوارات (${unitCount} وحدة)`, minutes: Math.max(60, unitCount * 45), parts: unitCount, instructions: 'فحص استقامة الزوايا 90° وتجربة الأدراج والمفصلات' },
-    { category: 'packaging_qc', name: 'الفحص النهائي والتغليف وتكوين الطرود', minutes: Math.max(30, unitCount * 10), parts: unitCount, instructions: 'كل وحدة في طرد مرقم بباركود، ومطابقة الطرود مع قائمة الشحن' }
+    { category: 'assembly', name: `تجميع الكبائن وتركيب الإكسسوارات (${unitCount} وحدة)`, minutes: Math.max(60, unitCount * 45), parts: unitCount, instructions: 'فحص استقامة الزوايا 90° وتجربة الأدراج والمفصلات', track: 'carcass', after: ['drilling_routing'] },
+    { category: 'packaging_qc', name: 'الفحص النهائي والتغليف وتكوين الطرود', minutes: Math.max(30, unitCount * 10), parts: unitCount, instructions: 'كل وحدة في طرد مرقم بباركود، ومطابقة الطرود مع قائمة الشحن', track: 'all', after: paintedParts > 0 ? ['assembly', 'paint_finishing'] : ['assembly'] }
   );
+  const idFor = (cat: WorkCenterCategory) => `${params.productionOrderId}-wo${steps.findIndex(s => s.category === cat) + 1}`;
 
   const start = new Date(params.startDate);
   return steps.map((step, i) => {
@@ -193,6 +201,9 @@ export function buildStandardRouting(params: {
       status: i === 0 ? (params.blocked ? 'blocked' : 'ready') : 'pending',
       progressPercentage: 0,
       partsToProcessCount: step.parts,
+      predecessorIds: step.after.map(idFor),
+      track: step.track,
+      stopReason: i === 0 && params.blocked ? 'material_missing' as const : undefined,
       partsCompletedCount: 0,
       cutListReference: i === 0 ? `CUT-${params.projectNumber}-${bom.revisionCode}` : undefined,
       specialInstructions: i === 0 && params.blocked ? 'معلق لحين توريد الخامات الناقصة' : step.instructions

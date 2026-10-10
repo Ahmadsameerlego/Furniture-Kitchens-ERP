@@ -6,6 +6,9 @@ import { BackendSecurityService } from '../../services/backendSecurity';
 import {
   LayoutDashboard,
   Users,
+  ClipboardList,
+  RotateCcw,
+  Crown,
   Sparkles,
   ShoppingBag,
   Ruler,
@@ -153,10 +156,13 @@ const menuGroups: MenuGroup[] = [
     permissionCheck: 'production',
     items: [
       { id: 'mfg_dashboard', label: 'لوحة تحكم ومؤشرات الإنتاج', labelEn: 'Manufacturing Dashboard', icon: LayoutDashboard },
+      { id: 'mfg_daily', label: 'يومية الإنتاج (مدير الإنتاج)', labelEn: 'Daily Production Board', icon: ClipboardList },
       { id: 'mfg_orders', label: 'أوامر التصنيع والمشاريع (MOs)', labelEn: 'Manufacturing Orders', icon: Boxes },
       { id: 'mfg_work_orders', label: 'مراكز العمل والماكينات (WOs)', labelEn: 'Work Centers & Stations', icon: Cpu },
       { id: 'mfg_shopfloor', label: 'كشك الورشة الميداني (Kiosk)', labelEn: 'Shopfloor Tablet Kiosk', icon: Zap },
-      { id: 'mfg_job_cards', label: 'كروت التشغيل والطرود', labelEn: 'Job Cards & Packaging', icon: Printer },
+      { id: 'mfg_job_cards', label: 'الطرود والتحميل وكروت التشغيل', labelEn: 'Packages & Loading', icon: Printer },
+      { id: 'mfg_remake', label: 'النواقص وإعادة التصنيع', labelEn: 'Remakes & Missing Parts', icon: RotateCcw },
+      { id: 'mfg_workforce', label: 'الصنايعية والحساب الأسبوعي', labelEn: 'Workforce & Piece Rates', icon: Users },
       { id: 'mfg_scrap', label: 'الهدر والتوالف وإرجاع الفضلات', labelEn: 'Scrap & Off-cuts Return', icon: AlertTriangle },
       { id: 'mfg_qc', label: 'بوابات الجودة والاعتماد (QC)', labelEn: 'Quality Gates Inspection', icon: ShieldCheck },
       { id: 'installation', label: 'التركيبات والتسليم بالموقع', labelEn: 'Installation & Delivery', icon: Truck }
@@ -298,6 +304,7 @@ export const Sidebar: React.FC = () => {
 
   const isDashboardActive = activeModule === 'dashboard';
   const isAnalyticsActive = activeModule === 'analytics';
+  const isReportsActive = activeModule === 'reports';
 
   return (
     <aside
@@ -382,6 +389,27 @@ export const Sidebar: React.FC = () => {
                 <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded-md border border-emerald-500/30">
                   BI
                 </span>
+              </div>
+            )}
+          </div>
+        </button>
+
+        {/* FACTORY REPORTS CENTER */}
+        <button
+          onClick={() => setActiveModule('reports')}
+          className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+            isReportsActive
+              ? 'bg-[#C87A38] text-white shadow-md font-black'
+              : 'text-slate-300 hover:bg-white/5 hover:text-white'
+          }`}
+          title={isSidebarCollapsed ? 'مركز تقارير المصنع' : undefined}
+        >
+          <div className="flex items-center gap-2.5 flex-1">
+            <Crown className={`w-4 h-4 shrink-0 ${isReportsActive ? 'text-white' : 'text-amber-400'}`} />
+            {!isSidebarCollapsed && (
+              <div className="flex items-center justify-between flex-1">
+                <span>مركز تقارير المصنع</span>
+                <span className="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded-md border border-amber-500/30">جديد</span>
               </div>
             )}
           </div>

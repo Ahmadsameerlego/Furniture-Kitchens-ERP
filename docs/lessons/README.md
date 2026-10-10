@@ -26,7 +26,7 @@
 5. [التخطيط والـ MRP](05-planning-mrp.md)
 6. [المشتريات](06-procurement.md)
 7. [المخازن](07-inventory.md)
-8. [الورش والتصنيع](08-manufacturing.md)
+8. [الورش والتصنيع: إزاي مصنع المطابخ بيشتغل فعلاً، والـ 16 فرضية](08-manufacturing.md) ⭐ اتكتب من جديد
 9. [التركيبات والتسليم وما بعد البيع](09-installation-aftersales.md)
 10. [الحسابات والمالية](10-finance-accounting.md)
 11. [لوحة القيادة، والأثاث الجاهز، والإدارة والصلاحيات](11-dashboard-ready-admin.md)
@@ -34,11 +34,14 @@
 ### المحرك اللي بيربط كل ده
 15. [الـ Configurator: من المقاسات للسعر للمصنع](15-configurator.md)
 
+### التقارير
+16. [مركز تقارير المصنع: 4 أسئلة بيسألها صاحب المصنع](16-factory-reports.md) ⭐ جديد
+
 ### الرحلات (سيناريوهات كاملة)
 12. [رحلات في النظام: 6 قصص من A لـ Z](12-journeys.md)
 
 ### العرض
-13. [إزاي تعمل Presentation يكسب الصفقة](13-presentation-masterclass.md)
+13. [سكريبت العرض كلمة بكلمة: اعرض إيه وقول إيه في كل دقيقة](13-presentation-masterclass.md) ⭐ اتكتب من جديد + [الشرايح](https://claude.ai/artifact/NU29gjS9kABRBKDt9UBUor)
 
 ### مرجع سريع
 - [🥊 كل نقط التفوق على الأنظمة الكبيرة في مكان واحد](14-why-we-win.md)

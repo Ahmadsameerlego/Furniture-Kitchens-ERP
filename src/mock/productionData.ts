@@ -1,6 +1,7 @@
 import { ProductionOrder, InstallationRecord } from '../types/erp';
 import {
   WorkCenter,
+  ShopWorker,
   WorkOrder,
   ScrapClaimRecord,
   OffCutReturnRecord,
@@ -79,7 +80,8 @@ export const initialWorkCenters: WorkCenter[] = [
     currentActiveWOCount: 2,
     efficiencyRate: 86,
     maintenanceNextDate: '2026-10-20',
-    supportedMaterials: ['دوكو مط ولميع', 'لاكيه مغسول', 'بولي يوريثان PU', 'صبغات قشرة جوز']
+    supportedMaterials: ['دوكو مط ولميع', 'لاكيه مغسول', 'بولي يوريثان PU', 'صبغات قشرة جوز'],
+    commonSubcontractors: ['ورشة الأمل للدهانات - العبور', 'مصنع النور للاكيه - الحرفيين']
   },
   {
     id: 'wc-asm-01',
@@ -179,7 +181,13 @@ export const initialWorkOrders: WorkOrder[] = [
     partsCompletedCount: 38,
     specialInstructions: 'استخدام غراء بولي يوريثان مقاوم للرطوبة لحواف كابينة الحوض',
     qualityCheckPassed: true,
-    qualityInspectorName: 'م. أحمد سمير'
+    qualityInspectorName: 'م. أحمد سمير',
+    log: [
+      { id: 'log-101-2-1', at: '2026-08-26 13:00', recordedAt: '2026-08-26 13:02', action: 'start', crew: ['الفني شريف فاروق'], source: 'supervisor', recordedBy: 'الفني شريف فاروق' },
+      { id: 'log-101-2-2', at: '2026-08-26 13:20', recordedAt: '2026-08-26 13:25', action: 'stop', source: 'supervisor', recordedBy: 'الفني شريف فاروق', stopReason: 'machine_breakdown', note: 'سكينة الترابيزة اتحركت' },
+      { id: 'log-101-2-3', at: '2026-08-26 14:20', recordedAt: '2026-08-26 14:22', action: 'resume', crew: ['الفني شريف فاروق'], source: 'supervisor', recordedBy: 'الفني شريف فاروق' },
+      { id: 'log-101-2-4', at: '2026-08-26 14:50', recordedAt: '2026-08-26 14:55', action: 'complete', qtyDelta: 38, crew: ['الفني شريف فاروق'], source: 'supervisor', recordedBy: 'الفني شريف فاروق' }
+    ]
   },
   {
     id: 'wo-101-3',
@@ -232,7 +240,12 @@ export const initialWorkOrders: WorkOrder[] = [
     progressPercentage: 70,
     partsToProcessCount: 14,
     partsCompletedCount: 10,
-    specialInstructions: 'فحص استقامة الزوايا 90 درجة وتجربة سلاسة حركة الأدراج الهيدروليك'
+    specialInstructions: 'فحص استقامة الزوايا 90 درجة وتجربة سلاسة حركة الأدراج الهيدروليك',
+    log: [
+      { id: 'log-101-4-1', at: '2026-08-27 11:00', recordedAt: '2026-08-27 17:35', action: 'start', crew: ['الأسطى مصطفى كمال', 'عمر حسني'], source: 'manager', recordedBy: 'خالد توفيق', note: 'من ورقة شغل اليوم' },
+      { id: 'log-101-4-2', at: '2026-08-27 16:30', recordedAt: '2026-08-27 17:36', action: 'progress', qtyDelta: 6, crew: ['الأسطى مصطفى كمال', 'عمر حسني'], source: 'manager', recordedBy: 'خالد توفيق', note: '6 كبائن سفلي اتجمعت' },
+      { id: 'log-101-4-3', at: '2026-08-28 08:40', recordedAt: '2026-08-28 08:45', action: 'progress', qtyDelta: 4, crew: ['الأسطى مصطفى كمال', 'عمر حسني'], source: 'supervisor', recordedBy: 'الأسطى مصطفى كمال', note: 'العلوي ماشي' }
+    ]
   },
   {
     id: 'wo-101-5',
@@ -251,7 +264,7 @@ export const initialWorkOrders: WorkOrder[] = [
     actualDurationMinutes: 0,
     scheduledStartDate: '2026-08-28 09:00',
     scheduledEndDate: '2026-08-28 10:30',
-    assignedTechnicians: ['المهندس أحمد سمير', 'فريق التغليف'],
+    assignedTechnicians: ['سيد عبد الله'],
     status: 'pending',
     progressPercentage: 0,
     partsToProcessCount: 6,
@@ -296,23 +309,29 @@ export const initialWorkOrders: WorkOrder[] = [
     projectNumber: 'PRJ-2026-002',
     customerName: 'سارة علي',
     sequenceOrder: 2,
-    operationName: 'دهان دوكو أبيض مط وتشطيب قشرة السرير',
+    operationName: 'دهان دوكو أبيض مط لضلف الدريسنج وقشرة السرير',
     operationCategory: 'paint_finishing',
     workCenterId: 'wc-pnt-01',
     workCenterName: 'كابينة الرش الحراري وأفران الدهان الإيطالية',
     plannedDurationMinutes: 300,
-    actualDurationMinutes: 320,
+    actualDurationMinutes: 0,
     scheduledStartDate: '2026-08-12 09:00',
     scheduledEndDate: '2026-08-12 14:00',
     startedAt: '2026-08-12 09:00',
-    completedAt: '2026-08-12 14:20',
-    assignedTechnicians: ['الأسطى صابر الأستورجي'],
+    completedAt: '2026-08-18 13:00',
+    assignedTechnicians: [],
     status: 'completed',
     progressPercentage: 100,
     partsToProcessCount: 22,
     partsCompletedCount: 22,
     qualityCheckPassed: true,
-    qualityInspectorName: 'م. أحمد سمير'
+    qualityInspectorName: 'م. أحمد سمير',
+    track: 'fronts',
+    subcontract: { vendorName: 'ورشة الأمل للدهانات - العبور', agreedCost: 6200, sentAt: '2026-08-12 09:00', expectedBackAt: '2026-08-16', receivedAt: '2026-08-18 13:00', rejectedQty: 2, costPosted: true },
+    log: [
+      { id: 'log-102-2-1', at: '2026-08-12 09:00', recordedAt: '2026-08-12 09:10', action: 'sent_out', source: 'manager', recordedBy: 'خالد توفيق', note: '22 ضلفة بإذن خروج' },
+      { id: 'log-102-2-2', at: '2026-08-18 13:00', recordedAt: '2026-08-18 13:20', action: 'received_back', qtyDelta: 22, source: 'manager', recordedBy: 'خالد توفيق', note: 'رجعت متأخرة يومين، وضلفتين لونهم مختلف رجعوا للورشة' }
+    ]
   },
   {
     id: 'wo-102-3',
@@ -362,6 +381,7 @@ export const initialWorkOrders: WorkOrder[] = [
     scheduledEndDate: '2026-08-31 11:20',
     assignedTechnicians: ['الفني عادل منير'],
     status: 'blocked',
+    stopReason: 'material_missing',
     progressPercentage: 0,
     partsToProcessCount: 64,
     partsCompletedCount: 0,
@@ -369,6 +389,8 @@ export const initialWorkOrders: WorkOrder[] = [
   },
   {
     id: 'wo-103-2',
+    predecessorIds: ['wo-103-1'],
+    track: 'carcass',
     workOrderNumber: 'WO-2026-0052',
     manufacturingOrderId: 'prod-103',
     manufacturingOrderNumber: 'PROD-2026-0014',
@@ -392,6 +414,8 @@ export const initialWorkOrders: WorkOrder[] = [
   },
   {
     id: 'wo-103-3',
+    predecessorIds: ['wo-103-2'],
+    track: 'carcass',
     workOrderNumber: 'WO-2026-0053',
     manufacturingOrderId: 'prod-103',
     manufacturingOrderNumber: 'PROD-2026-0014',
@@ -415,6 +439,8 @@ export const initialWorkOrders: WorkOrder[] = [
   },
   {
     id: 'wo-103-4',
+    predecessorIds: ['wo-103-1'],
+    track: 'fronts',
     workOrderNumber: 'WO-2026-0054',
     manufacturingOrderId: 'prod-103',
     manufacturingOrderNumber: 'PROD-2026-0014',
@@ -438,6 +464,8 @@ export const initialWorkOrders: WorkOrder[] = [
   },
   {
     id: 'wo-103-5',
+    predecessorIds: ['wo-103-3'],
+    track: 'carcass',
     workOrderNumber: 'WO-2026-0055',
     manufacturingOrderId: 'prod-103',
     manufacturingOrderNumber: 'PROD-2026-0014',
@@ -461,6 +489,7 @@ export const initialWorkOrders: WorkOrder[] = [
   },
   {
     id: 'wo-103-6',
+    predecessorIds: ['wo-103-5', 'wo-103-4'],
     workOrderNumber: 'WO-2026-0056',
     manufacturingOrderId: 'prod-103',
     manufacturingOrderNumber: 'PROD-2026-0014',
@@ -481,6 +510,110 @@ export const initialWorkOrders: WorkOrder[] = [
     progressPercentage: 0,
     partsToProcessCount: 9,
     partsCompletedCount: 0
+  },
+  {
+    id: 'prod-rmk-seed-wo1',
+    workOrderNumber: 'WO-2026-0091',
+    manufacturingOrderId: 'prod-rmk-seed',
+    manufacturingOrderNumber: 'RMK-2026-001',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerName: 'م. حازم السعدني',
+    sequenceOrder: 1,
+    operationName: 'تقطيع نواقص (1 قطعة) من البواقي',
+    operationCategory: 'cutting_cnc',
+    workCenterId: 'wc-cnc-01',
+    workCenterName: 'ماكينة CNC التقطيع والنيستينج Biesse Rover',
+    plannedDurationMinutes: 25,
+    actualDurationMinutes: 25,
+    scheduledStartDate: '2026-08-26 09:00',
+    scheduledEndDate: '2026-08-26 17:00',
+    startedAt: '2026-08-26 10:00',
+    completedAt: '2026-08-26 10:00',
+    assignedTechnicians: ['الفني عادل منير'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 1,
+    partsCompletedCount: 1,
+    predecessorIds: []
+  },
+  {
+    id: 'prod-rmk-seed-wo2',
+    workOrderNumber: 'WO-2026-0092',
+    manufacturingOrderId: 'prod-rmk-seed',
+    manufacturingOrderNumber: 'RMK-2026-001',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerName: 'م. حازم السعدني',
+    sequenceOrder: 2,
+    operationName: 'قشاط حواف النواقص',
+    operationCategory: 'edge_banding',
+    workCenterId: 'wc-edg-01',
+    workCenterName: 'ماكينة لزق وقشاط الحرف الأوتوماتيك Homag',
+    plannedDurationMinutes: 20,
+    actualDurationMinutes: 20,
+    scheduledStartDate: '2026-08-26 09:00',
+    scheduledEndDate: '2026-08-26 17:00',
+    startedAt: '2026-08-26 11:00',
+    completedAt: '2026-08-26 11:00',
+    assignedTechnicians: ['الفني شريف فاروق'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 1,
+    partsCompletedCount: 1,
+    predecessorIds: ['prod-rmk-seed-wo1']
+  },
+  {
+    id: 'prod-rmk-seed-wo3',
+    workOrderNumber: 'WO-2026-0093',
+    manufacturingOrderId: 'prod-rmk-seed',
+    manufacturingOrderNumber: 'RMK-2026-001',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerName: 'م. حازم السعدني',
+    sequenceOrder: 3,
+    operationName: 'تخريم النواقص (مفصلات / كامات)',
+    operationCategory: 'drilling_routing',
+    workCenterId: 'wc-bor-01',
+    workCenterName: 'ماكينة التخريم والفرز الأفقي والرأسي Vitap',
+    plannedDurationMinutes: 20,
+    actualDurationMinutes: 20,
+    scheduledStartDate: '2026-08-26 09:00',
+    scheduledEndDate: '2026-08-26 17:00',
+    startedAt: '2026-08-26 12:00',
+    completedAt: '2026-08-26 12:00',
+    assignedTechnicians: ['الفني كمال درويش'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 1,
+    partsCompletedCount: 1,
+    predecessorIds: ['prod-rmk-seed-wo2']
+  },
+  {
+    id: 'prod-rmk-seed-wo4',
+    workOrderNumber: 'WO-2026-0094',
+    manufacturingOrderId: 'prod-rmk-seed',
+    manufacturingOrderNumber: 'RMK-2026-001',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerName: 'م. حازم السعدني',
+    sequenceOrder: 4,
+    operationName: 'فحص وتغليف النواقص في طرد واحد مكتوب عليه "نواقص"',
+    operationCategory: 'packaging_qc',
+    workCenterId: 'wc-pkg-01',
+    workCenterName: 'محطة الفحص النهائي والتغليف والباركود',
+    plannedDurationMinutes: 20,
+    actualDurationMinutes: 20,
+    scheduledStartDate: '2026-08-26 09:00',
+    scheduledEndDate: '2026-08-26 17:00',
+    startedAt: '2026-08-26 13:00',
+    completedAt: '2026-08-26 13:00',
+    assignedTechnicians: ['سيد عبد الله'],
+    status: 'completed',
+    progressPercentage: 100,
+    partsToProcessCount: 1,
+    partsCompletedCount: 1,
+    predecessorIds: ['prod-rmk-seed-wo3']
   }
 ];
 
@@ -575,45 +708,54 @@ export const initialOffCutReturns: OffCutReturnRecord[] = [
 // ----------------------------------------------------
 
 export const initialPackages: ManufacturingPackageItem[] = [
-  {
-    id: 'pkg-101-1',
-    packageCode: 'PKG-101-01',
-    title: 'طرد 1/5 - شاسيه كابينة الحوض 90سم + مفصلات Blum',
-    dimensions: '90 × 60 × 85 سم',
-    weightKg: 28.5,
-    status: 'packed',
-    qrCode: 'QR-PROD101-PKG01',
-    itemsContained: ['قاعدة وجوانب شاسيه حوض 90سم', 'مفصلات هيدروليك بلوم 4 قطع', 'رجلاش ألمنيوم 4 قطع']
-  },
-  {
-    id: 'pkg-101-2',
-    packageCode: 'PKG-101-02',
-    title: 'طرد 2/5 - وحدة الأدراج السفلية 60سم مع المجاري التلسكوبية',
-    dimensions: '60 × 60 × 85 سم',
-    weightKg: 34.0,
-    status: 'packed',
-    qrCode: 'QR-PROD101-PKG02',
-    itemsContained: ['صناديق أدراج خشب جوز 3 أدراج', 'مجاري Blum Soft-Close 3 أطقم', 'مقابض غاطسة 3 قطع']
-  },
-  {
-    id: 'pkg-101-3',
-    packageCode: 'PKG-101-03',
-    title: 'طرد 3/5 - الكبائن العلوية قلاب Aventos (وحدة 120سم)',
-    dimensions: '120 × 35 × 70 سم',
-    weightKg: 22.0,
-    status: 'staged',
-    qrCode: 'QR-PROD101-PKG03',
-    itemsContained: ['شاسيه علوي 120سم أبيض', 'ميكانيزم قلاب Aventos HF طقم', 'ضلف HPL جوز إيطالي']
-  },
+  // PROD-2026-0010 is finished: its packages wait in the loading bay for the truck
   {
     id: 'pkg-102-1',
-    packageCode: 'PKG-102-01',
+    manufacturingOrderId: 'prod-102',
+    kind: 'carcass',
+    packageCode: 'PKG-0010-01',
     title: 'طرد 1/4 - شاسيه وتجميعة السرير الماستر كينج 180×200',
     dimensions: '205 × 185 × 40 سم',
     weightKg: 65.0,
     status: 'packed',
-    qrCode: 'QR-PROD102-PKG01',
+    qrCode: 'QR-PROD0010-PKG01',
     itemsContained: ['بانوهات رأس السرير تنجيد ودوكو', 'فخذين سرير يمين وشمال', 'ميكانيزم ميكانيكي هيدروليك السحارة']
+  },
+  {
+    id: 'pkg-102-2',
+    manufacturingOrderId: 'prod-102',
+    kind: 'carcass',
+    packageCode: 'PKG-0010-02',
+    title: 'طرد 2/4 - جوانب وأرفف الدريسنج روم (3 وحدات)',
+    dimensions: '240 × 60 × 30 سم',
+    weightKg: 72.0,
+    status: 'packed',
+    qrCode: 'QR-PROD0010-PKG02',
+    itemsContained: ['جوانب دريسنج 240سم × 4', 'أرفف 18مم × 9', 'مواسير شماعات ألومنيوم 3 أطوال']
+  },
+  {
+    id: 'pkg-102-3',
+    manufacturingOrderId: 'prod-102',
+    kind: 'fronts',
+    packageCode: 'PKG-0010-03',
+    title: 'طرد 3/4 - ضلف الدريسنج دوكو أبيض مط (6 ضلف) مغلفة بفوم',
+    dimensions: '240 × 50 × 20 سم',
+    weightKg: 48.0,
+    status: 'packed',
+    qrCode: 'QR-PROD0010-PKG03',
+    itemsContained: ['ضلف دوكو 240×48 × 6', 'زوايا فوم واقية', 'كرتون مزدوج']
+  },
+  {
+    id: 'pkg-102-4',
+    manufacturingOrderId: 'prod-102',
+    kind: 'hardware_kit',
+    packageCode: 'PKG-0010-04',
+    title: 'طرد 4/4 - شنطة الإكسسوار والمسامير (مقفولة ومختومة)',
+    dimensions: '40 × 30 × 20 سم',
+    weightKg: 6.5,
+    status: 'packed',
+    qrCode: 'QR-PROD0010-PKG04',
+    itemsContained: ['مفصلات Blum × 18', 'مقابض × 6', 'كامات ومسامير تجميع', 'رجول ضبط', 'كتالوج تركيب مطبوع']
   }
 ];
 
@@ -984,6 +1126,45 @@ export const initialProductionOrders: ProductionOrder[] = [
         status: 'shortage'
       }
     ]
+  },
+  {
+    id: 'prod-rmk-seed',
+    productionNumber: 'RMK-2026-001',
+    orderId: 'ord-102',
+    orderNumber: 'ORD-2026-0021',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    customerId: 'cust-11',
+    customerName: 'م. حازم السعدني',
+    customerPhone: '01144556677',
+    branchId: 'branch-1',
+    branchName: 'معرض القاهرة الرئيسي',
+    workshopLocation: 'مصنع العبور الرئيسي - خط النواقص السريع',
+    startDate: '2026-08-26',
+    expectedCompletionDate: '2026-08-27',
+    actualCompletionDate: '2026-08-26 13:30',
+    assignedTeam: [],
+    status: 'completed',
+    notes: 'ضلفة دريسنج اتشرخت عند باب الأسانسير وقت التركيب',
+    completionPhotos: [],
+    materials: [],
+    totalEstimatedMaterialCost: 0,
+    totalActualMaterialCost: 0,
+    materialVariance: 0,
+    totalLaborCost: 310,
+    createdDate: '2026-08-25 18:00',
+    kind: 'remake',
+    parentProductionId: 'prod-102',
+    priority: 'urgent',
+    remake: {
+      source: 'site_installation',
+      reason: 'transport_damage',
+      chargeTo: 'factory',
+      reportedBy: 'فريق التركيب',
+      parts: [{ partName: 'ضلفة دريسنج يمين', materialCode: 'MDF-WHITE-18', materialName: 'MDF ملامين أبيض 18مم اسباني', lengthMm: 2380, widthMm: 480, quantity: 1 }],
+      fromOffcuts: true,
+      includesAssembly: false
+    }
   }
 ];
 
@@ -1010,4 +1191,24 @@ export const initialInstallationRecords: InstallationRecord[] = [
     afterPhotos: [],
     handoverStatus: 'pending'
   }
+];
+
+// ----------------------------------------------------
+// 8. SHOP WORKERS (الصنايعية: مين بيتحاسب إزاي ومعاه إيه)
+// ----------------------------------------------------
+// Mixed pay on purpose, like most Egyptian workshops: machine operators on a
+// monthly salary, helpers by the day, and assembly / paint masters by the piece.
+
+export const initialShopWorkers: ShopWorker[] = [
+  { id: 'wk-01', name: 'الأسطى محمود الشافعي', section: 'cutting_cnc', role: 'مشغل CNC (أسطى)', payBasis: 'monthly', dailyWage: 650, device: 'smartphone' },
+  { id: 'wk-02', name: 'كريم عادل', section: 'cutting_cnc', role: 'مساعد تقطيع', payBasis: 'daily', dailyWage: 300, device: 'basic_phone' },
+  { id: 'wk-03', name: 'الفني عادل منير', section: 'cutting_cnc', role: 'مشغل منشار ترابيزة', payBasis: 'daily', dailyWage: 420, device: 'basic_phone' },
+  { id: 'wk-04', name: 'الفني شريف فاروق', section: 'edge_banding', role: 'مشغل قشاط', payBasis: 'monthly', dailyWage: 500, device: 'smartphone' },
+  { id: 'wk-05', name: 'الفني كمال درويش', section: 'drilling_routing', role: 'مشغل تخريم', payBasis: 'daily', dailyWage: 450, device: 'basic_phone' },
+  { id: 'wk-06', name: 'الأسطى صابر الأستورجي', section: 'paint_finishing', role: 'أسطى دهانات', payBasis: 'piece', pieceRate: 90, pieceUnit: 'ضلفة', device: 'smartphone' },
+  { id: 'wk-07', name: 'رامي جمال', section: 'paint_finishing', role: 'مساعد دهان (صنفرة)', payBasis: 'daily', dailyWage: 280, device: 'none' },
+  { id: 'wk-08', name: 'الأسطى مصطفى كمال', section: 'assembly', role: 'أسطى تجميع (رئيس النجارين)', payBasis: 'piece', pieceRate: 180, pieceUnit: 'وحدة', device: 'smartphone' },
+  { id: 'wk-09', name: 'عمر حسني', section: 'assembly', role: 'مساعد نجار', payBasis: 'daily', dailyWage: 280, device: 'none' },
+  { id: 'wk-10', name: 'الأسطى حسن صابر', section: 'assembly', role: 'أسطى تجميع', payBasis: 'piece', pieceRate: 170, pieceUnit: 'وحدة', device: 'basic_phone' },
+  { id: 'wk-11', name: 'سيد عبد الله', section: 'packaging_qc', role: 'عامل تغليف وتحميل', payBasis: 'daily', dailyWage: 250, device: 'none' }
 ];

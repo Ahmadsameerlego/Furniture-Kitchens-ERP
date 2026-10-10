@@ -65,6 +65,7 @@ import { PlanningPage } from '../../pages/planning/PlanningPage';
 
 // Manufacturing & Workshops Suite
 import { ManufacturingWorkspace } from '../../pages/production/ManufacturingWorkspace';
+import { FactoryReportsPage } from '../../pages/reports/FactoryReportsPage';
 
 // Procurement & Purchasing Pages
 import { ProcurementWorkspace } from '../../pages/procurement/ProcurementWorkspace';
@@ -101,6 +102,9 @@ export const ApplicationShell: React.FC = () => {
 
       case 'analytics':
         return <AnalyticsPage />;
+
+      case 'reports':
+        return <FactoryReportsPage />;
 
       case 'customers':
         return <CustomersListPage />;
@@ -176,8 +180,17 @@ export const ApplicationShell: React.FC = () => {
       case 'mfg_dashboard':
         return <ManufacturingWorkspace initialTab="mfg_dashboard" />;
 
+      case 'mfg_daily':
+        return <ManufacturingWorkspace initialTab="mfg_daily" />;
+
       case 'mfg_orders':
         return <ManufacturingWorkspace initialTab="mfg_orders" />;
+
+      case 'mfg_remake':
+        return <ManufacturingWorkspace initialTab="mfg_remake" />;
+
+      case 'mfg_workforce':
+        return <ManufacturingWorkspace initialTab="mfg_workforce" />;
 
       case 'mfg_work_orders':
         return <ManufacturingWorkspace initialTab="mfg_work_orders" />;

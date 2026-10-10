@@ -70,7 +70,8 @@ import {
   MaterialRequisition,
   StocktakeSession,
   StocktakeLine,
-  StockLedgerEntry
+  StockLedgerEntry,
+  RemakeOrderInput
 } from '../types/erp';
 import {
   initialWarehouses,
@@ -137,7 +138,8 @@ import {
   initialScrapClaims,
   initialOffCutReturns,
   initialPackages,
-  initialQualityInspections
+  initialQualityInspections,
+  initialShopWorkers
 } from '../mock/productionData';
 import {
   WorkCenter,
@@ -145,8 +147,10 @@ import {
   ScrapClaimRecord,
   OffCutReturnRecord,
   ManufacturingPackageItem,
-  QualityGateInspection
+  QualityGateInspection,
+  ShopWorker
 } from '../types/production';
+import { stationCost } from '../services/shopFloor';
 import { loadDemoState, saveDemoState } from '../services/demoPersistence';
 import { aggregateBomRequirements, buildStandardRouting, toProductionMaterials } from '../services/productionPlanning';
 import { availableStockFor, ensureCatalogItemCards, resolveCatalogItem } from '../services/materialCatalog';
@@ -391,6 +395,14 @@ interface ERPContextType {
   setManufacturingPackages: React.Dispatch<React.SetStateAction<ManufacturingPackageItem[]>>;
   qualityInspections: QualityGateInspection[];
   setQualityInspections: React.Dispatch<React.SetStateAction<QualityGateInspection[]>>;
+  shopWorkers: ShopWorker[];
+  setShopWorkers: React.Dispatch<React.SetStateAction<ShopWorker[]>>;
+  /** Outside-shop work received back: Dr WIP / Cr suppliers. */
+  postSubcontractCost: (productionOrderId: string, vendorName: string, amount: number, operationName: string) => void;
+  /** Replacement for a scrapped part leaves stock and is charged to the order. Returns the GIN number. */
+  issueScrapReplacement: (productionOrderId: string, materialCode: string, quantity: number, cost: number) => string;
+  /** Missing / broken parts made again as a small linked order. */
+  createRemakeOrder: (input: RemakeOrderInput) => ProductionOrder | null;
   selectedProductionOrderId: string | null;
 
   // Prompt 8: Central Finance State
@@ -700,6 +712,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [offCutReturns, setOffCutReturns] = useState<OffCutReturnRecord[]>(() => restore('offCutReturns', () => harmonizeMockData(initialOffCutReturns)));
   const [manufacturingPackages, setManufacturingPackages] = useState<ManufacturingPackageItem[]>(() => restore('manufacturingPackages', () => harmonizeMockData(initialPackages)));
   const [qualityInspections, setQualityInspections] = useState<QualityGateInspection[]>(() => restore('qualityInspections', () => harmonizeMockData(initialQualityInspections)));
+  const [shopWorkers, setShopWorkers] = useState<ShopWorker[]>(() => restore('shopWorkers', () => initialShopWorkers));
   const [selectedProductionOrderId, setSelectedProductionOrderId] = useState<string | null>(null);
 
   // Prompt 8 Finance State
@@ -851,6 +864,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       offCutReturns,
       manufacturingPackages,
       qualityInspections,
+      shopWorkers,
       expenses,
       financialAccounts,
       financialTransactions,
@@ -887,7 +901,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       threeWayMatches
     }), 400);
     return () => window.clearTimeout(timer);
-  }, [company, branches, roles, users, auditLogs, customers, campaigns, activities, reminders, documents, afterSalesRecords, products, suppliers, supplierInvoices, supplierPayments, orders, payments, paymentSchedules, returns, materials, purchaseOrders, stockMovements, stockTransfers, supplierReturns, notifications, customProjects, siteVisits, projectMeasurements, projectDesigns, projectQuotations, projectTimelineEvents, customContracts, projectHandovers, paymentReceipts, variationOrders, technicalProjects, technicalSurveys, technicalDesigns, technicalBOMs, technicalReleases, engineeringChangeRequests, productionOrders, installationRecords, workCenters, workOrders, scrapClaims, offCutReturns, manufacturingPackages, qualityInspections, expenses, financialAccounts, financialTransactions, chartOfAccounts, journals, journalEntries, fiscalPeriods, costCenters, salesInvoices, vendorBills, customerAdvances, pdcRecords, warehouses, itemMasterCards, goodsReceiptNotes, goodsIssueNotes, materialRequisitions, stocktakeSessions, stockLedgerEntries, planningDemands, supplyProposals, workCenterCapacities, projectReadinessList, planningRuns, mpsWeeklyBuckets, mpsItems, planningAuditLogs, purchaseRequests, rfqs, supplierQuotations, enterprisePurchaseOrders, supplierPriceLists, procurementSupplierReturns, threeWayMatches]);
+  }, [company, branches, roles, users, auditLogs, customers, campaigns, activities, reminders, documents, afterSalesRecords, products, suppliers, supplierInvoices, supplierPayments, orders, payments, paymentSchedules, returns, materials, purchaseOrders, stockMovements, stockTransfers, supplierReturns, notifications, customProjects, siteVisits, projectMeasurements, projectDesigns, projectQuotations, projectTimelineEvents, customContracts, projectHandovers, paymentReceipts, variationOrders, technicalProjects, technicalSurveys, technicalDesigns, technicalBOMs, technicalReleases, engineeringChangeRequests, productionOrders, installationRecords, workCenters, workOrders, scrapClaims, offCutReturns, manufacturingPackages, qualityInspections, shopWorkers, expenses, financialAccounts, financialTransactions, chartOfAccounts, journals, journalEntries, fiscalPeriods, costCenters, salesInvoices, vendorBills, customerAdvances, pdcRecords, warehouses, itemMasterCards, goodsReceiptNotes, goodsIssueNotes, materialRequisitions, stocktakeSessions, stockLedgerEntries, planningDemands, supplyProposals, workCenterCapacities, projectReadinessList, planningRuns, mpsWeeklyBuckets, mpsItems, planningAuditLogs, purchaseRequests, rfqs, supplierQuotations, enterprisePurchaseOrders, supplierPriceLists, procurementSupplierReturns, threeWayMatches]);
   const [selectedPRId, setSelectedPRId] = useState<string | null>(null);
   const [selectedRFQId, setSelectedRFQId] = useState<string | null>(null);
   const [selectedPOId, setSelectedPOId] = useState<string | null>(null);
@@ -954,6 +968,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     mfg_job_cards: '/operations/manufacturing/job-cards',
     mfg_scrap: '/operations/manufacturing/scrap',
     mfg_qc: '/operations/manufacturing/qc',
+    mfg_daily: '/operations/manufacturing/daily',
+    mfg_remake: '/operations/manufacturing/remakes',
+    mfg_workforce: '/operations/manufacturing/workforce',
     installation: '/operations/installation',
     finance: '/accounting/dashboard',
     acc_dashboard: '/accounting/dashboard',
@@ -1049,6 +1066,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     '/mfg_scrap': 'mfg_scrap',
     '/operations/manufacturing/qc': 'mfg_qc',
     '/mfg_qc': 'mfg_qc',
+    '/operations/manufacturing/daily': 'mfg_daily',
+    '/mfg_daily': 'mfg_daily',
+    '/operations/manufacturing/remakes': 'mfg_remake',
+    '/mfg_remake': 'mfg_remake',
+    '/operations/manufacturing/workforce': 'mfg_workforce',
+    '/mfg_workforce': 'mfg_workforce',
     '/operations/installation': 'installation',
     '/installation': 'installation',
     '/operations/suppliers': 'suppliers',
@@ -5304,7 +5327,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { ...card, currentStock, availableStock: Math.max(0, currentStock - (card.reservedStock || 0)) };
     }));
 
-    recordInventoryWipMovement(productionOrderId, issuedCost, `صرف خامات ${mo.projectNumber} - ${mo.customerName}`);
+    if (issuedCost > 0) recordInventoryWipMovement(productionOrderId, issuedCost, `صرف خامات ${mo.projectNumber} - ${mo.customerName}`);
     updateProjectStatus(mo.projectId, 'in_production');
     addTimelineEvent(mo.projectId, `بدء التصنيع ${mo.productionNumber}`, `صرف خامات بقيمة ${issuedCost.toLocaleString('ar-EG')} ج.م للورشة وبدء محطة التقطيع`, 'production');
     showToast(`⚙️ بدء تشغيل ${mo.productionNumber}: تم صرف الخامات (${issuedCost.toLocaleString('ar-EG')} ج.م) وترحيل قيد الإنتاج تحت التشغيل`, 'success');
@@ -5325,21 +5348,23 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    // Labor + machine cost from the station work orders (actual minutes, else planned)
-    const laborCost = Math.round(workOrders
-      .filter(wo => wo.manufacturingOrderId === productionOrderId)
-      .reduce((sum, wo) => {
-        const wc = workCenters.find(w => w.id === wo.workCenterId);
-        const minutes = wo.actualDurationMinutes || wo.plannedDurationMinutes;
-        return sum + (minutes / 60) * ((wc?.hourlyLaborCost || 120) + (wc?.hourlyMachineCost || 150));
-      }, 0));
+    // Labor follows how each crew member is paid (piece / day / month); machines by the hour.
+    // Outside-shop work and scrap replacements were already charged to WIP when they happened.
+    const stations = workOrders.filter(wo => wo.manufacturingOrderId === productionOrderId);
+    const costs = stations.map(wo => stationCost(wo, workCenters.find(w => w.id === wo.workCenterId), shopWorkers));
+    const laborCost = Math.round(costs.reduce((sum, c) => sum + c.labor + c.machine, 0));
+    const subcontractCost = Math.round(costs.reduce((sum, c) => sum + c.subcontract, 0));
+    const scrapCost = scrapClaims.filter(s => s.manufacturingOrderId === productionOrderId && s.wipPosted).reduce((sum, s) => sum + s.estimatedCost, 0);
     const materialCost = targetProd.totalActualMaterialCost || targetProd.totalEstimatedMaterialCost;
+    const totalCost = materialCost + laborCost + subcontractCost + scrapCost;
+    const isRemake = targetProd.kind === 'remake';
 
     setProductionOrders(prev => prev.map(p => {
       if (p.id === productionOrderId) {
         return {
           ...p,
           totalLaborCost: laborCost,
+          totalSubcontractCost: subcontractCost,
           status: 'completed',
           actualCompletionDate: timestamp,
           completionPhotos: completionPhotos.length > 0 ? completionPhotos : p.completionPhotos,
@@ -5350,15 +5375,225 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
 
     postLaborToWip(targetProd.productionNumber, laborCost);
-    recordProductionCompletionToFinishedGoods(productionOrderId, materialCost + laborCost, `${targetProd.projectNumber} - ${targetProd.customerName}`);
+    const breakdown = `خامات ${materialCost.toLocaleString('ar-EG')} + مصنعيات ${laborCost.toLocaleString('ar-EG')}${subcontractCost ? ` + تشغيل خارجي ${subcontractCost.toLocaleString('ar-EG')}` : ''}${scrapCost ? ` + بدائل هالك ${scrapCost.toLocaleString('ar-EG')}` : ''}`;
 
-    const targetProject = customProjects.find(p => p.id === targetProd.projectId);
-    if (targetProject) {
-      updateProjectStatus(targetProject.id, 'production_completed');
-      addTimelineEvent(targetProject.id, `اكتمال التصنيع ${targetProd.productionNumber}`, `تكلفة التصنيع الفعلية ${(materialCost + laborCost).toLocaleString('ar-EG')} ج.م (خامات ${materialCost.toLocaleString('ar-EG')} + مصنعيات ${laborCost.toLocaleString('ar-EG')})`, 'production');
+    if (isRemake && targetProd.remake?.chargeTo !== 'customer') {
+      // Parts made twice are a cost of poor quality, not stock to sell
+      postWipToReworkExpense(targetProd, totalCost);
+      addTimelineEvent(targetProd.projectId, `النواقص جاهزة ${targetProd.productionNumber}`, `تكلفة إعادة التصنيع ${totalCost.toLocaleString('ar-EG')} ج.م (${breakdown}) - جاهزة لزيارة الاستكمال`, 'production');
+      showToast(`🔁 ${targetProd.productionNumber} خلص: ${totalCost.toLocaleString('ar-EG')} ج.م اتسجلت كتكلفة إعادة تصنيع - جاهز لزيارة استكمال`, 'success');
+      return;
     }
 
-    showToast(`🎉 اكتمل ${targetProd.productionNumber}: تم تحميل المصنعيات وتحويل التكلفة (${(materialCost + laborCost).toLocaleString('ar-EG')} ج.م) لمخزون الإنتاج التام - جاهز لجدولة التركيب`, 'success');
+    recordProductionCompletionToFinishedGoods(productionOrderId, totalCost, `${targetProd.projectNumber} - ${targetProd.customerName}`);
+
+    const targetProject = customProjects.find(p => p.id === targetProd.projectId);
+    if (targetProject && !isRemake) {
+      updateProjectStatus(targetProject.id, 'production_completed');
+    }
+    if (targetProject) {
+      addTimelineEvent(targetProject.id, `اكتمال التصنيع ${targetProd.productionNumber}`, `تكلفة التصنيع الفعلية ${totalCost.toLocaleString('ar-EG')} ج.م (${breakdown})`, 'production');
+    }
+
+    showToast(`🎉 اكتمل ${targetProd.productionNumber}: تم تحميل المصنعيات وتحويل التكلفة (${totalCost.toLocaleString('ar-EG')} ج.م) لمخزون الإنتاج التام - جاهز لجدولة التركيب`, 'success');
+  };
+
+  const postWipToReworkExpense = (mo: ProductionOrder, amount: number) => {
+    if (amount <= 0) return;
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const reworkAcc = getSafeAccount('513', 'expense');
+    const who = mo.remake?.chargeTo === 'supplier' ? ' (مطالبة على المورد)' : mo.remake?.chargeTo === 'transport' ? ' (مطالبة على النقل)' : '';
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: daysFromToday(0),
+      periodId: currentOpenPeriod().id,
+      reference: `تكلفة إعادة تصنيع ${mo.productionNumber}`,
+      description: `إقفال تكلفة النواقص وإعادة التصنيع لمشروع ${mo.projectNumber} - ${mo.customerName}${who}`,
+      sourceDocument: mo.productionNumber,
+      sourceType: 'production_completion',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        { accountId: reworkAcc.id, accountCode: reworkAcc.code, accountName: reworkAcc.nameAr, costCenterId: 'cc-2', costCenterName: 'قسم التجميع والنجارة اليدوية', debit: amount, credit: 0, description: `تكلفة الجودة: إعادة تصنيع قطع${who}` },
+        { accountId: wipAcc.id, accountCode: wipAcc.code, accountName: wipAcc.nameAr, debit: 0, credit: amount, description: 'إقفال الإنتاج تحت التشغيل لأمر إعادة التصنيع' }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+    if (postResult.entry) setJournalEntries(prev => [postResult.entry!, ...prev]);
+  };
+
+  // Work sent out (lacquer doors, glass...) comes back with a bill: the order carries the cost
+  const postSubcontractCost = (productionOrderId: string, vendorName: string, amount: number, operationName: string) => {
+    const mo = productionOrders.find(o => o.id === productionOrderId);
+    if (!mo || amount <= 0) return;
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const apAcc = getSafeAccount('2111', 'liability');
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: daysFromToday(0),
+      periodId: currentOpenPeriod().id,
+      reference: `تشغيل لدى الغير ${mo.productionNumber}`,
+      description: `${operationName} لدى ${vendorName} - مشروع ${mo.projectNumber} (${mo.customerName})`,
+      sourceDocument: mo.productionNumber,
+      sourceType: 'material_issue_wip',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        { accountId: wipAcc.id, accountCode: wipAcc.code, accountName: wipAcc.nameAr, costCenterId: 'cc-3', costCenterName: 'قسم الدهانات والتشطيب والدوكو', debit: amount, credit: 0, description: `تحميل تكلفة تشغيل خارجي على ${mo.productionNumber}` },
+        { accountId: apAcc.id, accountCode: apAcc.code, accountName: apAcc.nameAr, debit: 0, credit: amount, description: `مستحق لـ ${vendorName}` }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+    if (postResult.entry) setJournalEntries(prev => [postResult.entry!, ...prev]);
+    addTimelineEvent(mo.projectId, `استلام تشغيل خارجي - ${vendorName}`, `${operationName}: ${amount.toLocaleString('ar-EG')} ج.م على حساب ${mo.productionNumber}`, 'production');
+  };
+
+  // A scrapped part needs a new board: it leaves stock and its cost lands on the order
+  const issueScrapReplacement = (productionOrderId: string, materialCode: string, quantity: number, cost: number): string => {
+    const ginNumber = nextDocNumber('GIN', [...goodsIssueNotes.map(g => g.ginNumber), ...scrapClaims.map(s => s.replacementGINNumber || '')].filter(Boolean), 4);
+    const item = resolveCatalogItem(materialCode);
+    if (item) {
+      setItemMasterCards(prev => prev.map(card => {
+        if (!item.aliases.some(a => a.toUpperCase() === card.code.toUpperCase())) return card;
+        const currentStock = Math.max(0, card.currentStock - quantity);
+        return { ...card, currentStock, availableStock: Math.max(0, currentStock - (card.reservedStock || 0)) };
+      }));
+    }
+    recordInventoryWipMovement(productionOrderId, cost, `صرف بديل هالك ${ginNumber}`);
+    return ginNumber;
+  };
+
+  const createRemakeOrder = (input: RemakeOrderInput): ProductionOrder | null => {
+    const project = customProjects.find(p => p.id === input.projectId);
+    const parent = productionOrders.find(o => o.id === input.parentProductionId) || productionOrders.find(o => o.projectId === input.projectId && o.kind !== 'remake');
+    if (!project && !parent) return null;
+    const moId = `prod-rmk-${Date.now()}`;
+    const productionNumber = nextDocNumber('RMK', productionOrders.filter(o => o.kind === 'remake').map(o => o.productionNumber), 3);
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const today = daysFromToday(0);
+
+    // Boards: a few parts fit on one sheet; parts from offcuts cost nothing new
+    const byMaterial = new Map<string, { name: string; area: number }>();
+    input.parts.forEach(p => {
+      const prev = byMaterial.get(p.materialCode) || { name: p.materialName, area: 0 };
+      prev.area += (p.lengthMm * p.widthMm * p.quantity) / 1_000_000;
+      byMaterial.set(p.materialCode, prev);
+    });
+    const materialsList = Array.from(byMaterial.entries()).map(([code, v], i) => {
+      const item = resolveCatalogItem(code);
+      const sheets = input.fromOffcuts ? 0 : Math.max(1, Math.ceil((v.area * 1.2) / 2.977));
+      const available = item ? availableStockFor(item, itemMasterCards, materials) : 0;
+      const unitCost = input.fromOffcuts ? 0 : (item?.unitCost || 1500);
+      return {
+        id: `${moId}-m${i + 1}`,
+        productionOrderId: moId,
+        materialId: input.fromOffcuts ? `OFFCUT-${code}` : (item?.key || code),
+        materialName: input.fromOffcuts ? `${v.name} (من البواقي)` : (item?.name || v.name),
+        materialCode: input.fromOffcuts ? `OFFCUT-${code}` : (item?.key || code),
+        unit: 'لوح',
+        requiredQuantity: sheets,
+        reservedQuantity: input.fromOffcuts ? 0 : Math.min(sheets, available),
+        consumedQuantity: 0,
+        remainingQuantity: sheets,
+        estimatedUnitCost: unitCost,
+        estimatedTotalCost: sheets * unitCost,
+        actualUnitCost: unitCost,
+        actualTotalCost: 0,
+        status: (input.fromOffcuts || available >= sheets ? 'reserved' : 'shortage') as 'reserved' | 'shortage'
+      };
+    });
+    const short = materialsList.some(m => m.status === 'shortage');
+
+    const pieces = input.parts.reduce((s, p) => s + p.quantity, 0);
+    const painted = input.parts.filter(p => p.needsPaint).reduce((s, p) => s + p.quantity, 0);
+    // Painted parts skip the PVC edge bander; they go from the saw to the paint shop
+    const banded = pieces - painted;
+    const steps: Array<{ cat: WorkCenter['category']; name: string; minutes: number; parts: number; preds: number[] }> = [
+      { cat: 'cutting_cnc', name: `تقطيع نواقص (${pieces} قطعة)${input.fromOffcuts ? ' من البواقي' : ''}`, minutes: 20 + pieces * 5, parts: pieces, preds: [] }
+    ];
+    if (banded > 0) steps.push({ cat: 'edge_banding', name: 'قشاط حواف النواقص', minutes: 15 + banded * 4, parts: banded, preds: [0] });
+    const drillIdx = steps.length;
+    steps.push({ cat: 'drilling_routing', name: 'تخريم النواقص (مفصلات / كامات)', minutes: 15 + pieces * 3, parts: pieces, preds: [drillIdx - 1] });
+    if (painted > 0) steps.push({ cat: 'paint_finishing', name: `دهان ${painted} قطعة ومطابقة اللون مع العينة`, minutes: painted * 20, parts: painted, preds: [0] });
+    if (input.includesAssembly) steps.push({ cat: 'assembly', name: 'إعادة تجميع الوحدة', minutes: 60, parts: 1, preds: [drillIdx] });
+    // Packing waits for every branch nothing else follows (bodies and painted parts)
+    steps.push({ cat: 'packaging_qc', name: 'فحص وتغليف النواقص في طرد واحد مكتوب عليه "نواقص"', minutes: 20, parts: 1, preds: steps.map((_, i) => i).filter(i => i !== 0 && !steps.some(st => st.preds.includes(i))) });
+
+    const firstSeq = workOrders.length + 101;
+    const routing: WorkOrder[] = steps.map((st, i) => {
+      const wc = workCenters.find(w => w.category === st.cat);
+      return {
+        id: `${moId}-wo${i + 1}`,
+        workOrderNumber: `WO-${new Date().getFullYear()}-${String(firstSeq + i).padStart(4, '0')}`,
+        manufacturingOrderId: moId,
+        manufacturingOrderNumber: productionNumber,
+        projectId: input.projectId,
+        projectNumber: parent?.projectNumber || project?.projectNumber || '',
+        customerName: parent?.customerName || project?.customerName || '',
+        sequenceOrder: i + 1,
+        operationName: st.name,
+        operationCategory: st.cat,
+        workCenterId: wc?.id || st.cat,
+        workCenterName: wc?.name || st.name,
+        plannedDurationMinutes: st.minutes,
+        actualDurationMinutes: 0,
+        scheduledStartDate: `${today} 09:00`,
+        scheduledEndDate: `${today} 17:00`,
+        assignedTechnicians: [],
+        status: i === 0 ? (short ? 'blocked' : 'ready') : 'pending',
+        stopReason: i === 0 && short ? 'material_missing' : undefined,
+        progressPercentage: 0,
+        partsToProcessCount: st.parts,
+        partsCompletedCount: 0,
+        predecessorIds: st.preds.map(p => `${moId}-wo${p + 1}`),
+        specialInstructions: i === 0 ? `⚡ عاجل - ${input.parts.map(p => `${p.partName} ${p.lengthMm}×${p.widthMm} (${p.quantity})`).join('، ')}` : undefined
+      };
+    });
+
+    const remakeMO: ProductionOrder = {
+      id: moId,
+      productionNumber,
+      orderId: parent?.orderId || input.projectId,
+      orderNumber: parent?.orderNumber || project?.projectNumber || '',
+      projectId: input.projectId,
+      projectNumber: parent?.projectNumber || project?.projectNumber || '',
+      customerId: parent?.customerId || project?.customerId || '',
+      customerName: parent?.customerName || project?.customerName || '',
+      customerPhone: parent?.customerPhone || project?.customerPhone || '',
+      branchId: parent?.branchId || project?.branchId || currentBranch.id,
+      branchName: parent?.branchName || project?.branchName || currentBranch.name,
+      workshopLocation: 'مصنع العبور الرئيسي - خط النواقص السريع',
+      startDate: today,
+      expectedCompletionDate: daysFromToday(painted > 0 ? 4 : 2),
+      assignedTeam: [],
+      status: 'pending',
+      notes: input.notes,
+      completionPhotos: [],
+      materials: materialsList,
+      totalEstimatedMaterialCost: materialsList.reduce((s, m) => s + m.estimatedTotalCost, 0),
+      totalActualMaterialCost: 0,
+      materialVariance: 0,
+      createdDate: timestamp,
+      kind: 'remake',
+      parentProductionId: parent?.id,
+      priority: 'urgent',
+      remake: {
+        source: input.source,
+        reason: input.reason,
+        chargeTo: input.chargeTo,
+        reportedBy: input.reportedBy,
+        parts: input.parts,
+        fromOffcuts: input.fromOffcuts,
+        includesAssembly: input.includesAssembly
+      }
+    };
+    setProductionOrders(prev => [remakeMO, ...prev]);
+    setWorkOrders(prev => [...routing, ...prev]);
+    addTimelineEvent(input.projectId, `أمر نواقص ${productionNumber}`, `${pieces} قطعة تتعمل تاني${parent ? ` (من ${parent.productionNumber})` : ''} - على حساب ${input.chargeTo === 'customer' ? 'العميل' : input.chargeTo === 'supplier' ? 'المورد' : input.chargeTo === 'transport' ? 'شركة النقل' : 'المصنع'}`, 'production');
+    showToast(`🔁 اتعمل أمر النواقص ${productionNumber} (${pieces} قطعة)${short ? ' - مستني خامة' : ' - جاهز للتقطيع'}`, short ? 'warning' : 'success');
+    return remakeMO;
   };
 
   const scheduleInstallation = (
@@ -5402,7 +5637,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setInstallationRecords(prev => [newInst, ...prev]);
 
     const targetProject = customProjects.find(p => p.id === targetProd.projectId);
-    if (targetProject) {
+    if (targetProject && targetProd.kind !== 'remake') {
       updateProjectStatus(targetProject.id, 'installation_scheduled');
     }
 
@@ -7420,6 +7655,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setManufacturingPackages,
         qualityInspections,
         setQualityInspections,
+        shopWorkers,
+        setShopWorkers,
+        postSubcontractCost,
+        issueScrapReplacement,
+        createRemakeOrder,
         productionOrders,
         installationRecords,
         selectedProductionOrderId,

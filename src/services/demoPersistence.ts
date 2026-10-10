@@ -3,7 +3,7 @@
 
 import { daysFromToday, shiftMockDates } from '../mock/scenario';
 
-const STORAGE_KEY = 'furniture-land-demo-state-v1';
+const STORAGE_KEY = 'furniture-land-demo-state-v2';
 
 interface StoredDemoState {
   savedOn: string;

@@ -2,6 +2,7 @@ import React from 'react';
 import { ProductionOrder } from '../../types/erp';
 import { WorkCenter, WorkOrder, ScrapClaimRecord } from '../../types/production';
 import { ProductionService } from '../../services/productionService';
+import { freshnessLabel, orderLastActivity, STOP_REASONS } from '../../services/shopFloor';
 import {
   Factory,
   Boxes,
@@ -47,6 +48,19 @@ export const ManufacturingDashboardView: React.FC<ManufacturingDashboardViewProp
   const activeWOs = workOrders.filter(w => w.status === 'in_progress');
   const avgEfficiency = Math.round(workCenters.reduce((acc, wc) => acc + wc.efficiencyRate, 0) / (workCenters.length || 1));
 
+  // What the production manager has to act on today
+  const liveIds = new Set(orders.filter(o => o.status === 'pending' || o.status === 'in_production').map(o => o.id));
+  const blockedWOs = workOrders.filter(w => w.status === 'blocked' && liveIds.has(w.manufacturingOrderId));
+  const outsideWOs = workOrders.filter(w => w.subcontract?.sentAt && !w.subcontract.receivedAt);
+  const staleOrders = orders.filter(o => o.status === 'in_production' && freshnessLabel(orderLastActivity(o.id, workOrders)).tone !== 'fresh');
+  const remakeOpen = orders.filter(o => o.kind === 'remake' && o.status !== 'completed');
+  const attention = [
+    ...blockedWOs.map(w => ({ key: w.id, tone: 'rose', text: `⛔ ${w.customerName}: ${ProductionService.getCategoryInfo(w.operationCategory).short} واقف (${w.stopReason ? STOP_REASONS[w.stopReason] : 'مستني خامة'})`, tab: 'mfg_daily' })),
+    ...outsideWOs.map(w => ({ key: w.id + 'o', tone: 'orange', text: `🚚 ${w.customerName}: عند ${w.subcontract!.vendorName}، راجع ${w.subcontract!.expectedBackAt}`, tab: 'mfg_daily' })),
+    ...staleOrders.map(o => ({ key: o.id + 's', tone: 'amber', text: `🕒 ${o.customerName}: محدش حدّثه ${freshnessLabel(orderLastActivity(o.id, workOrders)).label}`, tab: 'mfg_daily' })),
+    ...remakeOpen.map(o => ({ key: o.id + 'r', tone: 'rose', text: `🔁 نواقص ${o.customerName} (${o.productionNumber}) لسه في الورشة`, tab: 'mfg_remake' }))
+  ];
+
   // Station stages for Kanban overview
   const stages = [
     { id: 'cutting', title: 'عنبر التقطيع والـ CNC', cat: 'cutting_cnc', color: 'border-sky-500 bg-sky-50/50' },
@@ -80,14 +94,14 @@ export const ManufacturingDashboardView: React.FC<ManufacturingDashboardViewProp
 
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={() => onNavigateToTab('shopfloor')}
+            onClick={() => onNavigateToTab('mfg_daily')}
             className="px-4 py-2.5 bg-[#C87A38] hover:bg-[#DB8D48] text-white rounded-xl text-xs font-black shadow-lg shadow-[#C87A38]/30 transition-all flex items-center gap-1.5"
           >
             <Zap className="w-4 h-4" />
-            <span>كشك الورشة الميداني (Kiosk)</span>
+            <span>يومية الإنتاج</span>
           </button>
           <button
-            onClick={() => onNavigateToTab('work_centers')}
+            onClick={() => onNavigateToTab('mfg_work_orders')}
             className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/10 transition-all flex items-center gap-1.5"
           >
             <Cpu className="w-4 h-4 text-[#C87A38]" />
@@ -95,6 +109,19 @@ export const ManufacturingDashboardView: React.FC<ManufacturingDashboardViewProp
           </button>
         </div>
       </div>
+
+      {attention.length > 0 && (
+        <div className="p-4 bg-white rounded-3xl border border-slate-200 shadow-sm">
+          <span className="text-xs font-black text-slate-900 block mb-2">محتاج انتباهك النهارده ({attention.length})</span>
+          <div className="flex flex-wrap gap-2">
+            {attention.map(a => (
+              <button key={a.key} onClick={() => onNavigateToTab(a.tab)} className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border ${a.tone === 'rose' ? 'bg-rose-50 text-rose-800 border-rose-200' : a.tone === 'orange' ? 'bg-orange-50 text-orange-800 border-orange-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+                {a.text}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -163,7 +190,7 @@ export const ManufacturingDashboardView: React.FC<ManufacturingDashboardViewProp
             <p className="text-xs text-slate-500">حركة المطابخ والأثاث بين ماكينات التقطيع، الشريط، الدهانات، والتجميع</p>
           </div>
           <button
-            onClick={() => onNavigateToTab('orders')}
+            onClick={() => onNavigateToTab('mfg_orders')}
             className="text-xs font-bold text-[#C87A38] hover:underline flex items-center gap-1"
           >
             <span>عرض جدول الأوامر</span>
@@ -233,7 +260,7 @@ export const ManufacturingDashboardView: React.FC<ManufacturingDashboardViewProp
               <p className="text-xs text-slate-500">الطاقة الإنتاجية والاستيعاب اليومي لكل عنبر</p>
             </div>
             <button
-              onClick={() => onNavigateToTab('work_centers')}
+              onClick={() => onNavigateToTab('mfg_work_orders')}
               className="text-xs font-bold text-[#C87A38] hover:underline"
             >
               إدارة المحطات
