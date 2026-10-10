@@ -271,6 +271,10 @@ export interface MaterialYieldSummary {
   totalAreaSqMeters: number;
   estimatedSheetsCount: number; // تقدير عدد الألواح (لوح 122×244 = 2.97 م²)
   scrapPercentage: number;      // نسبة الهالك التقديرية e.g. 12%
+  /** Sheets from the approved nesting (cutting plan); overrides the area estimate when present. */
+  nestedSheetsCount?: number;
+  /** Reusable offcuts the cutting plan leaves, in m². */
+  offcutAreaSqMeters?: number;
 }
 
 export interface HardwareSummary {
@@ -308,6 +312,9 @@ export interface TechnicalBOM {
   totalEstimatedCost?: number;
   totalEstimatedMaterialCost?: number;
   notes?: string;
+  /** When the cutting plan (nesting) was approved and by whom. */
+  nestingApprovedAt?: string;
+  nestingApprovedBy?: string;
 }
 
 // ----------------------------------------------------

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ProductionOrder, Material } from '../../types/erp';
 import { WorkCenter, WorkOrder, ScrapClaimRecord, QualityGateInspection } from '../../types/production';
 import { ProductionService } from '../../services/productionService';
+import { stationCost, predecessorsOf, CAPTURE_SOURCES } from '../../services/shopFloor';
+import { useERP } from '../../context/ERPContext';
 import {
   Factory,
   X,
@@ -49,12 +51,13 @@ export const ProductionOrderDetailsModal: React.FC<ProductionOrderDetailsModalPr
   onCompleteOrder
 }) => {
   const [activeTab, setActiveTab] = useState<'routing' | 'bom' | 'costing' | 'scrap'>('routing');
+  const { shopWorkers } = useERP();
 
   if (!isOpen) return null;
 
   const relatedWOs = workOrders.filter(w => w.manufacturingOrderId === order.id);
   const relatedScraps = scrapClaims.filter(s => s.manufacturingOrderId === order.id);
-  const costing = ProductionService.calculateJobCosting(order, workOrders, scrapClaims, workCenters);
+  const costing = ProductionService.calculateJobCosting(order, workOrders, scrapClaims, workCenters, shopWorkers);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
@@ -77,8 +80,13 @@ export const ProductionOrderDetailsModal: React.FC<ProductionOrderDetailsModalPr
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                     : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                 }`}>
-                  {order.status === 'completed' ? 'مكتمل ومغلف ✅' : 'جاري التصنيع بالورشة ⏳'}
+                  {order.status === 'completed' ? 'مكتمل ومغلف ✅' : order.status === 'pending' ? 'لم يبدأ بعد' : 'جاري التصنيع بالورشة ⏳'}
                 </span>
+                {order.kind === 'remake' && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-200 border border-rose-400/40">
+                    🔁 أمر نواقص / إعادة تصنيع
+                  </span>
+                )}
               </div>
               <h2 className="text-xl font-black text-white mt-1">
                 تفاصيل أمر تصنيع المطبخ / الأثاث — {order.customerName}
@@ -206,6 +214,8 @@ export const ProductionOrderDetailsModal: React.FC<ProductionOrderDetailsModalPr
                 {relatedWOs.map((wo, idx) => {
                   const statusInfo = ProductionService.getWorkOrderStatusInfo(wo.status);
                   const catInfo = ProductionService.getCategoryInfo(wo.operationCategory);
+                  const preds = predecessorsOf(wo, relatedWOs);
+                  const lastLog = wo.log?.[wo.log.length - 1];
                   return (
                     <div
                       key={wo.id}
@@ -221,7 +231,21 @@ export const ProductionOrderDetailsModal: React.FC<ProductionOrderDetailsModalPr
                             <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${catInfo.color}`}>
                               {catInfo.short}
                             </span>
+                            {wo.track === 'fronts' && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200">مسار الضلف (بالتوازي)</span>
+                            )}
+                            {wo.subcontract && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border bg-orange-50 text-orange-700 border-orange-200">
+                                🚚 بره عند {wo.subcontract.vendorName}{wo.subcontract.receivedAt ? ' (رجعت)' : ''}
+                              </span>
+                            )}
                           </div>
+                          {preds.length > 0 && (
+                            <p className="text-[10px] text-slate-400 mt-0.5">بتبدأ بعد: {preds.map(p => ProductionService.getCategoryInfo(p.operationCategory).short).join(' + ')}</p>
+                          )}
+                          {lastLog && (
+                            <p className="text-[10px] text-slate-500 mt-0.5">آخر تسجيل: {lastLog.at} · {CAPTURE_SOURCES[lastLog.source]} ({lastLog.recordedBy})</p>
+                          )}
                           <p className="text-xs text-slate-500 mt-1">
                             الماكينة: <span className="font-medium text-slate-700">{wo.workCenterName}</span> — الفني: <span className="font-medium text-slate-700">{wo.assignedTechnicians.join(', ')}</span>
                           </p>
@@ -322,7 +346,7 @@ export const ProductionOrderDetailsModal: React.FC<ProductionOrderDetailsModalPr
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
                   <span className="text-xs text-slate-500 font-bold block mb-1">1. الخامات ومستلزمات الإنتاج</span>
                   <div className="text-lg font-black font-mono text-slate-900">{costing.rawMaterialsActual.toLocaleString()} ج.م</div>
@@ -340,6 +364,44 @@ export const ProductionOrderDetailsModal: React.FC<ProductionOrderDetailsModalPr
                   <div className="text-lg font-black font-mono text-rose-700">{(costing.machineOverheadActual + costing.scrapCostActual).toLocaleString()} ج.م</div>
                   <span className="text-[11px] text-slate-400 block mt-1">الهدر المسجل: {costing.scrapCostActual.toLocaleString()} ج.م</span>
                 </div>
+
+                <div className="p-4 bg-orange-50/60 rounded-2xl border border-orange-200">
+                  <span className="text-xs text-orange-800 font-bold block mb-1">4. تشغيل لدى الغير</span>
+                  <div className="text-lg font-black font-mono text-orange-800">{costing.subcontractCostActual.toLocaleString()} ج.م</div>
+                  <span className="text-[11px] text-orange-700/70 block mt-1">دهانات / زجاج / رخام اتعمل بره</span>
+                </div>
+              </div>
+
+              <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                <div className="px-4 py-2.5 bg-slate-100 text-xs font-black text-slate-800">إزاي اتحسبت المصنعية؟ (محطة محطة)</div>
+                <table className="w-full text-xs text-right">
+                  <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                    <tr>
+                      <th className="p-2.5">المحطة</th>
+                      <th className="p-2.5">طريقة الحساب</th>
+                      <th className="p-2.5 text-center">الوقت</th>
+                      <th className="p-2.5 text-center">عمالة</th>
+                      <th className="p-2.5 text-center">ماكينة</th>
+                      <th className="p-2.5 text-center">خارجي</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {relatedWOs.map(wo => {
+                      const started = wo.status === 'completed' || wo.status === 'in_progress' || wo.status === 'paused';
+                      const c = stationCost(started ? wo : { ...wo, subcontract: undefined }, workCenters.find(w => w.id === wo.workCenterId), shopWorkers, started);
+                      return (
+                        <tr key={wo.id}>
+                          <td className="p-2.5 font-bold text-slate-800">{ProductionService.getCategoryInfo(wo.operationCategory).short}</td>
+                          <td className="p-2.5 text-slate-500">{started ? c.basis : 'تقديري (لسه مبدأتش)'}</td>
+                          <td className="p-2.5 text-center font-mono">{c.minutes ? ProductionService.formatDurationArabic(Math.round(c.minutes)) : '-'}</td>
+                          <td className="p-2.5 text-center font-mono">{Math.round(c.labor).toLocaleString()}</td>
+                          <td className="p-2.5 text-center font-mono">{Math.round(c.machine).toLocaleString()}</td>
+                          <td className="p-2.5 text-center font-mono text-orange-700">{c.subcontract ? c.subcontract.toLocaleString() : '-'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

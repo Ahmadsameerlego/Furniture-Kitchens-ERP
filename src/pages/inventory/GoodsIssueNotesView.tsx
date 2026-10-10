@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { GoodsIssueNote, GINType, MaterialRequisition } from '../../types/erp';
+import { stockAt } from '../../services/warehouseStock';
 import {
   ArrowUpRight,
   Plus,
@@ -47,6 +48,8 @@ export const GoodsIssueNotesView: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRequisitionModal, setShowRequisitionModal] = useState(false);
   const [selectedGINForView, setSelectedGINForView] = useState<GoodsIssueNote | null>(null);
+  // The approved workshop request this issue fulfils (set when opened from the requests tab)
+  const [issuingRequisitionId, setIssuingRequisitionId] = useState<string | null>(null);
 
   // New GIN Form State
   const [formType, setFormType] = useState<GINType>('production_mo');
@@ -186,6 +189,8 @@ export const GoodsIssueNotesView: React.FC = () => {
   const handleItemSelect = (index: number, itemId: string) => {
     const targetItem = itemMasterCards.find(i => i.id === itemId);
     if (!targetItem) return;
+    // The first item decides the issuing warehouse: where that item lives
+    if (index === 0) setFormWarehouseId(targetItem.defaultWarehouseId);
 
     setFormItems(prev => prev.map((row, idx) => {
       if (idx === index) {
@@ -223,6 +228,12 @@ export const GoodsIssueNotesView: React.FC = () => {
 
   const formTotalAmount = formItems.reduce((s, it) => s + (it.issuedQty * it.unitCost), 0);
 
+  // Free stock of an item on the shelves of the issuing warehouse
+  const availableHere = (itemId: string) => {
+    const card = itemMasterCards.find(c => c.id === itemId);
+    return card ? Math.min(card.availableStock, stockAt(card, formWarehouseId)) : 0;
+  };
+
   const handleSubmitGIN = () => {
     if (formItems.length === 0 || formTotalAmount <= 0) {
       showToast('يرجى إضافة أصناف وتحديد الكميات المنصرفة', 'warning');
@@ -232,7 +243,9 @@ export const GoodsIssueNotesView: React.FC = () => {
     const targetPO = productionOrders.find(p => p.id === formProdOrderId);
     const targetCC = costCenters.find(c => c.id === formCostCenterId);
 
-    const gin = createGoodsIssueNote({
+    let gin: GoodsIssueNote | null = null;
+    try {
+    gin = createGoodsIssueNote({
       type: formType,
       productionOrderId: formType === 'production_mo' ? formProdOrderId : undefined,
       productionOrderNumber: formType === 'production_mo' ? (targetPO?.productionNumber || 'PROD-2026-0012') : undefined,
@@ -240,12 +253,17 @@ export const GoodsIssueNotesView: React.FC = () => {
       costCenterName: targetCC?.nameAr,
       machineName: formType === 'maintenance_workshop' ? formMachineName : undefined,
       warehouseId: formWarehouseId,
+      requisitionId: issuingRequisitionId || undefined,
       items: formItems,
       notes: formNotes
     });
+    } catch {
+      return; // the stock check already explained why in a toast
+    }
 
     if (gin) {
       setShowAddModal(false);
+      setIssuingRequisitionId(null);
     }
   };
 
@@ -316,7 +334,7 @@ export const GoodsIssueNotesView: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => { setIssuingRequisitionId(null); setShowAddModal(true); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-black text-xs rounded-2xl shadow-lg transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -392,30 +410,30 @@ export const GoodsIssueNotesView: React.FC = () => {
       {activeSubTab === 'gins' ? (
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[1050px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم إذن الصرف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">التاريخ</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">نوع الصرف والتوجيه</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">الجهة / أمر الشغل</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">المستودع المنصرف منه</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">عدد الأصناف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">إجمالي التكلفة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center">الحالة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">الإجراءات</th>
+                  <th className="py-3.5 px-3 min-w-[90px]">رقم إذن الصرف</th>
+                  <th className="py-3.5 px-3 min-w-[70px]">التاريخ</th>
+                  <th className="py-3.5 px-3 min-w-[100px]">نوع الصرف والتوجيه</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">الجهة / أمر الشغل</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">المستودع المنصرف منه</th>
+                  <th className="py-3.5 px-3 min-w-[60px] text-center">عدد الأصناف</th>
+                  <th className="py-3.5 px-3 min-w-[80px] text-left">إجمالي التكلفة</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الحالة</th>
+                  <th className="py-3.5 px-3 min-w-[60px] text-center">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
                 {filteredGINs.map(gin => (
                   <tr key={gin.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-bold text-slate-900 whitespace-nowrap">
                       {gin.ginNumber}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 font-mono whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-slate-500 font-mono whitespace-nowrap">
                       {gin.date}
                     </td>
-                    <td className="py-3.5 px-4 font-sans text-xs whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-sans text-xs">
                       <span className={`px-2.5 py-1 rounded-xl font-bold border ${
                         gin.type === 'production_mo' ? 'bg-amber-50 text-amber-900 border-amber-200' :
                         gin.type === 'maintenance_workshop' ? 'bg-blue-50 text-blue-900 border-blue-200' :
@@ -427,25 +445,25 @@ export const GoodsIssueNotesView: React.FC = () => {
                         {gin.type === 'general_issue' && 'صرف عام'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-sans font-bold text-slate-800">
+                    <td className="py-3.5 px-3 font-sans font-bold text-slate-800">
                       {gin.productionOrderNumber || gin.machineName || gin.costCenterName || 'ورشة التصنيع'}
                     </td>
-                    <td className="py-3.5 px-4 font-sans text-slate-700 font-bold">
+                    <td className="py-3.5 px-3 font-sans text-slate-700 font-bold">
                       {gin.warehouseName}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-bold text-slate-900">
+                    <td className="py-3.5 px-3 text-center font-bold text-slate-900">
                       {gin.items.length} صنف
                     </td>
-                    <td className="py-3.5 px-4 text-left font-black text-rose-700 whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-left font-black text-rose-700 whitespace-nowrap">
                       {gin.totalAmount.toLocaleString()} EGP
                     </td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-sans">
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-50 text-rose-800 border border-rose-200 shadow-2xs">
                         <CheckCircle2 className="w-3 h-3" />
                         <span>منصرف ومرحل</span>
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-sans">
                       <button
                         onClick={() => setSelectedGINForView(gin)}
                         className="px-3 py-1 rounded-xl bg-slate-100 hover:bg-[#361D13] text-slate-700 hover:text-white text-[11px] font-bold transition-all shadow-2xs"
@@ -468,27 +486,27 @@ export const GoodsIssueNotesView: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[950px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم طلب الصرف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">تاريخ الطلب</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">القسم الطالب</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">أمر الإنتاج / الغرض</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[100px] text-center">الأصناف</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الحالة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الإجراءات</th>
+                  <th className="py-3.5 px-3 min-w-[90px]">رقم طلب الصرف</th>
+                  <th className="py-3.5 px-3 min-w-[70px]">تاريخ الطلب</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">القسم الطالب</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">أمر الإنتاج / الغرض</th>
+                  <th className="py-3.5 px-3 min-w-[60px] text-center">الأصناف</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الحالة</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
                 {materialRequisitions.map(mrn => (
                   <tr key={mrn.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{mrn.requisitionNumber}</td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">{mrn.date}</td>
-                    <td className="py-3.5 px-4 font-sans font-bold text-slate-800">{mrn.department} ({mrn.requestedByUserName})</td>
-                    <td className="py-3.5 px-4 font-sans text-slate-700 font-bold">{mrn.productionOrderNumber || mrn.notes || 'طلب تشغيل'}</td>
-                    <td className="py-3.5 px-4 text-center font-bold text-slate-900">{mrn.items.length} صنف</td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 font-bold text-slate-900">{mrn.requisitionNumber}</td>
+                    <td className="py-3.5 px-3 text-slate-500">{mrn.date}</td>
+                    <td className="py-3.5 px-3 font-sans font-bold text-slate-800">{mrn.department} ({mrn.requestedByUserName})</td>
+                    <td className="py-3.5 px-3 font-sans text-slate-700 font-bold">{mrn.productionOrderNumber || mrn.notes || 'طلب تشغيل'}</td>
+                    <td className="py-3.5 px-3 text-center font-bold text-slate-900">{mrn.items.length} صنف</td>
+                    <td className="py-3.5 px-3 text-center font-sans">
                       {mrn.status === 'pending' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
                           <span>في انتظار اعتماد مدير الإنتاج</span>
@@ -508,7 +526,7 @@ export const GoodsIssueNotesView: React.FC = () => {
                       {mrn.status === 'fully_issued' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
                           <CheckCircle2 className="w-3 h-3" />
-                          <span>تم الصرف الفعلي (GIN)</span>
+                          <span>تم الصرف الفعلي {mrn.ginNumber || '(GIN)'}</span>
                         </span>
                       )}
                       {mrn.status === 'rejected' && (
@@ -517,7 +535,7 @@ export const GoodsIssueNotesView: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-center font-sans">
                       <div className="flex items-center justify-center gap-1.5">
                         {mrn.status === 'pending' && (
                           <>
@@ -541,6 +559,11 @@ export const GoodsIssueNotesView: React.FC = () => {
                         {mrn.status === 'approved' && (
                           <button
                             onClick={() => {
+                              setIssuingRequisitionId(mrn.id);
+                              setFormType(mrn.purpose === 'maintenance' ? 'maintenance_workshop' : mrn.purpose === 'sample' ? 'general_issue' : 'production_mo');
+                              setFormNotes(`صرف طلب الورشة ${mrn.requisitionNumber}${mrn.productionOrderNumber ? ` لأمر ${mrn.productionOrderNumber}` : ''}`);
+                              const firstCard = itemMasterCards.find(c => c.id === mrn.items[0]?.itemId || c.code === mrn.items[0]?.itemCode);
+                              if (firstCard) setFormWarehouseId(firstCard.defaultWarehouseId);
                               setFormProdOrderId(mrn.productionOrderId || '');
                               if (mrn.items.length > 0) {
                                 setFormItems(mrn.items.map(it => {
@@ -592,6 +615,11 @@ export const GoodsIssueNotesView: React.FC = () => {
             </div>
 
             <div className="space-y-4 text-xs">
+              {issuingRequisitionId && (
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 font-bold">
+                  صرف لطلب الورشة {materialRequisitions.find(m => m.id === issuingRequisitionId)?.requisitionNumber}: الطلب هيتقفل "تم الصرف" بعد اعتماد الإذن.
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 mb-1 block">نوع وتوجيه الصرف:</label>
@@ -677,7 +705,7 @@ export const GoodsIssueNotesView: React.FC = () => {
                         >
                           {itemMasterCards.map(item => (
                             <option key={item.id} value={item.id}>
-                              [{item.code}] {item.nameAr} (متاح: {item.availableStock} {item.unitNameAr})
+                              [{item.code}] {item.nameAr} (متاح هنا: {availableHere(item.id)} {item.unitNameAr})
                             </option>
                           ))}
                         </select>
@@ -685,8 +713,7 @@ export const GoodsIssueNotesView: React.FC = () => {
 
                       <div className="sm:col-span-2">
                         {(() => {
-                          const targetCard = itemMasterCards.find(c => c.id === row.itemId);
-                          const avail = targetCard ? targetCard.availableStock : 0;
+                          const avail = availableHere(row.itemId);
                           const isOver = row.issuedQty > avail;
 
                           return (

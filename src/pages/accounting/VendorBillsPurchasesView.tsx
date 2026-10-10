@@ -204,20 +204,20 @@ export const VendorBillsPurchasesView: React.FC = () => {
       {activeSubTab === 'bills' ? (
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[1100px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">رقم الفاتورة بالنظام</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px]">فاتورة المورد #</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">المورد</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">النوع والتوجيه</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-left">المبلغ الأساسي</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-left">ضريبة VAT 14%</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">خصم منبع WHT 1%</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">صافي المستحق</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">المتبقي (AP)</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الحالة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center">الإجراءات</th>
+                  <th className="py-3.5 px-2 min-w-[90px]">رقم الفاتورة بالنظام</th>
+                  <th className="py-3.5 px-2 min-w-[70px]">فاتورة المورد #</th>
+                  <th className="py-3.5 px-2 min-w-[110px]">المورد</th>
+                  <th className="py-3.5 px-2 min-w-[90px]">النوع والتوجيه</th>
+                  <th className="py-3.5 px-2 min-w-[70px] text-left">المبلغ الأساسي</th>
+                  <th className="py-3.5 px-2 min-w-[70px] text-left">ضريبة VAT 14%</th>
+                  <th className="py-3.5 px-2 min-w-[70px] text-left">خصم منبع WHT 1%</th>
+                  <th className="py-3.5 px-2 min-w-[70px] text-left">صافي المستحق</th>
+                  <th className="py-3.5 px-2 min-w-[70px] text-left">المتبقي (AP)</th>
+                  <th className="py-3.5 px-2 min-w-[70px] text-center">الحالة</th>
+                  <th className="py-3.5 px-2 min-w-[70px] text-center">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
@@ -230,22 +230,22 @@ export const VendorBillsPurchasesView: React.FC = () => {
                   )
                   .map(b => (
                     <tr key={b.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{b.billNumber}</td>
-                      <td className="py-3.5 px-4 text-slate-600 font-bold whitespace-nowrap">{b.vendorInvoiceNumber || '-'}</td>
-                      <td className="py-3.5 px-4 font-sans font-bold text-slate-800">{b.supplierName}</td>
-                      <td className="py-3.5 px-4 font-sans text-[11px] whitespace-nowrap">
-                        <span className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold">
+                      <td className="py-3.5 px-2 font-bold text-slate-900 whitespace-nowrap">{b.billNumber}</td>
+                      <td className="py-3.5 px-2 text-slate-600 font-bold whitespace-nowrap">{b.vendorInvoiceNumber || '-'}</td>
+                      <td className="py-3.5 px-2 font-sans font-bold text-slate-800">{b.supplierName}</td>
+                      <td className="py-3.5 px-2 font-sans text-[11px]">
+                        <span className="inline-block px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold leading-snug">
                           {b.billType === 'stock_purchase' && 'مخزون (GR/IR 213)'}
                           {b.billType === 'direct_expense' && 'مصروف ورش مباشر'}
                           {b.billType === 'asset_purchase' && 'أصل ثابت'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-left text-slate-700 whitespace-nowrap">{b.subtotal.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-left text-slate-500 whitespace-nowrap">+{b.taxAmount.toLocaleString()}</td>
-                      <td className="py-3.5 px-4 text-left text-rose-600 font-bold whitespace-nowrap">-{b.withholdingTaxAmount.toLocaleString()}</td>
-                      <td className="py-3.5 px-4 text-left font-black text-slate-900 whitespace-nowrap">{b.netPayableAmount.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-left font-black text-rose-600 whitespace-nowrap">{b.balanceDue.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                      <td className="py-3.5 px-2 text-left text-slate-700 whitespace-nowrap">{b.subtotal.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-2 text-left text-slate-500 whitespace-nowrap">+{b.taxAmount.toLocaleString()}</td>
+                      <td className="py-3.5 px-2 text-left text-rose-600 font-bold whitespace-nowrap">-{b.withholdingTaxAmount.toLocaleString()}</td>
+                      <td className="py-3.5 px-2 text-left font-black text-slate-900 whitespace-nowrap">{b.netPayableAmount.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-2 text-left font-black text-rose-600 whitespace-nowrap">{b.balanceDue.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-2 text-center font-sans">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-black shadow-2xs whitespace-nowrap ${
                           b.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                           b.status === 'partially_paid' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
@@ -257,7 +257,7 @@ export const VendorBillsPurchasesView: React.FC = () => {
                           {b.status === 'draft' && 'مسودة'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                      <td className="py-3.5 px-2 text-center font-sans">
                         {b.balanceDue > 0 && (
                           <button
                             onClick={() => handleOpenPayModal(b)}

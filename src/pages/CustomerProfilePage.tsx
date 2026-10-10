@@ -329,15 +329,14 @@ export const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ custom
                 <span>واتساب</span>
               </a>
 
-              {showProjectsTab && (
-                <button
-                  onClick={() => setIsCreateProjectModalOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
-                >
-                  <Ruler className="w-4 h-4 text-[#C87A38]" />
-                  <span>+ مشروع تفصيل</span>
-                </button>
-              )}
+              {/* Available for every customer: a ready-furniture buyer can still order a bespoke kitchen */}
+              <button
+                onClick={() => setIsCreateProjectModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+              >
+                <Ruler className="w-4 h-4 text-[#C87A38]" />
+                <span>تحويل لمشروع تفصيل</span>
+              </button>
 
               {showSalesTab && (
                 <button

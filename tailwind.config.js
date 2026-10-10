@@ -19,6 +19,10 @@ export default {
           border: '#E5D7C7'      // Soft Border
         }
       },
+      // Cairo at 900 reads as shouting on dense screens; 800 keeps the weight without the noise
+      fontWeight: {
+        black: '800',
+      },
       fontFamily: {
         sans: ['Cairo', 'Tajawal', 'system-ui', 'sans-serif'],
         arabic: ['Cairo', 'Tajawal', 'sans-serif']

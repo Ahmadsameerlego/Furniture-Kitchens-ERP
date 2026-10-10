@@ -185,29 +185,29 @@ export const FiscalPeriodsView: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right text-xs min-w-[850px]">
+          <table className="w-full text-right text-xs">
             <thead>
               <tr className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
-                <th className="py-3.5 px-4 min-w-[180px]">اسم الفترة المحاسبية</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[80px]">السنة</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">تاريخ البداية</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">تاريخ النهاية</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px] text-center">حالة القفل والترحيل</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">معلومات الإقفال</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px] text-center">الإجراءات والتحكم</th>
+                <th className="py-3.5 px-3 min-w-[110px]">اسم الفترة المحاسبية</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[50px]">السنة</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px]">تاريخ البداية</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px]">تاريخ النهاية</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[90px] text-center">حالة القفل والترحيل</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[100px]">معلومات الإقفال</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[100px] text-center">الإجراءات والتحكم</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {fiscalPeriods.map(period => (
                 <tr key={period.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
+                  <td className="py-3.5 px-3 font-bold text-slate-900 flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${!period.isClosed ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                     <span>{period.name}</span>
                   </td>
-                  <td className="py-3.5 px-4 text-slate-600 font-mono">{period.year}</td>
-                  <td className="py-3.5 px-4 text-slate-500 font-mono whitespace-nowrap">{period.startDate}</td>
-                  <td className="py-3.5 px-4 text-slate-500 font-mono whitespace-nowrap">{period.endDate}</td>
-                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                  <td className="py-3.5 px-3 text-slate-600 font-mono whitespace-nowrap">{period.year}</td>
+                  <td className="py-3.5 px-3 text-slate-500 font-mono whitespace-nowrap">{period.startDate}</td>
+                  <td className="py-3.5 px-3 text-slate-500 font-mono whitespace-nowrap">{period.endDate}</td>
+                  <td className="py-3.5 px-3 text-center whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black shadow-2xs whitespace-nowrap ${
                       !period.isClosed
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -217,17 +217,17 @@ export const FiscalPeriodsView: React.FC = () => {
                       <span>{!period.isClosed ? 'مفتوحة للترحيل والقيود' : 'مقفلة ومغلقة نهائياً'}</span>
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-[11px] text-slate-500">
+                  <td className="py-3.5 px-3 text-[11px] text-slate-500">
                     {period.isClosed ? (
                       <div className="space-y-0.5">
                         <p className="font-bold text-slate-700">أقفلها: {period.closedByUserName || 'الإدارة المالية'}</p>
-                        {period.closedAt && <p className="font-mono text-[10px] text-slate-400">{period.closedAt}</p>}
+                        {period.closedAt && <p className="font-mono text-[10px] text-slate-400 whitespace-nowrap">{period.closedAt}</p>}
                       </div>
                     ) : (
                       <span className="text-slate-400 font-italic">— نشطة حالياً —</span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                  <td className="py-3.5 px-3 text-center whitespace-nowrap">
                     {!period.isClosed ? (
                       <button
                         onClick={() => handleOpenLockClick(period)}

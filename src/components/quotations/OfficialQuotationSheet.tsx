@@ -100,7 +100,8 @@ export const OfficialQuotationSheet: React.FC<OfficialQuotationSheetProps> = ({
     const text = encodeURIComponent(
       `مرحباً ${clientName}،\nمرفق لكم عرض السعر المعتمد من Furniture Land Natural Home:\n` +
       `📌 المشروع: ${projectName}\n` +
-      `💰 الإجمالي النهائي: ${quotation.totalSelling.toLocaleString('ar-EG')} ج.م\n` +
+      `💰 الإجمالي قبل الضريبة: ${quotation.totalSelling.toLocaleString()} ج.م\n` +
+      `🧾 الإجمالي شامل ضريبة القيمة المضافة 14%: ${Math.round(quotation.totalSelling * 1.14).toLocaleString()} ج.م\n` +
       `🛡️ الضمان: ${breakdown.paymentTerms.warrantyYears} سنوات معتمد.\n` +
       `نسعد دائماً بخدمتكم!`
     );
@@ -491,16 +492,21 @@ export const OfficialQuotationSheet: React.FC<OfficialQuotationSheetProps> = ({
                 ★
               </div>
               <div>
-                <span className="text-xs font-bold text-amber-200 block">إجمالي القيمة الإجمالية لعرض السعر الشامل:</span>
-                <span className="text-[11px] text-slate-300">شامل كافة الخامات الموصوفة والتركيب بالفيلا والضمان</span>
+                <span className="text-xs font-bold text-amber-200 block">إجمالي عرض السعر شامل ضريبة القيمة المضافة:</span>
+                <span className="text-[11px] text-slate-300 block">
+                  قبل الضريبة <span className="font-mono font-bold text-white">{quotation.totalSelling.toLocaleString()}</span> ج.م
+                  {quotation.discount > 0 && <> (بعد خصم <span className="font-mono">{quotation.discount.toLocaleString()}</span>)</>}
+                  {' '}+ ضريبة 14% <span className="font-mono font-bold text-white">{Math.round(quotation.totalSelling * 0.14).toLocaleString()}</span> ج.م
+                </span>
+                <span className="text-[10px] text-slate-400">شامل كافة الخامات الموصوفة والتركيب والضمان</span>
               </div>
             </div>
 
             <div className="text-center sm:text-left">
               <span className="text-2xl sm:text-3xl font-black font-mono text-amber-300 tracking-tight">
-                {quotation.totalSelling.toLocaleString('ar-EG')} ج.م
+                {Math.round(quotation.totalSelling * 1.14).toLocaleString()} ج.م
               </span>
-              <span className="text-[10px] text-amber-100 block font-medium">فقط لا غير بالجنيه المصري</span>
+              <span className="text-[10px] text-amber-100 block font-medium">شامل الضريبة — فقط لا غير بالجنيه المصري</span>
             </div>
           </div>
 

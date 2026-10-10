@@ -191,12 +191,12 @@ export const CustomProjectsListPage: React.FC = () => {
           <table className="w-full text-right text-xs">
             <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
-                <th className="p-4 min-w-[200px] text-right whitespace-nowrap">رقم المشروع واسمه</th>
-                <th className="p-4 min-w-[160px] text-right whitespace-nowrap">العميل والفرع</th>
-                <th className="p-4 min-w-[170px] text-right whitespace-nowrap">نوع المشروع والتصنيف</th>
-                <th className="p-4 min-w-[160px] text-center whitespace-nowrap">مرحلة المشروع الحالية</th>
-                <th className="p-4 min-w-[130px] text-center whitespace-nowrap">المسؤول والتاريخ</th>
-                <th className="p-4 min-w-[140px] text-center whitespace-nowrap">الإجراءات</th>
+                <th className="px-3 py-3 min-w-[120px] text-right">رقم المشروع واسمه</th>
+                <th className="px-3 py-3 min-w-[100px] text-right">العميل والفرع</th>
+                <th className="px-3 py-3 min-w-[110px] text-right">نوع المشروع والتصنيف</th>
+                <th className="px-3 py-3 min-w-[100px] text-center">مرحلة المشروع الحالية</th>
+                <th className="px-3 py-3 min-w-[80px] text-center">المسؤول والتاريخ</th>
+                <th className="px-3 py-3 min-w-[90px] text-center">الإجراءات</th>
               </tr>
             </thead>
 
@@ -205,44 +205,44 @@ export const CustomProjectsListPage: React.FC = () => {
                 const statusMeta = CustomProjectService.getProjectStatusMeta(p.status);
 
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                    
-                    <td className="p-4 whitespace-nowrap">
+                  <tr key={p.id} onClick={() => setSelectedProjectId(p.id)} className="hover:bg-amber-50/40 transition-colors cursor-pointer">
+
+                    <td className="px-3 py-3 min-w-[220px]">
                       <div>
-                        <p className="font-black text-slate-900 text-sm">{p.projectName}</p>
-                        <span className="font-mono text-[11px] text-slate-500 font-bold block mt-0.5">{p.projectNumber}</span>
+                        <p className="font-black text-slate-900 text-sm leading-snug">{p.projectName}</p>
+                        <span className="font-mono text-[11px] text-slate-500 font-bold block mt-0.5 whitespace-nowrap">{p.projectNumber}</span>
                       </div>
                     </td>
 
-                    <td className="p-4 whitespace-nowrap">
-                      <p className="font-bold text-slate-900">{p.customerName}</p>
+                    <td className="px-3 py-3">
+                      <p className="font-bold text-slate-900 whitespace-nowrap">{p.customerName}</p>
                       <p className="text-[11px] text-slate-500">{p.branchName}</p>
                     </td>
 
-                    <td className="p-4 whitespace-nowrap">
-                      <span className="inline-block px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs">
+                    <td className="px-3 py-3">
+                      <span className="inline-block px-2.5 py-1 rounded-xl text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs whitespace-nowrap">
                         {CustomProjectService.getProjectTypeLabel(p.projectType)}
                       </span>
                     </td>
 
-                    <td className="p-4 text-center whitespace-nowrap">
-                      <span className={`inline-block px-3 py-1 rounded-xl text-xs font-bold border shadow-2xs ${statusMeta.bgClass}`}>
+                    <td className="px-3 py-3 text-center">
+                      <span className={`inline-block px-2.5 py-1 rounded-xl text-[11px] font-bold border shadow-2xs max-w-[170px] leading-snug ${statusMeta.bgClass}`}>
                         {statusMeta.label}
                       </span>
                     </td>
 
-                    <td className="p-4 text-center whitespace-nowrap text-[11px]">
+                    <td className="px-3 py-3 text-center text-[11px]">
                       <p className="font-bold text-slate-800">{p.assignedUserName}</p>
-                      <span className="text-slate-400 font-mono">{p.createdDate}</span>
+                      <span className="text-slate-400 font-mono whitespace-nowrap">{p.createdDate}</span>
                     </td>
 
-                    <td className="p-4 text-center whitespace-nowrap">
+                    <td className="px-3 py-3 text-center">
                       <button
-                        onClick={() => setSelectedProjectId(p.id)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5 mx-auto shrink-0 whitespace-nowrap"
+                        onClick={(e) => { e.stopPropagation(); setSelectedProjectId(p.id); }}
+                        className="px-3 py-1.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5 mx-auto shrink-0 whitespace-nowrap"
                       >
                         <Eye className="w-3.5 h-3.5 text-[#C87A38]" />
-                        <span>لوحة المشروع 360</span>
+                        <span>لوحة 360</span>
                       </button>
                     </td>
 

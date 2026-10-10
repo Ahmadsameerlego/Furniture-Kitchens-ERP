@@ -157,27 +157,27 @@ export const PdcChecksView: React.FC = () => {
       {/* 4. CHECKS TABLE */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right text-xs min-w-[950px]">
+          <table className="w-full text-right text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">رقم الشيك</th>
-                <th className="py-3.5 px-4 min-w-[160px]">البنك المسحوب عليه</th>
-                <th className="py-3.5 px-4 min-w-[180px]">اسم الطرف / العميل</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">تاريخ الاستحقاق</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">قيمة الشيك</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-center">الحالة الحالية</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px] text-center">إجراءات دورة الحياة</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[80px]">رقم الشيك</th>
+                <th className="py-3.5 px-3 min-w-[100px]">البنك المسحوب عليه</th>
+                <th className="py-3.5 px-3 min-w-[110px]">اسم الطرف / العميل</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[70px]">تاريخ الاستحقاق</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[80px] text-left">قيمة الشيك</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[80px] text-center">الحالة الحالية</th>
+                <th className="py-3.5 px-3 whitespace-nowrap min-w-[100px] text-center">إجراءات دورة الحياة</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono">
               {filteredChecks.map(check => (
                 <tr key={check.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{check.checkNumber}</td>
-                  <td className="py-3.5 px-4 font-sans font-bold text-slate-800">{check.bankName}</td>
-                  <td className="py-3.5 px-4 font-sans text-slate-700">{check.partnerName}</td>
-                  <td className="py-3.5 px-4 text-slate-600 font-mono text-xs whitespace-nowrap">{check.dueDate}</td>
-                  <td className="py-3.5 px-4 text-left font-black text-slate-900 whitespace-nowrap">{check.amount.toLocaleString()} EGP</td>
-                  <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                  <td className="py-3.5 px-3 font-bold text-slate-900 whitespace-nowrap">{check.checkNumber}</td>
+                  <td className="py-3.5 px-3 font-sans font-bold text-slate-800">{check.bankName}</td>
+                  <td className="py-3.5 px-3 font-sans text-slate-700">{check.partnerName}</td>
+                  <td className="py-3.5 px-3 text-slate-600 font-mono text-xs whitespace-nowrap">{check.dueDate}</td>
+                  <td className="py-3.5 px-3 text-left font-black text-slate-900 whitespace-nowrap">{check.amount.toLocaleString()} EGP</td>
+                  <td className="py-3.5 px-3 text-center font-sans whitespace-nowrap">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-black shadow-2xs whitespace-nowrap ${
                       check.status === 'cleared' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                       check.status === 'under_collection' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
@@ -191,7 +191,7 @@ export const PdcChecksView: React.FC = () => {
                       {check.status === 'returned' && 'مرجع للطرف'}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                  <td className="py-3.5 px-3 text-center font-sans whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                       {check.status === 'received' && check.type === 'receivable' && (
                         <button

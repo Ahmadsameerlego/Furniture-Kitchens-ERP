@@ -1,3 +1,4 @@
+import { NO_IMAGE_PLACEHOLDER } from '../../../mock/designDrawings';
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { ProjectHandoverProtocol } from '../../../types/erp';
@@ -301,7 +302,7 @@ export const TechnicalHandoverReviewModal: React.FC<TechnicalHandoverReviewModal
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 relative group aspect-video flex items-center justify-center">
                       <img 
-                        src={approvedDesign.images[0] || 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'} 
+                        src={approvedDesign.images[0] || NO_IMAGE_PLACEHOLDER} 
                         alt="3D Kitchen Render"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                       />

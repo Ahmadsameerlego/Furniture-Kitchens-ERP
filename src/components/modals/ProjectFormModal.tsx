@@ -53,7 +53,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
     e.preventDefault();
     if (!projectName.trim() || !selectedCustomer) return;
 
-    createCustomProject({
+    const project = createCustomProject({
       projectName,
       customerId: selectedCustomer.id,
       customerName: selectedCustomer.fullName,
@@ -69,6 +69,11 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
     });
 
     onClose();
+    // Take the user straight into the new project's 360 page so the sales cycle continues from there
+    if (project?.id) {
+      setSelectedProjectId(project.id);
+      setActiveModule('custom_projects');
+    }
   };
 
   return (

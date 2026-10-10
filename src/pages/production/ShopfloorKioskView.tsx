@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { WorkCenter, WorkOrder } from '../../types/production';
 import { ProductionOrder } from '../../types/erp';
+import { CaptureMode, predecessorsOf, siblingsOf, STOP_REASONS } from '../../services/shopFloor';
 import {
   Zap,
   Play,
@@ -25,6 +26,8 @@ interface ShopfloorKioskViewProps {
   onUpdateWOStatus: (woId: string, newStatus: WorkOrder['status']) => void;
   onOpenScrapModal: (order: ProductionOrder) => void;
   onOpenQualityModal: (order: ProductionOrder) => void;
+  captureMode: CaptureMode;
+  onGoToDailyBoard: () => void;
 }
 
 export const ShopfloorKioskView: React.FC<ShopfloorKioskViewProps> = ({
@@ -33,7 +36,9 @@ export const ShopfloorKioskView: React.FC<ShopfloorKioskViewProps> = ({
   orders,
   onUpdateWOStatus,
   onOpenScrapModal,
-  onOpenQualityModal
+  onOpenQualityModal,
+  captureMode,
+  onGoToDailyBoard
 }) => {
   const [activeCenterId, setActiveCenterId] = useState<string>(workCenters[0]?.id || 'wc-cnc-01');
   const [selectedWOId, setSelectedWOId] = useState<string>(workOrders[0]?.id || '');
@@ -57,9 +62,22 @@ export const ShopfloorKioskView: React.FC<ShopfloorKioskViewProps> = ({
     }
   };
 
+  const preds = activeWO ? predecessorsOf(activeWO, siblingsOf(activeWO, workOrders)) : [];
+  const waitingFor = preds.filter(p => p.status !== 'completed');
+
   return (
     <div className="space-y-4">
-      
+
+      {captureMode !== 'kiosk' && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p className="text-xs text-amber-900">
+            <strong>المصنع ده متسجل إنه مفيهوش تابلت عند المحطات.</strong> الشاشة دي بتوضح شكل التابلت لو قررتوا تجيبوه بعدين.
+            التسجيل اليومي دلوقتي من <strong>يومية الإنتاج</strong>.
+          </p>
+          <button onClick={onGoToDailyBoard} className="px-4 py-2 bg-[#361D13] text-white rounded-xl text-xs font-black shrink-0">افتح يومية الإنتاج</button>
+        </div>
+      )}
+
       {/* Kiosk Mode Top Navigation Bar */}
       <div className="p-4 bg-slate-900 text-white rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-3">
@@ -230,7 +248,16 @@ export const ShopfloorKioskView: React.FC<ShopfloorKioskViewProps> = ({
 
             {/* Huge Touch Action Buttons */}
             <div className="pt-4 border-t border-slate-200 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              {activeWO.status === 'completed' && (
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center text-sm font-black text-emerald-800">✅ المحطة دي خلصت</div>
+              )}
+              {activeWO.status === 'blocked' && (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-center text-sm font-black text-rose-800">⛔ واقفة: {activeWO.stopReason ? STOP_REASONS[activeWO.stopReason] : 'مستني خامة'}</div>
+              )}
+              {activeWO.status === 'pending' && waitingFor.length > 0 && (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center text-sm font-black text-slate-600">⏳ مستنية: {waitingFor.map(p => p.workCenterName.split(' ').slice(0, 2).join(' ')).join(' + ')}</div>
+              )}
+              <div className={`grid grid-cols-2 gap-3 ${activeWO.status === 'completed' || activeWO.status === 'blocked' || activeWO.status === 'pending' ? 'hidden' : ''}`}>
                 {activeWO.status !== 'in_progress' ? (
                   <button
                     onClick={() => onUpdateWOStatus(activeWO.id, 'in_progress')}
@@ -251,7 +278,8 @@ export const ShopfloorKioskView: React.FC<ShopfloorKioskViewProps> = ({
 
                 <button
                   onClick={() => onUpdateWOStatus(activeWO.id, 'completed')}
-                  className="py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-base shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+                  disabled={activeWO.status !== 'in_progress'}
+                  className="py-4 disabled:opacity-30 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-base shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 className="w-6 h-6" />
                   <span>تم الإنجاز والتسليم ✅</span>

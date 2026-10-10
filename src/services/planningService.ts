@@ -12,6 +12,7 @@ import {
   PlanningDemandStatus
 } from '../types/planning';
 import { ItemMasterCard } from '../types/erp';
+import { resolveCatalogItem } from './materialCatalog';
 
 // Helper Badge Functions
 export const getPriorityBadge = (priority: PlanningPriority) => {
@@ -156,21 +157,26 @@ export const calculateNetRequirements = (
     grossQty: number;
   }>();
 
-  demands.filter(d => d.status !== 'closed' && d.status !== 'cancelled').forEach(d => {
-    const existing = itemMap.get(d.itemCode) || { demands: [], grossQty: 0 };
+  // Only demands still waiting for supply; codes from different modules collapse to one catalog item
+  demands.filter(d => !['closed', 'cancelled', 'fully_supplied'].includes(d.status)).forEach(d => {
+    const key = resolveCatalogItem(d.itemCode)?.key || d.itemCode;
+    const existing = itemMap.get(key) || { demands: [], grossQty: 0 };
     existing.demands.push(d);
     existing.grossQty += d.quantityRequired;
-    itemMap.set(d.itemCode, existing);
+    itemMap.set(key, existing);
   });
 
   const netRequirements: MRPNetRequirement[] = [];
 
   itemMap.forEach((entry, itemCode) => {
     const firstDemand = entry.demands[0];
-    const itemCard = itemMasterCards.find(c => c.code === itemCode || c.id === firstDemand.itemId);
+    const catalogItem = resolveCatalogItem(itemCode);
+    const aliases = new Set((catalogItem?.aliases || [itemCode]).map(a => a.toUpperCase()));
+    const itemCard = itemMasterCards.find(c => aliases.has(c.code.toUpperCase()) || c.id === firstDemand.itemId);
 
-    const currentStockOnHand = itemCard?.currentStock || (itemCode.includes('MDF') ? 14 : itemCode.includes('BLUM') ? 40 : itemCode.includes('HPL') ? 8 : 20);
-    const reservedStockQty = itemCard?.reservedStock || (itemCode.includes('MDF') ? 10 : itemCode.includes('BLUM') ? 32 : itemCode.includes('HPL') ? 6 : 8);
+    // Real stock from the inventory item card (no card means nothing on hand)
+    const currentStockOnHand = itemCard?.currentStock ?? 0;
+    const reservedStockQty = itemCard?.reservedStock ?? 0;
     const availableFreeStock = Math.max(0, currentStockOnHand - reservedStockQty);
     
     const poEntries = openIncomingPOs.filter(po => po.itemCode === itemCode);

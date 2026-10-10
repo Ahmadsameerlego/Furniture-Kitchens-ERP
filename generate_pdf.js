@@ -505,7 +505,7 @@ const htmlContent = `<!DOCTYPE html>
           <div class="desc">شامل رخصة النظام الكاملة، التخصيص لمصنع ومعارض Furniture Land، التدريب، وضمان لمدة سنة كاملة.</div>
         </div>
         <div class="price">
-          180,000 <span>ج.م</span>
+          250,000 <span>ج.م</span>
         </div>
       </div>
 
@@ -521,26 +521,26 @@ const htmlContent = `<!DOCTYPE html>
           <tr>
             <td><strong>الدفعة الأولى (40%)</strong></td>
             <td>دفعة مقدمة عند توقيع العقد والبدء في تجهيز وتهيئة النظام</td>
-            <td style="text-align: left; font-weight: 700;">72,000 ج.م</td>
+            <td style="text-align: left; font-weight: 700;">100,000 ج.م</td>
           </tr>
           <tr>
             <td><strong>الدفعة الثانية (30%)</strong></td>
             <td>بعد تهيئة المكتب الفني ومراكز العمل بالورش وإعداد دورة الـ BOM</td>
-            <td style="text-align: left; font-weight: 700;">54,000 ج.م</td>
+            <td style="text-align: left; font-weight: 700;">75,000 ج.م</td>
           </tr>
           <tr>
             <td><strong>الدفعة الثالثة (20%)</strong></td>
             <td>عند اكتمال ربط الحسابات والمخازن وبدء مرحلة التدريب التجريبي (Pilot)</td>
-            <td style="text-align: left; font-weight: 700;">36,000 ج.م</td>
+            <td style="text-align: left; font-weight: 700;">50,000 ج.م</td>
           </tr>
           <tr>
             <td><strong>الدفعة الرابعة (10%)</strong></td>
             <td>بعد الإطلاق الحي النهائي والاستلام الرسمي للنظام (Go-Live)</td>
-            <td style="text-align: left; font-weight: 700;">18,000 ج.م</td>
+            <td style="text-align: left; font-weight: 700;">25,000 ج.م</td>
           </tr>
           <tr class="total-row">
             <td colspan="2"><strong>الإجمالي النهائي للمشروع</strong></td>
-            <td style="text-align: left;"><strong>180,000 ج.م</strong></td>
+            <td style="text-align: left;"><strong>250,000 ج.م</strong></td>
           </tr>
         </tbody>
       </table>
@@ -588,8 +588,19 @@ async function generatePDF() {
   fs.writeFileSync(htmlPath, htmlContent, 'utf-8');
   console.log('HTML written to:', htmlPath);
 
+  const candidatePaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
+  ];
+  const executablePath = candidatePaths.find(p => fs.existsSync(p));
+  if (!executablePath) {
+    throw new Error('No browser executable found!');
+  }
+
   const browser = await puppeteer.launch({
-    executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    executablePath,
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });

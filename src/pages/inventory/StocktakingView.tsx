@@ -25,6 +25,17 @@ import {
   Info
 } from 'lucide-react';
 import { exportStocktakingToExcel } from '../../utils/excelExport';
+import { stockAt } from '../../services/warehouseStock';
+
+// Item families a count can be limited to
+const COUNT_CATEGORIES: { id: string; label: string; match: string[] }[] = [
+  { id: 'all', label: 'كل أصناف المستودع', match: [] },
+  { id: 'wood_panels', label: 'ألواح وأخشاب', match: ['wood_panels'] },
+  { id: 'veneers_hpl', label: 'HPL وتجاليد وقشاط', match: ['veneers_hpl'] },
+  { id: 'hardware', label: 'مفصلات وإكسسوار', match: ['hardware_hinges', 'hardware_accessories'] },
+  { id: 'spare_parts_tools', label: 'قطع غيار وشفرات', match: ['spare_parts_tools'] },
+  { id: 'finished', label: 'تام الصنع', match: ['finished_kitchen', 'finished_furniture'] }
+];
 
 export const StocktakingView: React.FC = () => {
   const {
@@ -44,23 +55,20 @@ export const StocktakingView: React.FC = () => {
 
   // New Session Form State
   const [sessionWarehouseId, setSessionWarehouseId] = useState<string>(warehouses[0]?.id || '');
-  const [sessionCategory, setSessionCategory] = useState<string>('wood_panels');
-  const [sessionNotes, setSessionNotes] = useState<string>('جرد دوري ربع سنوي لمخزن الخامات والألواح');
+  const [sessionCategory, setSessionCategory] = useState<string>('all');
+  const [sessionNotes, setSessionNotes] = useState<string>('جرد دوري لمستودع الخامات والألواح');
 
-  // Counted lines state for new session
-  const targetWarehouse = warehouses.find(w => w.id === sessionWarehouseId) || warehouses[0];
-  const eligibleItems = itemMasterCards.filter(
-    i => (sessionCategory === 'all' || i.category === sessionCategory) && i.defaultWarehouseId === sessionWarehouseId
+  // Items counted in this session: the chosen family, held in (or belonging to) the chosen warehouse
+  const categoryMatch = COUNT_CATEGORIES.find(c => c.id === sessionCategory)?.match || [];
+  const eligibleItems = itemMasterCards.filter(i =>
+    (categoryMatch.length === 0 || categoryMatch.includes(i.category)) &&
+    (i.defaultWarehouseId === sessionWarehouseId || stockAt(i, sessionWarehouseId) > 0)
   );
 
   const [countedLines, setCountedLines] = useState<Record<string, number>>({});
 
   const handleInitCountModal = () => {
-    const initialCounts: Record<string, number> = {};
-    eligibleItems.forEach(i => {
-      initialCounts[i.id] = i.currentStock; // default to system stock
-    });
-    setCountedLines(initialCounts);
+    setCountedLines({}); // every line starts at the warehouse's system quantity
     setShowNewSessionModal(true);
   };
 
@@ -69,8 +77,13 @@ export const StocktakingView: React.FC = () => {
   };
 
   const handleCreateSession = () => {
+    if (eligibleItems.length === 0) {
+      showToast('مفيش أصناف من النوع ده في المستودع المختار', 'warning');
+      return;
+    }
     const lines: any[] = eligibleItems.map(item => {
-      const counted = countedLines[item.id] !== undefined ? countedLines[item.id] : item.currentStock;
+      const systemQty = stockAt(item, sessionWarehouseId);
+      const counted = countedLines[item.id] !== undefined ? countedLines[item.id] : systemQty;
       return {
         itemId: item.id,
         itemCode: item.code,
@@ -78,10 +91,10 @@ export const StocktakingView: React.FC = () => {
         category: item.category,
         unit: item.unitNameAr,
         locationBin: item.locationBin,
-        systemQty: item.currentStock,
+        systemQty,
         countedQty: counted,
         unitCost: item.weightedAvgCost,
-        notes: counted !== item.currentStock ? 'تم رصد فرق أثناء العد الفعلي' : 'مطابق'
+        notes: counted !== systemQty ? 'تم رصد فرق أثناء العد الفعلي' : 'مطابق'
       };
     });
 
@@ -338,7 +351,7 @@ export const StocktakingView: React.FC = () => {
                   <label className="font-bold text-slate-700 mb-1 block">المستودع المستهدف للجرد *:</label>
                   <select
                     value={sessionWarehouseId}
-                    onChange={(e) => setSessionWarehouseId(e.target.value)}
+                    onChange={(e) => { setSessionWarehouseId(e.target.value); setCountedLines({}); }}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
                   >
                     {warehouses.map(w => (
@@ -348,6 +361,22 @@ export const StocktakingView: React.FC = () => {
                 </div>
 
                 <div>
+                  <label className="font-bold text-slate-700 mb-1 block">نوع الأصناف المجرودة:</label>
+                  <select
+                    value={sessionCategory}
+                    onChange={(e) => {
+                      setSessionCategory(e.target.value);
+                      setCountedLines({});
+                    }}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                  >
+                    {COUNT_CATEGORIES.map(c => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
                   <label className="font-bold text-slate-700 mb-1 block">ملاحظات الجرد:</label>
                   <input
                     type="text"
@@ -375,8 +404,8 @@ export const StocktakingView: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-mono">
                       {eligibleItems.map(item => {
-                        const currentVal = countedLines[item.id] !== undefined ? countedLines[item.id] : item.currentStock;
-                        const diff = currentVal - item.currentStock;
+                        const currentVal = countedLines[item.id] !== undefined ? countedLines[item.id] : stockAt(item, sessionWarehouseId);
+                        const diff = currentVal - stockAt(item, sessionWarehouseId);
 
                         return (
                           <tr key={item.id} className="hover:bg-slate-50">
@@ -385,7 +414,7 @@ export const StocktakingView: React.FC = () => {
                               <div className="text-[10px] text-slate-400 font-mono">{item.locationBin}</div>
                             </td>
                             <td className="py-2 px-3 text-center font-bold text-slate-700">
-                              {item.currentStock} {item.unitNameAr}
+                              {stockAt(item, sessionWarehouseId)} {item.unitNameAr}
                             </td>
                             <td className="py-2 px-3 text-center">
                               <input

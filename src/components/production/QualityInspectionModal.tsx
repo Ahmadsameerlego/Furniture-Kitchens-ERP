@@ -51,7 +51,7 @@ export const QualityInspectionModal: React.FC<QualityInspectionModalProps> = ({
       manufacturingOrderNumber: order.productionNumber,
       stage,
       stageTitle: 'فحص جودة التجميع والتشطيب الشامل',
-      inspectorName: 'المهندس أحمد سمير (مدير الجودة)',
+      inspectorName: 'م. وليد عبد الحميد (مدير الجودة)',
       inspectionDate: new Date().toISOString().substring(0, 16).replace('T', ' '),
       passed: isOverallPassed,
       scorePercentage,

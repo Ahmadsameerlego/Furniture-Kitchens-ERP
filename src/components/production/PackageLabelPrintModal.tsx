@@ -31,7 +31,7 @@ export const PackageLabelPrintModal: React.FC<PackageLabelPrintModalProps> = ({
     window.print();
   };
 
-  const relatedPackages = packages.filter(p => p.packageCode.includes('PKG-101') || order.id === 'prod-101');
+  const relatedPackages = packages.filter(p => p.manufacturingOrderId === order.id);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:fixed-none">
@@ -134,7 +134,7 @@ export const PackageLabelPrintModal: React.FC<PackageLabelPrintModalProps> = ({
               <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-[10px] text-slate-400">
                 <span>تاريخ التغليف والفحص: {order.startDate}</span>
                 <span className="font-mono font-bold text-slate-700">BOX {idx + 1} OF {relatedPackages.length}</span>
-                <span>فحص بواسطة: م. أحمد سمير (QC PASS)</span>
+                <span>فحص بواسطة: م. وليد عبد الحميد (QC PASS)</span>
               </div>
             </div>
           ))}

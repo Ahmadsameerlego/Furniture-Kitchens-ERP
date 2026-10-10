@@ -59,6 +59,26 @@
     display: none !important;
   }
 
+  /* Daily shop sheets: print only the sheets, one section per page */
+  body.printing-sheet > *:not(.print-sheet-portal) {
+    display: none !important;
+  }
+
+  .print-sheet-portal {
+    position: static !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-sheet-portal .no-print {
+    display: none !important;
+  }
+
+  .print-sheet-portal .sheet-page {
+    page-break-after: always;
+  }
+
   .official-quotation-sheet {
     box-shadow: none !important;
     border: none !important;

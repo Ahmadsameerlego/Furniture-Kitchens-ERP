@@ -169,13 +169,13 @@ export const ReadyOrdersListPage: React.FC = () => {
           <table className="w-full text-right text-xs">
             <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
-                <th className="p-4 min-w-[200px] text-right whitespace-nowrap">رقم الطلب والعميل</th>
-                <th className="p-4 min-w-[150px] text-right whitespace-nowrap">الفرع المسؤول</th>
-                <th className="p-4 min-w-[140px] text-left whitespace-nowrap">إجمالي البيع والتكلفة</th>
-                <th className="p-4 min-w-[120px] text-left whitespace-nowrap">مجمل الربح</th>
-                <th className="p-4 min-w-[150px] text-right whitespace-nowrap">حالة السداد والتحصيل</th>
-                <th className="p-4 min-w-[170px] text-right whitespace-nowrap">حالة التسليم (Delivery)</th>
-                <th className="p-4 min-w-[140px] text-center whitespace-nowrap">الإجراءات السريعة</th>
+                <th className="px-3 py-3 min-w-[120px] text-right">رقم الطلب والعميل</th>
+                <th className="px-3 py-3 min-w-[90px] text-right">الفرع المسؤول</th>
+                <th className="px-3 py-3 min-w-[90px] text-left">إجمالي البيع والتكلفة</th>
+                <th className="px-3 py-3 min-w-[70px] text-left">مجمل الربح</th>
+                <th className="px-3 py-3 min-w-[90px] text-right">حالة السداد والتحصيل</th>
+                <th className="px-3 py-3 min-w-[110px] text-right">حالة التسليم (Delivery)</th>
+                <th className="px-3 py-3 min-w-[90px] text-center">الإجراءات السريعة</th>
               </tr>
             </thead>
 
@@ -189,7 +189,7 @@ export const ReadyOrdersListPage: React.FC = () => {
                   <tr key={o.id} className="hover:bg-slate-50/80 transition-colors">
                     
                     {/* Order Number & Customer */}
-                    <td className="p-4 whitespace-nowrap">
+                    <td className="px-3 py-3">
                       <div>
                         <p className="font-black text-slate-900 text-sm">{o.orderNumber}</p>
                         <button
@@ -205,42 +205,42 @@ export const ReadyOrdersListPage: React.FC = () => {
                     </td>
 
                     {/* Branch */}
-                    <td className="p-4 font-bold text-slate-800 whitespace-nowrap">
+                    <td className="px-3 py-3 font-bold text-slate-800">
                       {o.branchName}
                     </td>
 
                     {/* Financial Totals */}
-                    <td className="p-4 text-left font-mono whitespace-nowrap">
+                    <td className="px-3 py-3 text-left font-mono whitespace-nowrap">
                       <p className="font-black text-slate-900 text-sm">{o.orderTotal.toLocaleString('ar-EG')} ج.م</p>
                       <p className="text-[10px] text-amber-800 font-bold">التكلفة: {o.totalPurchaseCost.toLocaleString('ar-EG')} ج.م</p>
                     </td>
 
                     {/* Gross Profit */}
-                    <td className="p-4 text-left font-black text-emerald-700 font-mono text-sm whitespace-nowrap">
+                    <td className="px-3 py-3 text-left font-black text-emerald-700 font-mono text-sm whitespace-nowrap">
                       +{o.grossProfit.toLocaleString('ar-EG')} ج.م
                     </td>
 
                     {/* Payment Status */}
-                    <td className="p-4 whitespace-nowrap">
+                    <td className="px-3 py-3">
                       <div className="space-y-0.5">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[11px] font-bold whitespace-nowrap ${paymentStatusMeta.bgClass} ${paymentStatusMeta.textClass}`}>
+                        <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[11px] font-bold leading-snug ${paymentStatusMeta.bgClass} ${paymentStatusMeta.textClass}`}>
                           {paymentStatusMeta.label}
                         </span>
                         {o.remainingBalance > 0 && (
-                          <p className="text-[10px] text-rose-700 font-bold font-mono">متبقي: {o.remainingBalance.toLocaleString('ar-EG')} ج.م</p>
+                          <p className="text-[10px] text-rose-700 font-bold font-mono whitespace-nowrap">متبقي: {o.remainingBalance.toLocaleString('ar-EG')} ج.م</p>
                         )}
                       </div>
                     </td>
 
                     {/* Delivery Status Badge */}
-                    <td className="p-4 whitespace-nowrap">
-                      <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[11px] font-bold border whitespace-nowrap ${deliveryStatusMeta.bgClass} ${deliveryStatusMeta.textClass} ${deliveryStatusMeta.borderClass}`}>
+                    <td className="px-3 py-3">
+                      <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[11px] font-bold border leading-snug ${deliveryStatusMeta.bgClass} ${deliveryStatusMeta.textClass} ${deliveryStatusMeta.borderClass}`}>
                         {deliveryStatusMeta.label}
                       </span>
                     </td>
 
                     {/* Quick Actions */}
-                    <td className="p-4 text-center whitespace-nowrap">
+                    <td className="px-3 py-3 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         {o.remainingBalance > 0 && (
                           <button

@@ -198,13 +198,13 @@ export const ProductsListPage: React.FC = () => {
           <table className="w-full text-right text-xs">
             <thead className="bg-[#361D13] text-white font-bold border-b border-emerald-900/50">
               <tr>
-                <th className="p-4 min-w-[260px] text-right whitespace-nowrap">المنتج والكود</th>
-                <th className="p-4 min-w-[140px] text-right whitespace-nowrap">التصنيف</th>
-                <th className="p-4 min-w-[120px] text-left whitespace-nowrap">سعر البيع</th>
-                <th className="p-4 min-w-[130px] text-left whitespace-nowrap">التكلفة الافتراضية</th>
-                <th className="p-4 min-w-[120px] text-center whitespace-nowrap">المخزون المتاح</th>
-                <th className="p-4 min-w-[160px] text-right whitespace-nowrap">المورد الرئيسي</th>
-                <th className="p-4 min-w-[140px] text-center whitespace-nowrap">الإجراءات</th>
+                <th className="px-3 py-3 min-w-[160px] text-right">المنتج والكود</th>
+                <th className="px-3 py-3 min-w-[90px] text-right">التصنيف</th>
+                <th className="px-3 py-3 min-w-[70px] text-left">سعر البيع</th>
+                <th className="px-3 py-3 min-w-[80px] text-left">التكلفة الافتراضية</th>
+                <th className="px-3 py-3 min-w-[70px] text-center">المخزون المتاح</th>
+                <th className="px-3 py-3 min-w-[100px] text-right">المورد الرئيسي</th>
+                <th className="px-3 py-3 min-w-[90px] text-center">الإجراءات</th>
               </tr>
             </thead>
 
@@ -219,7 +219,7 @@ export const ProductsListPage: React.FC = () => {
                   <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                     
                     {/* Product & Code */}
-                    <td className="p-4">
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-3">
                         {!hasImgFailed && p.images[0] ? (
                           <img
@@ -235,30 +235,30 @@ export const ProductsListPage: React.FC = () => {
                         )}
                         <div className="min-w-0">
                           <p className="font-black text-slate-900 text-xs sm:text-sm leading-tight">{p.name}</p>
-                          <span className="font-mono text-[11px] text-slate-500 font-bold block mt-0.5">{p.code}</span>
+                          <span className="font-mono text-[11px] text-slate-500 font-bold block mt-0.5 whitespace-nowrap">{p.code}</span>
                         </div>
                       </div>
                     </td>
 
                     {/* Category Badge */}
-                    <td className="p-4 font-bold text-slate-800 whitespace-nowrap">
+                    <td className="px-3 py-3 font-bold text-slate-800">
                       <span className="inline-block px-3 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200/90 whitespace-nowrap shadow-2xs">
                         {p.categoryName}
                       </span>
                     </td>
 
                     {/* Selling Price */}
-                    <td className="p-4 text-left font-black text-slate-900 font-mono text-sm whitespace-nowrap">
+                    <td className="px-3 py-3 text-left font-black text-slate-900 font-mono text-sm whitespace-nowrap">
                       {p.sellingPrice.toLocaleString('ar-EG')} <span className="text-[10px] text-slate-400 font-sans">ج.م</span>
                     </td>
 
                     {/* Purchase Cost */}
-                    <td className="p-4 text-left font-bold text-amber-900 font-mono text-xs whitespace-nowrap">
+                    <td className="px-3 py-3 text-left font-bold text-amber-900 font-mono text-xs whitespace-nowrap">
                       {p.defaultPurchaseCost.toLocaleString('ar-EG')} <span className="text-[10px] text-amber-700/70 font-sans">ج.م</span>
                     </td>
 
                     {/* Available Stock Badge */}
-                    <td className="p-4 text-center whitespace-nowrap">
+                    <td className="px-3 py-3 text-center">
                       <span className={`inline-block px-3 py-1 rounded-xl text-xs font-black whitespace-nowrap shadow-2xs ${
                         availStock > 0 ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200'
                       }`}>
@@ -267,14 +267,14 @@ export const ProductsListPage: React.FC = () => {
                     </td>
 
                     {/* Preferred Supplier */}
-                    <td className="p-4 text-slate-700 font-bold text-xs">
+                    <td className="px-3 py-3 text-slate-700 font-bold text-xs">
                       <span className="truncate block max-w-[180px]">
                         {prefSup ? prefSup.supplierName : 'غير محدد'}
                       </span>
                     </td>
 
                     {/* Actions */}
-                    <td className="p-4 text-center whitespace-nowrap">
+                    <td className="px-3 py-3 text-center">
                       <button
                         onClick={() => setSelectedProductId(p.id)}
                         className="px-3.5 py-1.5 rounded-xl bg-[#361D13] hover:bg-[#23120A] text-white font-black text-xs shadow-xs transition-all flex items-center gap-1.5 mx-auto shrink-0 whitespace-nowrap"

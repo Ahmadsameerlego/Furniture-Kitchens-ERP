@@ -1,4 +1,5 @@
-import { WorkCenter, WorkOrder, ScrapClaimRecord, OffCutReturnRecord, ManufacturingPackageItem, QualityGateInspection, JobCostingBreakdown } from '../types/production';
+import { WorkCenter, WorkOrder, ScrapClaimRecord, OffCutReturnRecord, ManufacturingPackageItem, QualityGateInspection, JobCostingBreakdown, ShopWorker } from '../types/production';
+import { stationCost } from './shopFloor';
 import { ProductionOrder, Material } from '../types/erp';
 
 export class ProductionService {
@@ -9,7 +10,8 @@ export class ProductionService {
     order: ProductionOrder,
     workOrders: WorkOrder[],
     scrapClaims: ScrapClaimRecord[],
-    workCenters: WorkCenter[]
+    workCenters: WorkCenter[],
+    workers: ShopWorker[] = []
   ): JobCostingBreakdown {
     // 1. Raw Materials
     const rawMaterialsEstimated = order.totalEstimatedMaterialCost || 0;
@@ -22,20 +24,20 @@ export class ProductionService {
     let directLaborActual = 0;
     let machineOverheadEstimated = 0;
     let machineOverheadActual = 0;
+    let subcontractCostActual = 0;
 
+    // Estimate = in-house standard rates; actual = how the crew is really paid, or the outside shop bill
     relatedWOs.forEach(wo => {
       const wc = workCenters.find(c => c.id === wo.workCenterId);
-      const laborRate = wc ? wc.hourlyLaborCost : 100;
-      const machineRate = wc ? wc.hourlyMachineCost : 150;
+      const planned = stationCost({ ...wo, subcontract: undefined }, wc, workers, false);
+      const started = wo.status === 'completed' || wo.status === 'in_progress' || wo.status === 'paused';
+      const actual = started || wo.subcontract ? stationCost(wo, wc, workers, true) : planned;
 
-      const plannedHours = (wo.plannedDurationMinutes || 60) / 60;
-      const actualHours = (wo.actualDurationMinutes || wo.plannedDurationMinutes || 60) / 60;
-
-      directLaborEstimated += plannedHours * laborRate;
-      directLaborActual += actualHours * laborRate;
-
-      machineOverheadEstimated += plannedHours * machineRate;
-      machineOverheadActual += actualHours * machineRate;
+      directLaborEstimated += planned.labor;
+      machineOverheadEstimated += planned.machine;
+      directLaborActual += actual.labor;
+      machineOverheadActual += actual.machine;
+      subcontractCostActual += actual.subcontract;
     });
 
     // If no WOs yet, estimate from order totals
@@ -51,7 +53,7 @@ export class ProductionService {
     const scrapCostActual = relatedScrap.reduce((acc, s) => acc + (s.estimatedCost || 0), 0);
 
     const totalEstimatedCost = Math.round(rawMaterialsEstimated + directLaborEstimated + machineOverheadEstimated);
-    const totalActualCost = Math.round(rawMaterialsActual + directLaborActual + machineOverheadActual + scrapCostActual);
+    const totalActualCost = Math.round(rawMaterialsActual + directLaborActual + machineOverheadActual + subcontractCostActual + scrapCostActual);
     const varianceAmount = totalActualCost - totalEstimatedCost;
     const variancePercentage = totalEstimatedCost > 0 ? (varianceAmount / totalEstimatedCost) * 100 : 0;
 
@@ -63,6 +65,7 @@ export class ProductionService {
       machineOverheadEstimated,
       machineOverheadActual,
       scrapCostActual,
+      subcontractCostActual,
       totalEstimatedCost,
       totalActualCost,
       varianceAmount,

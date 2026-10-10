@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { NO_IMAGE_PLACEHOLDER } from '../mock/designDrawings';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   CompanyConfig, 
   Branch, 
@@ -33,6 +34,7 @@ import {
   PurchaseOrderItem,
   StockMovement,
   StockTransfer,
+  StockTransferItem,
   SupplierReturn,
   SystemNotification,
   CustomProject,
@@ -69,7 +71,8 @@ import {
   MaterialRequisition,
   StocktakeSession,
   StocktakeLine,
-  StockLedgerEntry
+  StockLedgerEntry,
+  RemakeOrderInput
 } from '../types/erp';
 import {
   initialWarehouses,
@@ -129,6 +132,29 @@ import {
   initialCommercialPaymentSchedules
 } from '../mock/commercialData';
 import { initialVariationOrders } from '../mock/salesData';
+import { harmonizeMockData, buildFiscalPeriods, daysFromToday, PLANNING_MOCK_ANCHOR } from '../mock/scenario';
+import {
+  initialWorkCenters,
+  initialWorkOrders,
+  initialScrapClaims,
+  initialOffCutReturns,
+  initialPackages,
+  initialQualityInspections,
+  initialShopWorkers
+} from '../mock/productionData';
+import {
+  WorkCenter,
+  WorkOrder,
+  ScrapClaimRecord,
+  OffCutReturnRecord,
+  ManufacturingPackageItem,
+  QualityGateInspection,
+  ShopWorker
+} from '../types/production';
+import { stationCost } from '../services/shopFloor';
+import { loadDemoState, saveDemoState } from '../services/demoPersistence';
+import { aggregateBomRequirements, buildStandardRouting, toProductionMaterials } from '../services/productionPlanning';
+import { availableStockFor, ensureCatalogItemCards, resolveCatalogItem } from '../services/materialCatalog';
 import { VariationOrder } from '../types/sales';
 import {
   initialProductionOrders,
@@ -166,6 +192,7 @@ import { BackendSecurityService } from '../services/backendSecurity';
 import { CrmService } from '../services/crmService';
 import { ReadySalesService } from '../services/readySalesService';
 import { InventoryService } from '../services/inventoryService';
+import { adjustWarehouseStock, normalizeItemCards, pickFromWarehouses, stockAt } from '../services/warehouseStock';
 import { CustomProjectService } from '../services/customProjectService';
 import {
   TechnicalProject,
@@ -325,6 +352,7 @@ interface ERPContextType {
   approveTechnicalDesign: (designId: string, approvedBy: string, notes?: string) => void;
   saveTechnicalBOM: (bomData: Partial<TechnicalBOM> & { technicalProjectId: string; revisionCode: string }) => TechnicalBOM;
   approveTechnicalBOM: (bomId: string, approvedBy: string, notes?: string) => void;
+  approveBOMNesting: (bomId: string, plan: { materialCode: string; sheets: number; offcutAreaSqMeters: number; scrapPercentage: number }[]) => void;
   createBOMRevision: (sourceBomId: string, newRevisionCode: string, reason: string) => TechnicalBOM;
   releaseTechnicalPackageToPlanning: (data: { technicalProjectId: string; bomId: string; designRevisionId?: string; surveyId?: string; notes?: string; targetProductionStartDate?: string; targetFactoryCompletionDate?: string; targetSiteInstallationDate?: string; specialManufacturingInstructions?: string }) => TechnicalReleasePackage;
   createEngineeringChangeRequest: (data: Omit<EngineeringChangeRequest, 'id' | 'ecrNumber' | 'createdAt' | 'status'>) => EngineeringChangeRequest;
@@ -355,6 +383,28 @@ interface ERPContextType {
   // Prompt 7: Production & Installation State
   productionOrders: ProductionOrder[];
   installationRecords: InstallationRecord[];
+
+  // Shop floor (work centers, station work orders, scrap, off-cuts, packages, QC)
+  workCenters: WorkCenter[];
+  setWorkCenters: React.Dispatch<React.SetStateAction<WorkCenter[]>>;
+  workOrders: WorkOrder[];
+  setWorkOrders: React.Dispatch<React.SetStateAction<WorkOrder[]>>;
+  scrapClaims: ScrapClaimRecord[];
+  setScrapClaims: React.Dispatch<React.SetStateAction<ScrapClaimRecord[]>>;
+  offCutReturns: OffCutReturnRecord[];
+  setOffCutReturns: React.Dispatch<React.SetStateAction<OffCutReturnRecord[]>>;
+  manufacturingPackages: ManufacturingPackageItem[];
+  setManufacturingPackages: React.Dispatch<React.SetStateAction<ManufacturingPackageItem[]>>;
+  qualityInspections: QualityGateInspection[];
+  setQualityInspections: React.Dispatch<React.SetStateAction<QualityGateInspection[]>>;
+  shopWorkers: ShopWorker[];
+  setShopWorkers: React.Dispatch<React.SetStateAction<ShopWorker[]>>;
+  /** Outside-shop work received back: Dr WIP / Cr suppliers. */
+  postSubcontractCost: (productionOrderId: string, vendorName: string, amount: number, operationName: string) => void;
+  /** Replacement for a scrapped part leaves stock and is charged to the order. Returns the GIN number. */
+  issueScrapReplacement: (productionOrderId: string, materialCode: string, quantity: number, cost: number) => string;
+  /** Missing / broken parts made again as a small linked order. */
+  createRemakeOrder: (input: RemakeOrderInput) => ProductionOrder | null;
   selectedProductionOrderId: string | null;
 
   // Prompt 8: Central Finance State
@@ -404,7 +454,7 @@ interface ERPContextType {
     orderId?: string;
     projectId?: string;
     notes?: string;
-  }) => CustomerAdvance;
+  }, options?: { silent?: boolean }) => CustomerAdvance;
   applyCustomerAdvanceToInvoice: (invoiceId: string, advanceId: string, amountToApply: number) => boolean;
   createVendorBill: (billData: any) => VendorBill;
   recordVendorBillPayment: (billId: string, amount: number, paymentMethod: string, accountId: string, withholdingTaxRate?: number, notes?: string) => boolean;
@@ -511,6 +561,7 @@ interface ERPContextType {
   reserveProductionMaterials: (productionOrderId: string, materialId: string, qtyToReserve: number) => void;
   consumeProductionMaterials: (productionOrderId: string, materialId: string, qtyToConsume: number, notes?: string) => void;
   completeProductionOrder: (productionOrderId: string, completionPhotos: string[], notes?: string) => void;
+  startProductionOrder: (productionOrderId: string) => boolean;
   scheduleInstallation: (productionOrderId: string, scheduledDate: string, scheduledTime: string, address: string, assignedTeamIds: string[], notes?: string) => InstallationRecord;
   completeInstallation: (installationId: string, afterPhotos: string[], notes?: string) => void;
   completeHandover: (installationId: string, notes?: string) => void;
@@ -543,6 +594,7 @@ interface ERPContextType {
   approveMaterialRequisition: (reqId: string) => void;
   rejectMaterialRequisition: (reqId: string, reason?: string) => void;
   confirmWarehouseTransfer: (transferId: string) => void;
+  createWarehouseTransfer: (data: { sourceWarehouseId: string; destinationWarehouseId: string; itemId: string; quantity: number; driverName?: string; notes?: string }) => StockTransfer | null;
 
   // Complete Procurement & Purchasing State
   purchaseRequests: PurchaseRequest[];
@@ -589,115 +641,270 @@ interface ERPContextType {
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
 
 export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [company, setCompany] = useState<CompanyConfig>(initialCompany);
-  const [branches, setBranches] = useState<Branch[]>(initialBranches);
-  const [roles, setRoles] = useState<Role[]>(initialRoles);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(initialAuditLogs);
+  // Working data saved in the browser (if any) wins over the seeded scenario
+  const [persistedDemo] = useState(() => loadDemoState());
+  const restore = <T,>(key: string, seed: () => T): T =>
+    persistedDemo && key in persistedDemo ? (persistedDemo[key] as T) : seed();
+
+  const [company, setCompany] = useState<CompanyConfig>(() => restore('company', () => harmonizeMockData(initialCompany)));
+  const [branches, setBranches] = useState<Branch[]>(() => restore('branches', () => harmonizeMockData(initialBranches)));
+  const [roles, setRoles] = useState<Role[]>(() => restore('roles', () => harmonizeMockData(initialRoles)));
+  const [users, setUsers] = useState<User[]>(() => restore('users', () => harmonizeMockData(initialUsers)));
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => restore('auditLogs', () => harmonizeMockData(initialAuditLogs)));
   
   // CRM State
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>(initialCampaigns);
-  const [activities, setActivities] = useState<CustomerActivity[]>(initialActivities);
-  const [reminders, setReminders] = useState<CustomerReminder[]>(initialReminders);
-  const [documents, setDocuments] = useState<CustomerDocument[]>(initialDocuments);
-  const [afterSalesRecords, setAfterSalesRecords] = useState<AfterSalesRecord[]>(initialAfterSalesRecords);
+  const [customers, setCustomers] = useState<Customer[]>(() => restore('customers', () => harmonizeMockData(initialCustomers)));
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>(() => restore('campaigns', () => harmonizeMockData(initialCampaigns)));
+  const [activities, setActivities] = useState<CustomerActivity[]>(() => restore('activities', () => harmonizeMockData(initialActivities)));
+  const [reminders, setReminders] = useState<CustomerReminder[]>(() => restore('reminders', () => harmonizeMockData(initialReminders)));
+  const [documents, setDocuments] = useState<CustomerDocument[]>(() => restore('documents', () => harmonizeMockData(initialDocuments)));
+  const [afterSalesRecords, setAfterSalesRecords] = useState<AfterSalesRecord[]>(() => restore('afterSalesRecords', () => harmonizeMockData(initialAfterSalesRecords)));
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   // Ready Sales & Suppliers State
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
-  const [supplierInvoices, setSupplierInvoices] = useState<SupplierPurchaseInvoice[]>(initialSupplierInvoices);
-  const [supplierPayments, setSupplierPayments] = useState<SupplierPaymentRecord[]>(initialSupplierPayments);
-  const [orders, setOrders] = useState<ReadyOrder[]>(initialOrders);
-  const [payments, setPayments] = useState<CustomerPayment[]>(initialPayments);
-  const [paymentSchedules, setPaymentSchedules] = useState<PaymentSchedule[]>(initialCommercialPaymentSchedules);
-  const [returns, setReturns] = useState<OrderReturn[]>(initialReturns);
+  const [products, setProducts] = useState<Product[]>(() => restore('products', () => harmonizeMockData(initialProducts)));
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => restore('suppliers', () => harmonizeMockData(initialSuppliers)));
+  const [supplierInvoices, setSupplierInvoices] = useState<SupplierPurchaseInvoice[]>(() => restore('supplierInvoices', () => harmonizeMockData(initialSupplierInvoices)));
+  const [supplierPayments, setSupplierPayments] = useState<SupplierPaymentRecord[]>(() => restore('supplierPayments', () => harmonizeMockData(initialSupplierPayments)));
+  const [orders, setOrders] = useState<ReadyOrder[]>(() => restore('orders', () => harmonizeMockData(initialOrders)));
+  const [payments, setPayments] = useState<CustomerPayment[]>(() => restore('payments', () => harmonizeMockData(initialPayments)));
+  const [paymentSchedules, setPaymentSchedules] = useState<PaymentSchedule[]>(() => restore('paymentSchedules', () => harmonizeMockData(initialCommercialPaymentSchedules)));
+  const [returns, setReturns] = useState<OrderReturn[]>(() => restore('returns', () => harmonizeMockData(initialReturns)));
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
 
   // Prompt 4 State
-  const [materials, setMaterials] = useState<Material[]>(initialMaterials);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(initialPurchaseOrders);
-  const [stockMovements, setStockMovements] = useState<StockMovement[]>(initialStockMovements);
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(initialStockTransfers);
-  const [supplierReturns, setSupplierReturns] = useState<SupplierReturn[]>(initialSupplierReturns);
-  const [notifications, setNotifications] = useState<SystemNotification[]>(initialNotifications);
+  const [materials, setMaterials] = useState<Material[]>(() => restore('materials', () => harmonizeMockData(initialMaterials)));
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => restore('purchaseOrders', () => harmonizeMockData(initialPurchaseOrders)));
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>(() => restore('stockMovements', () => harmonizeMockData(initialStockMovements)));
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(() => restore('stockTransfers', () => harmonizeMockData(initialStockTransfers)));
+  const [supplierReturns, setSupplierReturns] = useState<SupplierReturn[]>(() => restore('supplierReturns', () => harmonizeMockData(initialSupplierReturns)));
+  const [notifications, setNotifications] = useState<SystemNotification[]>(() => restore('notifications', () => harmonizeMockData(initialNotifications)));
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
 
   // Prompt 5 & 6 State
-  const [customProjects, setCustomProjects] = useState<CustomProject[]>(initialCustomProjects);
-  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(initialSiteVisits);
-  const [projectMeasurements, setProjectMeasurements] = useState<ProjectMeasurement[]>(initialProjectMeasurements);
-  const [projectDesigns, setProjectDesigns] = useState<ProjectDesign[]>(initialProjectDesigns);
-  const [projectQuotations, setProjectQuotations] = useState<ProjectQuotation[]>(initialProjectQuotations);
-  const [projectTimelineEvents, setProjectTimelineEvents] = useState<ProjectTimelineEvent[]>(initialProjectTimelineEvents);
-  const [customContracts, setCustomContracts] = useState<CustomContract[]>(initialCustomContracts);
-  const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(initialProjectHandovers);
-  const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(initialPaymentReceipts);
-  const [variationOrders, setVariationOrders] = useState<VariationOrder[]>(initialVariationOrders);
+  const [customProjects, setCustomProjects] = useState<CustomProject[]>(() => restore('customProjects', () => harmonizeMockData(initialCustomProjects)));
+  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(() => restore('siteVisits', () => harmonizeMockData(initialSiteVisits)));
+  const [projectMeasurements, setProjectMeasurements] = useState<ProjectMeasurement[]>(() => restore('projectMeasurements', () => harmonizeMockData(initialProjectMeasurements)));
+  const [projectDesigns, setProjectDesigns] = useState<ProjectDesign[]>(() => restore('projectDesigns', () => harmonizeMockData(initialProjectDesigns)));
+  const [projectQuotations, setProjectQuotations] = useState<ProjectQuotation[]>(() => restore('projectQuotations', () => harmonizeMockData(initialProjectQuotations)));
+  const [projectTimelineEvents, setProjectTimelineEvents] = useState<ProjectTimelineEvent[]>(() => restore('projectTimelineEvents', () => harmonizeMockData(initialProjectTimelineEvents)));
+  const [customContracts, setCustomContracts] = useState<CustomContract[]>(() => restore('customContracts', () => harmonizeMockData(initialCustomContracts)));
+  const [projectHandovers, setProjectHandovers] = useState<ProjectHandoverProtocol[]>(() => restore('projectHandovers', () => harmonizeMockData(initialProjectHandovers)));
+  const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceipt[]>(() => restore('paymentReceipts', () => harmonizeMockData(initialPaymentReceipts)));
+  const [variationOrders, setVariationOrders] = useState<VariationOrder[]>(() => restore('variationOrders', () => harmonizeMockData(initialVariationOrders)));
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [portalCurrentCustomerId, setPortalCurrentCustomerId] = useState<string>('cust-1');
 
   // Technical Office & Engineering State
-  const [technicalProjects, setTechnicalProjects] = useState<TechnicalProject[]>(initialTechnicalProjects);
-  const [technicalSurveys, setTechnicalSurveys] = useState<TechnicalSiteSurvey[]>(initialTechnicalSurveys);
-  const [technicalDesigns, setTechnicalDesigns] = useState<TechnicalDesignRevision[]>(initialTechnicalDesigns);
-  const [technicalBOMs, setTechnicalBOMs] = useState<TechnicalBOM[]>(initialTechnicalBOMs);
-  const [technicalReleases, setTechnicalReleases] = useState<TechnicalReleasePackage[]>(initialTechnicalReleases);
-  const [engineeringChangeRequests, setEngineeringChangeRequests] = useState<EngineeringChangeRequest[]>(initialEngineeringChangeRequests);
+  const [technicalProjects, setTechnicalProjects] = useState<TechnicalProject[]>(() => restore('technicalProjects', () => harmonizeMockData(initialTechnicalProjects)));
+  const [technicalSurveys, setTechnicalSurveys] = useState<TechnicalSiteSurvey[]>(() => restore('technicalSurveys', () => harmonizeMockData(initialTechnicalSurveys)));
+  const [technicalDesigns, setTechnicalDesigns] = useState<TechnicalDesignRevision[]>(() => restore('technicalDesigns', () => harmonizeMockData(initialTechnicalDesigns)));
+  const [technicalBOMs, setTechnicalBOMs] = useState<TechnicalBOM[]>(() => restore('technicalBOMs', () => harmonizeMockData(initialTechnicalBOMs)));
+  const [technicalReleases, setTechnicalReleases] = useState<TechnicalReleasePackage[]>(() => restore('technicalReleases', () => harmonizeMockData(initialTechnicalReleases)));
+  const [engineeringChangeRequests, setEngineeringChangeRequests] = useState<EngineeringChangeRequest[]>(() => restore('engineeringChangeRequests', () => harmonizeMockData(initialEngineeringChangeRequests)));
   const [selectedTechnicalProjectId, setSelectedTechnicalProjectId] = useState<string | null>(null);
 
   // Prompt 7 State
-  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(initialProductionOrders);
-  const [installationRecords, setInstallationRecords] = useState<InstallationRecord[]>(initialInstallationRecords);
+  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(() => restore('productionOrders', () => harmonizeMockData(initialProductionOrders)));
+  const [installationRecords, setInstallationRecords] = useState<InstallationRecord[]>(() => restore('installationRecords', () => harmonizeMockData(initialInstallationRecords)));
+  const [workCenters, setWorkCenters] = useState<WorkCenter[]>(() => restore('workCenters', () => harmonizeMockData(initialWorkCenters)));
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(() => restore('workOrders', () => harmonizeMockData(initialWorkOrders)));
+  const [scrapClaims, setScrapClaims] = useState<ScrapClaimRecord[]>(() => restore('scrapClaims', () => harmonizeMockData(initialScrapClaims)));
+  const [offCutReturns, setOffCutReturns] = useState<OffCutReturnRecord[]>(() => restore('offCutReturns', () => harmonizeMockData(initialOffCutReturns)));
+  const [manufacturingPackages, setManufacturingPackages] = useState<ManufacturingPackageItem[]>(() => restore('manufacturingPackages', () => harmonizeMockData(initialPackages)));
+  const [qualityInspections, setQualityInspections] = useState<QualityGateInspection[]>(() => restore('qualityInspections', () => harmonizeMockData(initialQualityInspections)));
+  const [shopWorkers, setShopWorkers] = useState<ShopWorker[]>(() => restore('shopWorkers', () => initialShopWorkers));
   const [selectedProductionOrderId, setSelectedProductionOrderId] = useState<string | null>(null);
 
   // Prompt 8 Finance State
-  const [expenses, setExpenses] = useState<CompanyExpense[]>(initialCompanyExpenses);
-  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>(initialFinancialAccounts);
-  const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>(initialFinancialTransactions);
+  const [expenses, setExpenses] = useState<CompanyExpense[]>(() => restore('expenses', () => harmonizeMockData(initialCompanyExpenses)));
+  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>(() => restore('financialAccounts', () => harmonizeMockData(initialFinancialAccounts)));
+  const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>(() => restore('financialTransactions', () => harmonizeMockData(initialFinancialTransactions)));
 
   // Production-Ready Accounting Module State
-  const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>(initialChartOfAccounts);
-  const [journals, setJournals] = useState<Journal[]>(initialJournals);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(initialJournalEntries);
-  const [fiscalPeriods, setFiscalPeriods] = useState<FiscalPeriod[]>(initialFiscalPeriods);
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(initialCostCenters);
-  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(initialSalesInvoices);
-  const [vendorBills, setVendorBills] = useState<VendorBill[]>(initialVendorBills);
-  const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(initialCustomerAdvances);
-  const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(initialPDCRecords);
+  const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>(() => restore('chartOfAccounts', () => harmonizeMockData(initialChartOfAccounts)));
+  const [journals, setJournals] = useState<Journal[]>(() => restore('journals', () => harmonizeMockData(initialJournals)));
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(() => restore('journalEntries', () => harmonizeMockData(initialJournalEntries)));
+  const [fiscalPeriods, setFiscalPeriods] = useState<FiscalPeriod[]>(() => restore('fiscalPeriods', () => buildFiscalPeriods() as FiscalPeriod[]));
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(() => restore('costCenters', () => harmonizeMockData(initialCostCenters)));
+  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(() => restore('salesInvoices', () => harmonizeMockData(initialSalesInvoices)));
+  const [vendorBills, setVendorBills] = useState<VendorBill[]>(() => restore('vendorBills', () => harmonizeMockData(initialVendorBills)));
+  const [customerAdvances, setCustomerAdvances] = useState<CustomerAdvance[]>(() => restore('customerAdvances', () => harmonizeMockData(initialCustomerAdvances)));
+  const [pdcRecords, setPdcRecords] = useState<PDCRecord[]>(() => restore('pdcRecords', () => harmonizeMockData(initialPDCRecords)));
 
   // Enterprise Warehouses & Inventory State
-  const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(initialWarehouses);
-  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(initialItemMasterCards);
-  const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(initialGoodsReceiptNotes);
-  const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(initialGoodsIssueNotes);
-  const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(initialMaterialRequisitions);
-  const [stocktakeSessions, setStocktakeSessions] = useState<StocktakeSession[]>(initialStocktakeSessions);
-  const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(initialStockLedgerEntries);
+  const [warehouses, setWarehouses] = useState<WarehouseLocation[]>(() => restore('warehouses', () => harmonizeMockData(initialWarehouses)));
+  const [itemMasterCards, setItemMasterCards] = useState<ItemMasterCard[]>(() => normalizeItemCards(restore('itemMasterCards', () => harmonizeMockData(ensureCatalogItemCards(initialItemMasterCards))), warehouses));
+  const [goodsReceiptNotes, setGoodsReceiptNotes] = useState<GoodsReceiptNote[]>(() => restore('goodsReceiptNotes', () => harmonizeMockData(initialGoodsReceiptNotes)));
+  const [goodsIssueNotes, setGoodsIssueNotes] = useState<GoodsIssueNote[]>(() => restore('goodsIssueNotes', () => harmonizeMockData(initialGoodsIssueNotes)));
+  const [materialRequisitions, setMaterialRequisitions] = useState<MaterialRequisition[]>(() => restore('materialRequisitions', () => harmonizeMockData(initialMaterialRequisitions)));
+  const [stocktakeSessions, setStocktakeSessions] = useState<StocktakeSession[]>(() => restore('stocktakeSessions', () => harmonizeMockData(initialStocktakeSessions)));
+  const [stockLedgerEntries, setStockLedgerEntries] = useState<StockLedgerEntry[]>(() => restore('stockLedgerEntries', () => harmonizeMockData(initialStockLedgerEntries)));
   const [selectedItemCardId, setSelectedItemCardId] = useState<string | null>(null);
 
   // Planning & MRP Module State
-  const [planningDemands, setPlanningDemands] = useState<PlanningDemand[]>(initialPlanningDemands);
-  const [supplyProposals, setSupplyProposals] = useState<SupplyProposal[]>(initialSupplyProposals);
-  const [workCenterCapacities, setWorkCenterCapacities] = useState<WorkCenterCapacity[]>(initialWorkCenterCapacities);
-  const [projectReadinessList, setProjectReadinessList] = useState<ProjectPlanningReadiness[]>(initialProjectReadinessList);
-  const [planningRuns, setPlanningRuns] = useState<PlanningRun[]>(initialPlanningRuns);
-  const [mpsWeeklyBuckets, setMpsWeeklyBuckets] = useState<MPSWeeklyBucket[]>(initialMPSWeeklyBuckets);
-  const [mpsItems, setMpsItems] = useState<MPSItemRow[]>(initialMPSItems);
-  const [planningAuditLogs, setPlanningAuditLogs] = useState<PlanningAuditEntry[]>(initialPlanningAuditLogs);
+  const [planningDemands, setPlanningDemands] = useState<PlanningDemand[]>(() => restore('planningDemands', () => harmonizeMockData(initialPlanningDemands, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [supplyProposals, setSupplyProposals] = useState<SupplyProposal[]>(() => restore('supplyProposals', () => harmonizeMockData(initialSupplyProposals, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [workCenterCapacities, setWorkCenterCapacities] = useState<WorkCenterCapacity[]>(() => restore('workCenterCapacities', () => harmonizeMockData(initialWorkCenterCapacities, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [projectReadinessList, setProjectReadinessList] = useState<ProjectPlanningReadiness[]>(() => restore('projectReadinessList', () => harmonizeMockData(initialProjectReadinessList, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [planningRuns, setPlanningRuns] = useState<PlanningRun[]>(() => restore('planningRuns', () => harmonizeMockData(initialPlanningRuns, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [mpsWeeklyBuckets, setMpsWeeklyBuckets] = useState<MPSWeeklyBucket[]>(() => restore('mpsWeeklyBuckets', () => harmonizeMockData(initialMPSWeeklyBuckets, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [mpsItems, setMpsItems] = useState<MPSItemRow[]>(() => restore('mpsItems', () => harmonizeMockData(initialMPSItems, { anchor: PLANNING_MOCK_ANCHOR })));
+  const [planningAuditLogs, setPlanningAuditLogs] = useState<PlanningAuditEntry[]>(() => restore('planningAuditLogs', () => harmonizeMockData(initialPlanningAuditLogs, { anchor: PLANNING_MOCK_ANCHOR })));
 
   // Complete Procurement & Purchasing Module State
-  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(initialPurchaseRequests);
-  const [rfqs, setRFQs] = useState<RequestForQuotation[]>(initialRFQs);
-  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(initialSupplierQuotations);
-  const [enterprisePurchaseOrders, setEnterprisePurchaseOrders] = useState<EnterprisePurchaseOrder[]>(initialEnterprisePurchaseOrders);
-  const [supplierPriceLists, setSupplierPriceLists] = useState<SupplierItemPrice[]>(initialSupplierPriceLists);
-  const [procurementSupplierReturns, setProcurementSupplierReturns] = useState<ProcurementSupplierReturn[]>(initialProcurementReturns);
-  const [threeWayMatches, setThreeWayMatches] = useState<ThreeWayMatchingRecord[]>(initialThreeWayMatches);
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(() => restore('purchaseRequests', () => harmonizeMockData(initialPurchaseRequests)));
+  const [rfqs, setRFQs] = useState<RequestForQuotation[]>(() => restore('rfqs', () => harmonizeMockData(initialRFQs)));
+  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(() => restore('supplierQuotations', () => harmonizeMockData(initialSupplierQuotations)));
+  const [enterprisePurchaseOrders, setEnterprisePurchaseOrders] = useState<EnterprisePurchaseOrder[]>(() => restore('enterprisePurchaseOrders', () => harmonizeMockData(initialEnterprisePurchaseOrders)));
+  const [supplierPriceLists, setSupplierPriceLists] = useState<SupplierItemPrice[]>(() => restore('supplierPriceLists', () => harmonizeMockData(initialSupplierPriceLists)));
+  const [procurementSupplierReturns, setProcurementSupplierReturns] = useState<ProcurementSupplierReturn[]>(() => restore('procurementSupplierReturns', () => harmonizeMockData(initialProcurementReturns)));
+  const [threeWayMatches, setThreeWayMatches] = useState<ThreeWayMatchingRecord[]>(() => restore('threeWayMatches', () => harmonizeMockData(initialThreeWayMatches)));
+
+
+  // When stock arrives (goods receipt), production orders waiting on it are released:
+  // short lines become reserved, the blocked first station becomes ready, and the
+  // matching planning demands are marked supplied.
+  useEffect(() => {
+    const resolved: Array<{ projectNumber: string; code: string }> = [];
+    const releasedOrders: ProductionOrder[] = [];
+    let changed = false;
+    const next = productionOrders.map(mo => {
+      if (mo.status !== 'pending' || !mo.materials.some(m => m.status === 'shortage')) return mo;
+      let touched = false;
+      const materialsNext = mo.materials.map(m => {
+        if (m.status !== 'shortage') return m;
+        const item = resolveCatalogItem(m.materialCode);
+        const available = item ? availableStockFor(item, itemMasterCards, materials) : 0;
+        if (available < m.requiredQuantity) return m;
+        touched = true;
+        resolved.push({ projectNumber: mo.projectNumber, code: item?.key || m.materialCode });
+        return { ...m, reservedQuantity: m.requiredQuantity, status: 'reserved' as const };
+      });
+      if (!touched) return mo;
+      changed = true;
+      const updated = { ...mo, materials: materialsNext };
+      if (!materialsNext.some(m => m.status === 'shortage')) releasedOrders.push(updated);
+      return updated;
+    });
+    if (!changed) return;
+
+    setProductionOrders(next);
+    setPlanningDemands(prev => prev.map(d => resolved.some(r =>
+      r.projectNumber === d.projectNumber && (resolveCatalogItem(d.itemCode)?.key || d.itemCode) === r.code
+    ) ? { ...d, status: 'fully_supplied' } : d));
+
+    if (releasedOrders.length > 0) {
+      const ids = new Set(releasedOrders.map(o => o.id));
+      setWorkOrders(prev => prev.map(wo => ids.has(wo.manufacturingOrderId) && wo.status === 'blocked'
+        ? { ...wo, status: 'ready', specialInstructions: 'تم استلام الخامات الناقصة - جاهز لبدء التشغيل' }
+        : wo));
+      setProjectReadinessList(prev => prev.map(r => releasedOrders.some(o => o.projectId === r.projectId)
+        ? { ...r, overallReadiness: 'ready', readinessPercentage: 100, coveredMaterialsCount: r.totalMaterialDemandsCount, shortageMaterialsCount: 0, criticalShortages: [] }
+        : r));
+      releasedOrders.forEach(o => addTimelineEvent(o.projectId, `اكتمال خامات ${o.productionNumber}`, 'تم استلام الخامات الناقصة بالمخزن وأمر التصنيع جاهز لبدء التشغيل', 'production'));
+      showToast(`📦 تم استلام الخامات: ${releasedOrders.map(o => o.productionNumber).join('، ')} جاهز لبدء التشغيل في الورشة`, 'success');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemMasterCards]);
+
+  // Journal entry numbers continue from the highest one already posted
+  useEffect(() => {
+    AccountingService.seedEntrySequence(journalEntries.map(e => e.entryNumber));
+  }, [journalEntries]);
+
+  // Persist the working data so a refresh keeps what was done on screen
+  useEffect(() => {
+    const timer = window.setTimeout(() => saveDemoState({
+      company,
+      branches,
+      roles,
+      users,
+      auditLogs,
+      customers,
+      campaigns,
+      activities,
+      reminders,
+      documents,
+      afterSalesRecords,
+      products,
+      suppliers,
+      supplierInvoices,
+      supplierPayments,
+      orders,
+      payments,
+      paymentSchedules,
+      returns,
+      materials,
+      purchaseOrders,
+      stockMovements,
+      stockTransfers,
+      supplierReturns,
+      notifications,
+      customProjects,
+      siteVisits,
+      projectMeasurements,
+      projectDesigns,
+      projectQuotations,
+      projectTimelineEvents,
+      customContracts,
+      projectHandovers,
+      paymentReceipts,
+      variationOrders,
+      technicalProjects,
+      technicalSurveys,
+      technicalDesigns,
+      technicalBOMs,
+      technicalReleases,
+      engineeringChangeRequests,
+      productionOrders,
+      installationRecords,
+      workCenters,
+      workOrders,
+      scrapClaims,
+      offCutReturns,
+      manufacturingPackages,
+      qualityInspections,
+      shopWorkers,
+      expenses,
+      financialAccounts,
+      financialTransactions,
+      chartOfAccounts,
+      journals,
+      journalEntries,
+      fiscalPeriods,
+      costCenters,
+      salesInvoices,
+      vendorBills,
+      customerAdvances,
+      pdcRecords,
+      warehouses,
+      itemMasterCards,
+      goodsReceiptNotes,
+      goodsIssueNotes,
+      materialRequisitions,
+      stocktakeSessions,
+      stockLedgerEntries,
+      planningDemands,
+      supplyProposals,
+      workCenterCapacities,
+      projectReadinessList,
+      planningRuns,
+      mpsWeeklyBuckets,
+      mpsItems,
+      planningAuditLogs,
+      purchaseRequests,
+      rfqs,
+      supplierQuotations,
+      enterprisePurchaseOrders,
+      supplierPriceLists,
+      procurementSupplierReturns,
+      threeWayMatches
+    }), 400);
+    return () => window.clearTimeout(timer);
+  }, [company, branches, roles, users, auditLogs, customers, campaigns, activities, reminders, documents, afterSalesRecords, products, suppliers, supplierInvoices, supplierPayments, orders, payments, paymentSchedules, returns, materials, purchaseOrders, stockMovements, stockTransfers, supplierReturns, notifications, customProjects, siteVisits, projectMeasurements, projectDesigns, projectQuotations, projectTimelineEvents, customContracts, projectHandovers, paymentReceipts, variationOrders, technicalProjects, technicalSurveys, technicalDesigns, technicalBOMs, technicalReleases, engineeringChangeRequests, productionOrders, installationRecords, workCenters, workOrders, scrapClaims, offCutReturns, manufacturingPackages, qualityInspections, shopWorkers, expenses, financialAccounts, financialTransactions, chartOfAccounts, journals, journalEntries, fiscalPeriods, costCenters, salesInvoices, vendorBills, customerAdvances, pdcRecords, warehouses, itemMasterCards, goodsReceiptNotes, goodsIssueNotes, materialRequisitions, stocktakeSessions, stockLedgerEntries, planningDemands, supplyProposals, workCenterCapacities, projectReadinessList, planningRuns, mpsWeeklyBuckets, mpsItems, planningAuditLogs, purchaseRequests, rfqs, supplierQuotations, enterprisePurchaseOrders, supplierPriceLists, procurementSupplierReturns, threeWayMatches]);
   const [selectedPRId, setSelectedPRId] = useState<string | null>(null);
   const [selectedRFQId, setSelectedRFQId] = useState<string | null>(null);
   const [selectedPOId, setSelectedPOId] = useState<string | null>(null);
@@ -764,6 +971,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     mfg_job_cards: '/operations/manufacturing/job-cards',
     mfg_scrap: '/operations/manufacturing/scrap',
     mfg_qc: '/operations/manufacturing/qc',
+    mfg_daily: '/operations/manufacturing/daily',
+    mfg_remake: '/operations/manufacturing/remakes',
+    mfg_workforce: '/operations/manufacturing/workforce',
     installation: '/operations/installation',
     finance: '/accounting/dashboard',
     acc_dashboard: '/accounting/dashboard',
@@ -859,6 +1069,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     '/mfg_scrap': 'mfg_scrap',
     '/operations/manufacturing/qc': 'mfg_qc',
     '/mfg_qc': 'mfg_qc',
+    '/operations/manufacturing/daily': 'mfg_daily',
+    '/mfg_daily': 'mfg_daily',
+    '/operations/manufacturing/remakes': 'mfg_remake',
+    '/mfg_remake': 'mfg_remake',
+    '/operations/manufacturing/workforce': 'mfg_workforce',
+    '/mfg_workforce': 'mfg_workforce',
     '/operations/installation': 'installation',
     '/installation': 'installation',
     '/operations/suppliers': 'suppliers',
@@ -1325,6 +1541,63 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     showToast('تم تحديث بيانات العميل بنجاح', 'success');
   };
+
+  // Keep each customer's CRM stage in step with their projects and orders:
+  // a signed contract makes them "won", production makes them "active", handover makes them "completed".
+  // The first pass after load only aligns the data silently; later moves are logged on the customer's timeline.
+  const lastPipelineSync = useRef<{ projects: CustomProject[]; orders: ReadyOrder[] } | null>(null);
+  useEffect(() => {
+    const previous = lastPipelineSync.current;
+    if (previous && previous.projects === customProjects && previous.orders === orders) return;
+    lastPipelineSync.current = { projects: customProjects, orders };
+
+    const changes: { customer: Customer; status: CustomerStatus }[] = [];
+    customers.forEach(c => {
+      const next = CrmService.getPipelineStatus(
+        c,
+        customProjects.filter(p => p.customerId === c.id),
+        orders.filter(o => o.customerId === c.id)
+      );
+      if (next) changes.push({ customer: c, status: next });
+    });
+
+    const silent = previous === null;
+    if (changes.length === 0) return;
+
+    const byId = new Map(changes.map(ch => [ch.customer.id, ch.status]));
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    setCustomers(prev => prev.map(c => {
+      const status = byId.get(c.id);
+      if (!status) return c;
+      return {
+        ...c,
+        status,
+        lostReason: undefined,
+        lostNote: undefined,
+        hasPurchased: c.hasPurchased || CrmService.isPurchasedStatus(status),
+        isAfterSales: c.isAfterSales || status === 'completed',
+        lastActivityDate: silent ? c.lastActivityDate : timestamp
+      };
+    }));
+
+    if (!silent) {
+      const today = timestamp.substring(0, 10);
+      setActivities(prev => [
+        ...changes.map((ch, i): CustomerActivity => ({
+          id: `act-sync-${Date.now()}-${i}`,
+          customerId: ch.customer.id,
+          type: 'status_change',
+          title: `انتقال تلقائي إلى: ${CrmService.getStatusMeta(ch.status).label}`,
+          note: `تم تحديث مرحلة العميل تلقائياً من "${CrmService.getStatusMeta(ch.customer.status).label}" بناءً على تقدم مشروعه أو طلبه.`,
+          date: today,
+          timestamp,
+          userId: 'system',
+          userName: 'النظام (تلقائي)'
+        })),
+        ...prev
+      ]);
+    }
+  }, [customProjects, orders]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateCustomerStatus = (customerId: string, newStatus: CustomerStatus, lostReason?: LostReason, lostNote?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
@@ -1861,7 +2134,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const createCustomProject = (projectData: any): CustomProject => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const today = timestamp.substring(0, 10);
-    const projectNumber = `PRJ-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const projectNumber = nextDocNumber('PRJ', customProjects.map(x => x.projectNumber), 3);
 
     const newProject: CustomProject = {
       id: `prj-${Date.now()}`,
@@ -1919,7 +2192,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const newTechPrj: TechnicalProject = {
         id: `tech-${Date.now()}`,
-        projectNumber: `TECH-2026-${Math.floor(100 + Math.random() * 900)}`,
+        projectNumber: nextDocNumber('TECH', technicalProjects.map(x => x.projectNumber), 3),
         salesProjectId: projectId,
         salesProjectNumber: salesPrj ? salesPrj.projectNumber : `PRJ-${projectId}`,
         projectName: salesPrj ? salesPrj.projectName : 'مشروع تفصيل جديد',
@@ -2051,7 +2324,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       projectId,
       designName: designData.designName || `تصميم 3D نسق V${nextVersion}`,
       version: nextVersion,
-      images: designData.images || ['https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'],
+      images: designData.images && designData.images.length ? designData.images : [NO_IMAGE_PLACEHOLDER],
       pdfUrl: designData.pdfUrl,
       notes: designData.notes,
       createdByUserName: currentUser.fullName,
@@ -2120,12 +2393,23 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalSelling: totalSelling - Number(quotationData.discount || 0),
       totalCost,
       estimatedProfit: estimatedProfit - Number(quotationData.discount || 0),
-      notes: quotationData.notes
+      notes: quotationData.notes,
+      breakdown: quotationData.breakdown,
+      configuration: quotationData.configuration
     };
 
     setProjectQuotations(prev => [...prev, newQuotation]);
-    updateProjectStatus(projectId, 'customer_approval');
-    showToast(`تم إرسال عرض السعر V${nextVersion} بمبلغ ${newQuotation.totalSelling.toLocaleString('ar-EG')} ج.م`, 'success');
+    // A re-quote after signing (e.g. a revised configuration) must not pull a contracted project back to sales
+    const preContractStatuses: ProjectStatus[] = ['new', 'opportunity', 'visit_scheduled', 'measured', 'designing', 'design_review', 'design_approved', 'quotation', 'quotation_sent', 'customer_approval', 'approved'];
+    const currentStatus = customProjects.find(p => p.id === projectId)?.status;
+    if (!currentStatus || preContractStatuses.includes(currentStatus)) {
+      updateProjectStatus(projectId, 'customer_approval');
+    }
+    if (quotationData.configuration) {
+      const m = quotationData.configuration.metrics;
+      addTimelineEvent(projectId, `عرض سعر V${nextVersion} بالـ Configurator`, `${m.unitsCount} وحدة (${m.baseMeters} م.ط سفلي / ${m.wallMeters} م.ط علوي / ${m.tallMeters} م.ط طولي) بقيمة ${newQuotation.totalSelling.toLocaleString()} ج.م قبل الضريبة`, 'quotation');
+    }
+    showToast(`تم إرسال عرض السعر V${nextVersion} بمبلغ ${newQuotation.totalSelling.toLocaleString()} ج.م قبل الضريبة`, 'success');
     return newQuotation;
   };
 
@@ -2158,7 +2442,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetProject = customProjects.find(p => p.id === targetQuotation.projectId);
     if (!targetProject) throw new Error('Project not found');
 
-    const contractNumber = `CNT-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const contractNumber = nextDocNumber('CNT', customContracts.map(x => x.contractNumber), 3);
     const totalVal = targetQuotation.totalSelling;
 
     const defaultMilestones: PaymentMilestone[] = customMilestones && customMilestones.length > 0 ? customMilestones : [
@@ -2222,12 +2506,72 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newContract;
   };
 
+  // Next number in a document series (e.g. PROD-2026-0015) from the documents already issued.
+  const nextDocNumber = (prefix: string, existing: string[], pad: number) => {
+    const year = new Date().getFullYear();
+    const max = existing.reduce((acc, n) => {
+      const v = Number(String(n).split('-').pop());
+      return Number.isFinite(v) ? Math.max(acc, v) : acc;
+    }, 0);
+    return `${prefix}-${year}-${String(max + 1).padStart(pad, '0')}`;
+  };
+
+  // Next sequential receipt number (RCP-<year>-NNN) based on the receipts already issued.
+  const nextReceiptNumber = () => {
+    const year = new Date().getFullYear();
+    const max = paymentReceipts.reduce((acc, r) => {
+      const n = Number(r.receiptNumber.split('-').pop());
+      return Number.isFinite(n) ? Math.max(acc, n) : acc;
+    }, 0);
+    return `RCP-${year}-${String(max + 1).padStart(3, '0')}`;
+  };
+
+  // Money collected against a bespoke contract is posted to accounting as a customer
+  // advance (Dr bank/cash, Cr customer advances until invoicing) and moves the treasury
+  // balance, so finance sees exactly what sales recorded.
+  const postContractCollection = (contract: CustomContract, amount: number, paymentMethod: string, receiptNumber: string, label: string) => {
+    const method = (['cash', 'bank_transfer', 'check', 'card'].includes(paymentMethod) ? paymentMethod : 'bank_transfer') as 'cash' | 'bank_transfer' | 'check' | 'card';
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    recordCustomerAdvancePayment({
+      customerId: contract.customerId,
+      amount,
+      paymentMethod: method,
+      accountId: '',
+      projectId: contract.projectId,
+      notes: `${label} - ${contract.contractNumber} (${receiptNumber})`
+    }, { silent: true });
+
+    const treasury = financialAccounts.find(a => a.type === (method === 'cash' ? 'cash' : 'bank')) || financialAccounts[0];
+    if (!treasury) return;
+    setFinancialAccounts(prev => prev.map(a => a.id === treasury.id ? { ...a, currentBalance: a.currentBalance + amount } : a));
+    setFinancialTransactions(prev => [{
+      id: `ft-${Date.now()}`,
+      refNumber: receiptNumber,
+      timestamp,
+      type: 'income',
+      category: 'تحصيل دفعات عملاء',
+      description: `${label} - ${contract.customerName} (${contract.projectNumber})`,
+      amount,
+      direction: 'in',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      accountId: treasury.id,
+      accountName: treasury.name,
+      customerId: contract.customerId,
+      customerName: contract.customerName,
+      projectId: contract.projectId,
+      projectNumber: contract.projectNumber,
+      createdByUserName: currentUser.fullName
+    }, ...prev]);
+  };
+
   const verifyContractDeposit = (contractId: string, receiptNumber?: string, amount?: number) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetContract = customContracts.find(c => c.id === contractId);
     if (!targetContract) return;
 
-    const rNumber = receiptNumber || `RCP-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const rNumber = receiptNumber || nextReceiptNumber();
     const depositAmt = amount || (targetContract.milestones[0]?.amount || Math.round(targetContract.totalValue * 0.4));
 
     setCustomContracts(prev => prev.map(c => {
@@ -2265,10 +2609,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notes: `عربون تعاقد لمشروع ${targetContract.projectNumber}`
     };
     setPaymentReceipts(prev => [newReceipt, ...prev]);
+    postContractCollection(targetContract, depositAmt, 'bank_transfer', rNumber, 'عربون تعاقد');
 
     updateProjectStatus(targetContract.projectId, 'deposit_verified');
     addTimelineEvent(targetContract.projectId, `تأكيد استلام عربون التعاقد (${rNumber})`, `تم إيداع مبلغ ${depositAmt.toLocaleString('ar-EG')} ج.م بالخزينة/البنك والتحقق المالي`, 'payment');
-    showToast(`✓ تم التحقق المالي من سداد العربون (${rNumber}) وإيداعه بحسابات الشركة`, 'success');
+    showToast(`✓ تم تحصيل العربون (${rNumber}) وترحيل قيد العربون للحسابات وإضافته لرصيد البنك`, 'success');
   };
 
   const createVariationOrder = (data: Omit<VariationOrder, 'id' | 'orderNumber' | 'status'>): VariationOrder => {
@@ -2298,21 +2643,64 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notes: notes ? `${v.notes || ''} | ${notes}` : v.notes
     } : v));
 
-    // Update the associated Contract's totalValue
+    // Contract value grows by the price impact, spread over the milestones not yet paid
+    // (by their percentage weight) so the payment schedule always adds up to the new total.
     setCustomContracts(prev => prev.map(c => {
-      if (c.id === targetVO.contractId || c.projectId === targetVO.projectId) {
-        const newTotal = c.totalValue + targetVO.totalPriceImpact;
-        return {
-          ...c,
-          totalValue: newTotal,
-          notes: `${c.notes || ''} [مُعدل بأمر تغيير ${targetVO.orderNumber}: +${targetVO.totalPriceImpact} ج.م]`
-        };
-      }
-      return c;
+      if (c.id !== targetVO.contractId && c.projectId !== targetVO.projectId) return c;
+      const newTotal = c.totalValue + targetVO.totalPriceImpact;
+      const open = c.milestones.filter(m => m.status === 'pending' || m.status === 'partially_paid');
+      const targets = open.length > 0 ? open : c.milestones.slice(-1);
+      const weight = targets.reduce((sum, m) => sum + m.percentage, 0) || 1;
+      let distributed = 0;
+      const milestones = c.milestones.map(m => {
+        const idx = targets.findIndex(t => t.id === m.id);
+        if (idx < 0) return m;
+        const share = idx === targets.length - 1
+          ? targetVO.totalPriceImpact - distributed
+          : Math.round((targetVO.totalPriceImpact * m.percentage) / weight);
+        distributed += share;
+        return { ...m, amount: m.amount + share, status: m.status === 'verified_in_finance' ? 'partially_paid' as const : m.status };
+      });
+      return {
+        ...c,
+        totalValue: newTotal,
+        milestones,
+        notes: `${c.notes || ''} [ملحق عقد ${targetVO.orderNumber}: +${targetVO.totalPriceImpact.toLocaleString('ar-EG')} ج.م]`
+      };
     }));
 
+    // Engineering side: the technical office gets an ECR to revise the BOM, and an
+    // order already on the shop floor is flagged.
+    const techProject = technicalProjects.find(tp => tp.salesProjectId === targetVO.projectId);
+    if (techProject) {
+      const bomRev = techProject.activeBomRevision || 'REV-A';
+      const nextRev = /^REV-[A-Z]$/.test(bomRev) ? `REV-${String.fromCharCode(bomRev.charCodeAt(4) + 1)}` : `${bomRev}-B`;
+      createEngineeringChangeRequest({
+        technicalProjectId: techProject.id,
+        projectNumber: techProject.projectNumber,
+        customerName: techProject.customerName,
+        title: `تنفيذ أمر التغيير ${targetVO.orderNumber}: ${targetVO.items.map(i => i.description).join(' + ')}`,
+        reason: targetVO.reason,
+        source: 'customer_request',
+        requestedByUserName: `${approverName} (المبيعات)`,
+        requestedDate: timestamp,
+        previousBomRevision: bomRev,
+        targetNewBomRevision: nextRev,
+        affectedUnits: targetVO.items.map(i => i.newSpec || i.description),
+        impactAssessment: {
+          costImpact: targetVO.totalCostImpact,
+          scheduleDelayDays: targetVO.deliveryDelayDays || 0,
+          materialsWasted: 'يحدده المكتب الفني بعد مراجعة حالة التصنيع',
+          customerApprovalRequired: false
+        }
+      });
+    }
+    setProductionOrders(prev => prev.map(o => o.projectId === targetVO.projectId && o.status !== 'completed'
+      ? { ...o, notes: `⚠️ أمر تغيير معتمد ${targetVO.orderNumber} - راجع الـ ECR قبل المرحلة القادمة | ${o.notes || ''}` }
+      : o));
+
     addTimelineEvent(targetVO.projectId, `اعتماد أمر التغيير (${targetVO.orderNumber})`, `تم اعتماد أمر التغيير وتعديل قيمة المشروع والعقد بفرق (${targetVO.totalPriceImpact >= 0 ? '+' : ''}${targetVO.totalPriceImpact.toLocaleString('ar-EG')} ج.م)`, 'approval');
-    showToast(`✓ تم اعتماد أمر التغيير (${targetVO.orderNumber}) وتحديث قيمة العقد والتشغيل`, 'success');
+    showToast(`✓ اعتماد ${targetVO.orderNumber}: العقد زاد ${targetVO.totalPriceImpact.toLocaleString('ar-EG')} ج.م وتوزع على الدفعات المتبقية، وتم فتح طلب تعديل هندسي (ECR) للمكتب الفني`, 'success');
   };
 
   const rejectVariationOrder = (id: string, approverName: string, notes?: string) => {
@@ -2336,7 +2724,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const recordMilestonePayment = (contractId: string, milestoneId: string, amount: number, paymentMethod: string, notes?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const rNumber = `RCP-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const rNumber = nextReceiptNumber();
 
     setCustomContracts(prev => prev.map(c => {
       if (c.id === contractId) {
@@ -2378,10 +2766,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         notes: notes || `سداد دفعة مرحلية لعقد ${targetContract.contractNumber}`
       };
       setPaymentReceipts(prev => [newReceipt, ...prev]);
+      const milestone = targetContract.milestones.find(m => m.id === milestoneId);
+      postContractCollection(targetContract, amount, paymentMethod, rNumber, milestone ? milestone.title : 'دفعة مرحلية');
       addTimelineEvent(targetContract.projectId, `تحصيل دفعة مرحلية (${rNumber})`, `تم تحصيل مبلغ ${amount.toLocaleString('ar-EG')} ج.م بالخزينة/الحساب`, 'payment');
     }
 
-    showToast(`✓ تم تسجيل تحصيل الدفعة (${rNumber}) بقيمة ${amount.toLocaleString('ar-EG')} ج.م بنجاح`, 'success');
+    showToast(`✓ تم تحصيل الدفعة (${rNumber}) بقيمة ${amount.toLocaleString('ar-EG')} ج.م وترحيل القيد للحسابات`, 'success');
   };
 
   const submitProjectHandover = (projectId: string, checklist: any, notesForTechOffice?: string): ProjectHandoverProtocol => {
@@ -2520,7 +2910,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       savedSurvey = {
         id: `srv-${Date.now()}`,
         technicalProjectId: surveyData.technicalProjectId,
-        surveyNumber: `SRV-2026-${Math.floor(100 + Math.random() * 900)}`,
+        surveyNumber: nextDocNumber('SRV', technicalSurveys.map(x => x.surveyNumber), 3),
         surveyorName: surveyData.surveyorName || currentUser.fullName,
         surveyDate: surveyData.surveyDate || timestamp.substring(0, 10),
         status: surveyData.status || 'draft',
@@ -2747,6 +3137,25 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return savedBOM;
   };
 
+  // The cutting plan fixes the exact sheet count per board; planning orders those sheets from now on
+  const approveBOMNesting = (bomId: string, plan: { materialCode: string; sheets: number; offcutAreaSqMeters: number; scrapPercentage: number }[]) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const targetBom = technicalBOMs.find(b => b.id === bomId);
+    if (!targetBom) return;
+    const byCode = new Map(plan.map(p => [p.materialCode, p]));
+    setTechnicalBOMs(prev => prev.map(b => b.id !== bomId ? b : {
+      ...b,
+      nestingApprovedAt: timestamp,
+      nestingApprovedBy: currentUser.fullName,
+      materialsSummary: (b.materialsSummary || []).map(m => {
+        const p = byCode.get(resolveCatalogItem(m.materialCode)?.key || m.materialCode) || byCode.get(m.materialCode);
+        return p ? { ...m, nestedSheetsCount: p.sheets, offcutAreaSqMeters: p.offcutAreaSqMeters, scrapPercentage: p.scrapPercentage } : m;
+      })
+    }));
+    const total = plan.reduce((s, p) => s + p.sheets, 0);
+    showToast(`تم اعتماد خطة التقطيع (${total} لوح) — التخطيط هيطلب العدد ده بالظبط`, 'success');
+  };
+
   const approveTechnicalBOM = (bomId: string, approvedBy: string, notes?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetBom = technicalBOMs.find(b => b.id === bomId);
@@ -2835,7 +3244,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetBom = technicalBOMs.find(b => b.id === data.bomId);
     if (!targetBom) throw new Error('BOM not found');
 
-    const releaseNumber = `REL-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const releaseNumber = nextDocNumber('REL', technicalReleases.map(r => r.releaseNumber), 3);
 
     const newRelease: TechnicalReleasePackage = {
       id: `rel-${Date.now()}`,
@@ -2861,97 +3270,117 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setTechnicalReleases(prev => [newRelease, ...prev]);
 
-    // Auto-generate Planning Demands from BOM units & parts for MRP
-    const allParts: Array<{
-      id: string;
-      itemCode: string;
-      description: string;
-      category: 'wood' | 'hardware';
-      quantity: number;
-      uom: string;
-    }> = [];
+    // Aggregate the BOM into one requirement per material (sheets / pieces / meters)
+    const salesProject = customProjects.find(sp => sp.id === targetPrj.salesProjectId);
+    const projectId = targetPrj.salesProjectId || targetPrj.id;
+    const projectNumber = targetPrj.salesProjectNumber || targetPrj.projectNumber;
+    const productionStart = data.targetProductionStartDate || daysFromToday(3);
+    const factoryCompletion = data.targetFactoryCompletionDate || daysFromToday(20);
+    const siteInstallation = data.targetSiteInstallationDate || daysFromToday(25);
+    const requirements = aggregateBomRequirements(targetBom, itemMasterCards, materials);
+    const shortages = requirements.filter(r => r.available < r.quantity);
 
-    if (targetBom && targetBom.units && targetBom.units.length > 0) {
-      targetBom.units.forEach(u => {
-        (u.cuttingParts || []).forEach(p => {
-          allParts.push({
-            id: p.id,
-            itemCode: p.materialCode,
-            description: p.materialName,
-            category: 'wood',
-            quantity: p.quantity,
-            uom: 'لوح'
-          });
-        });
-        (u.hardwareParts || []).forEach(h => {
-          allParts.push({
-            id: h.id,
-            itemCode: h.itemCode,
-            description: h.itemName,
-            category: 'hardware',
-            quantity: h.quantity,
-            uom: h.unit
-          });
-        });
-      });
-    }
+    const demandSeqStart = planningDemands.length + 1;
+    const newDemands: PlanningDemand[] = requirements.map((req, idx) => ({
+      id: `dem-${Date.now()}-${idx}`,
+      demandNumber: `DEM-${new Date().getFullYear()}-${String(demandSeqStart + idx).padStart(3, '0')}`,
+      sourceType: 'custom_project',
+      sourceId: targetPrj.id,
+      sourceNumber: releaseNumber,
+      projectId,
+      projectNumber,
+      projectName: targetPrj.projectName,
+      customerName: targetPrj.customerName,
+      itemId: req.code,
+      itemCode: req.code,
+      itemName: req.name,
+      itemCategory: req.category === 'board' ? 'raw_wood' : req.category === 'edge' ? 'edge_banding' : 'hardware',
+      quantityRequired: req.quantity,
+      uom: req.unit,
+      requiredDate: productionStart,
+      leadTimeDays: req.category === 'board' ? 5 : 3,
+      warehouseId: 'wh-main',
+      warehouseName: 'المستودع الرئيسي - العبور',
+      priority: shortages.length > 0 ? 'urgent' : 'high',
+      status: req.available >= req.quantity ? 'fully_supplied' : 'open',
+      bomRevision: targetBom.revisionCode,
+      createdAt: timestamp,
+      notes: `مطلوب لتنفيذ حزمة الإفراج ${releaseNumber} (BOM: ${targetBom.revisionCode})`
+    }));
+    setPlanningDemands(prev => [...newDemands, ...prev]);
 
-    if (allParts.length > 0) {
-      const newDemands: PlanningDemand[] = allParts.map((item, idx) => ({
-        id: `dem-${Date.now()}-${idx}`,
-        demandNumber: `DEM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        sourceType: 'custom_project',
-        sourceId: targetPrj.salesProjectId || targetPrj.id,
-        sourceNumber: releaseNumber,
-        projectId: targetPrj.salesProjectId || targetPrj.id,
-        projectNumber: targetPrj.projectNumber,
-        projectName: targetPrj.projectName,
-        customerName: targetPrj.customerName,
-        itemId: item.id || `item-${idx}`,
-        itemCode: item.itemCode,
-        itemName: item.description,
-        itemCategory: item.category === 'wood' ? 'raw_wood' : 'hardware',
-        quantityRequired: item.quantity,
-        uom: item.uom,
-        requiredDate: data.targetProductionStartDate || new Date(Date.now() + 5 * 86400000).toISOString().substring(0, 10),
-        leadTimeDays: 7,
-        warehouseId: 'wh-main',
-        warehouseName: 'المستودع الرئيسي للخامات - A1',
-        priority: 'high',
-        status: 'open',
-        bomRevision: targetBom.revisionCode,
-        createdAt: timestamp,
-        notes: `مطلوب لتنفيذ حزمة الإفراج ${releaseNumber} (BOM: ${targetBom.revisionCode})`
-      }));
+    const coveredCount = requirements.length - shortages.length;
+    const newReadiness: ProjectPlanningReadiness = {
+      projectId,
+      projectNumber,
+      projectName: targetPrj.projectName,
+      customerName: targetPrj.customerName,
+      projectType: targetPrj.projectType || 'kitchen',
+      techReleaseNumber: releaseNumber,
+      targetDeliveryDate: siteInstallation,
+      plannedManufacturingStartDate: productionStart,
+      plannedManufacturingEndDate: factoryCompletion,
+      plannedSiteInstallationDate: siteInstallation,
+      overallReadiness: shortages.length === 0 ? 'ready' : coveredCount === 0 ? 'blocked_materials' : 'partially_ready',
+      readinessPercentage: requirements.length > 0 ? Math.round((coveredCount / requirements.length) * 100) : 100,
+      totalMaterialDemandsCount: requirements.length,
+      coveredMaterialsCount: coveredCount,
+      shortageMaterialsCount: shortages.length,
+      criticalShortages: shortages.map(r => ({ itemCode: r.code, itemName: r.name, shortageQty: r.quantity - r.available, uom: r.unit, status: 'shortage' as const })),
+      estimatedTotalWorkCenterHours: 0,
+      isCapacityFeasible: true,
+      activeProposalsCount: 0,
+      priority: shortages.length > 0 ? 'urgent' : 'high'
+    };
 
-      setPlanningDemands(prev => [...newDemands, ...prev]);
+    // Production order + station work orders, ready for the shop floor
+    const moId = `prod-${Date.now()}`;
+    const productionNumber = nextDocNumber('PROD', productionOrders.map(o => o.productionNumber), 4);
+    const moMaterials = toProductionMaterials(moId, requirements);
+    const routing = buildStandardRouting({
+      productionOrderId: moId,
+      productionNumber,
+      projectId,
+      projectNumber,
+      customerName: targetPrj.customerName,
+      startDate: productionStart,
+      bom: targetBom,
+      requirements,
+      workCenters,
+      firstWorkOrderSeq: workOrders.length + 101,
+      blocked: shortages.length > 0
+    });
+    newReadiness.estimatedTotalWorkCenterHours = Math.round(routing.reduce((sum, wo) => sum + wo.plannedDurationMinutes, 0) / 60);
+    setProjectReadinessList(prev => [newReadiness, ...prev.filter(r => r.projectId !== newReadiness.projectId)]);
 
-      // Add Project Readiness Entry
-      const newReadiness: ProjectPlanningReadiness = {
-        projectId: targetPrj.salesProjectId || targetPrj.id,
-        projectNumber: targetPrj.projectNumber,
-        projectName: targetPrj.projectName,
-        customerName: targetPrj.customerName,
-        projectType: targetPrj.projectType || 'kitchen',
-        techReleaseNumber: releaseNumber,
-        targetDeliveryDate: data.targetSiteInstallationDate || new Date(Date.now() + 25 * 86400000).toISOString().substring(0, 10),
-        plannedManufacturingStartDate: data.targetProductionStartDate || new Date(Date.now() + 5 * 86400000).toISOString().substring(0, 10),
-        plannedManufacturingEndDate: data.targetFactoryCompletionDate || new Date(Date.now() + 20 * 86400000).toISOString().substring(0, 10),
-        plannedSiteInstallationDate: data.targetSiteInstallationDate || new Date(Date.now() + 25 * 86400000).toISOString().substring(0, 10),
-        overallReadiness: 'partially_ready',
-        readinessPercentage: 65,
-        totalMaterialDemandsCount: allParts.length,
-        coveredMaterialsCount: Math.floor(allParts.length * 0.65),
-        shortageMaterialsCount: Math.ceil(allParts.length * 0.35),
-        criticalShortages: [],
-        estimatedTotalWorkCenterHours: Math.round(allParts.length * 1.8),
-        isCapacityFeasible: true,
-        activeProposalsCount: 1,
-        priority: 'high'
-      };
-
-      setProjectReadinessList(prev => [newReadiness, ...prev.filter(p => p.projectId !== newReadiness.projectId)]);
-    }
+    const contract = customContracts.find(c => c.projectId === projectId);
+    const newMO: ProductionOrder = {
+      id: moId,
+      productionNumber,
+      orderId: contract?.id || projectId,
+      orderNumber: contract?.contractNumber || projectNumber,
+      projectId,
+      projectNumber,
+      customerId: salesProject?.customerId || targetPrj.customerId,
+      customerName: targetPrj.customerName,
+      customerPhone: salesProject?.customerPhone || targetPrj.customerPhone || '',
+      branchId: salesProject?.branchId || targetPrj.branchId,
+      branchName: salesProject?.branchName || targetPrj.branchName,
+      workshopLocation: 'عنبر التقطيع والتجميع - مصنع العبور الرئيسي',
+      startDate: productionStart,
+      expectedCompletionDate: factoryCompletion,
+      assignedTeam: workCenters.slice(0, 3).map(w => w.supervisorName),
+      status: 'pending',
+      notes: `أمر تصنيع ناتج تلقائياً عن الإفراج ${releaseNumber} (BOM ${targetBom.revisionCode})${shortages.length ? ` - بانتظار توريد ${shortages.length} بند` : ''}`,
+      completionPhotos: [],
+      materials: moMaterials,
+      totalEstimatedMaterialCost: moMaterials.reduce((sum, m) => sum + m.estimatedTotalCost, 0),
+      totalActualMaterialCost: 0,
+      materialVariance: 0,
+      createdDate: timestamp
+    };
+    setProductionOrders(prev => [newMO, ...prev]);
+    setWorkOrders(prev => [...routing, ...prev]);
 
     // Update Technical Project Status
     setTechnicalProjects(prev => prev.map(tp => {
@@ -2968,7 +3397,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Update Sales Custom Project status
     if (targetPrj.salesProjectId) {
       updateProjectStatus(targetPrj.salesProjectId, 'ready_for_production');
-      addTimelineEvent(targetPrj.salesProjectId, 'الإفراج الفني للتخطيط والإنتاج', `تم إصدار حزمة الإفراج الهندسي (${releaseNumber}) وتوليد طلبات خامات الـ MRP برقم BOM: ${targetBom.revisionCode}`, 'production');
+      addTimelineEvent(targetPrj.salesProjectId, 'الإفراج الفني للتخطيط والإنتاج', `تم إصدار حزمة الإفراج (${releaseNumber}) وأمر التصنيع ${productionNumber} بـ ${routing.length} مراحل تشغيل${shortages.length ? ` - عجز ${shortages.length} بند خامات` : ''}`, 'production');
     }
 
     addAuditLog({
@@ -2980,14 +3409,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'success'
     });
 
-    showToast(`🚀 تم إصدار حزمة الإفراج الفني (${releaseNumber}) وتمريرها لقسم التخطيط والإنتاج بنجاح!`, 'success');
+    showToast(`🚀 تم الإفراج (${releaseNumber}) وإصدار أمر التصنيع ${productionNumber}${shortages.length ? ` - يوجد عجز في ${shortages.length} بند يحتاج تشغيل الـ MRP` : ' - كل الخامات متوفرة'}`, shortages.length ? 'warning' : 'success');
     return newRelease;
   };
 
   const createEngineeringChangeRequest = (data: Omit<EngineeringChangeRequest, 'id' | 'ecrNumber' | 'createdAt' | 'status'>): EngineeringChangeRequest => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetPrj = technicalProjects.find(p => p.id === data.technicalProjectId);
-    const ecrNumber = `ECR-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const ecrNumber = nextDocNumber('ECR', engineeringChangeRequests.map(x => x.ecrNumber), 3);
 
     const newEcr: EngineeringChangeRequest = {
       ...data,
@@ -3090,7 +3519,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const runNumber = `MRP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const netReqs = calculateNetRequirements(planningDemands);
+    const netReqs = calculateNetRequirements(planningDemands, itemMasterCards);
     let createdProposals: SupplyProposal[] = [];
 
     if (params.autoGenerateProposals !== false) {
@@ -3207,7 +3636,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createPurchaseRequest = (data: Partial<PurchaseRequest>): PurchaseRequest => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const prNumber = data.prNumber || `PR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const prNumber = data.prNumber || nextDocNumber('PR', purchaseRequests.map(x => x.prNumber), 3);
     const items = (data.items || []).map((it, idx) => ({
       id: it.id || `pri-${Date.now()}-${idx}`,
       itemId: it.itemId || 'item-1',
@@ -3448,7 +3877,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createRFQ = (data: Partial<RequestForQuotation>): RequestForQuotation => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const rfqNumber = data.rfqNumber || `RFQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const rfqNumber = data.rfqNumber || nextDocNumber('RFQ', rfqs.map(x => x.rfqNumber), 3);
 
     const newRFQ: RequestForQuotation = {
       id: data.id || `rfq-${Date.now()}`,
@@ -3834,7 +4263,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createEnterprisePurchaseOrder = (data: Partial<EnterprisePurchaseOrder>): EnterprisePurchaseOrder => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const poNumber = data.poNumber || `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const poNumber = data.poNumber || nextDocNumber('PO', enterprisePurchaseOrders.map(x => x.poNumber), 3);
 
     const items = (data.items || []).map((it, idx) => ({
       id: it.id || `poi-${Date.now()}-${idx}`,
@@ -4418,7 +4847,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const convertProposalToProduction = (proposal: SupplyProposal) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const moNumber = `MO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const moNumber = nextDocNumber('PROD', productionOrders.map(x => x.productionNumber), 4);
 
     // Create Production Order
     const newMO: ProductionOrder = {
@@ -4531,7 +4960,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const batchGenerateProposalsFromShortages = () => {
-    const netReqs = calculateNetRequirements(planningDemands);
+    const netReqs = calculateNetRequirements(planningDemands, itemMasterCards);
     const createdProposals = generateSupplyProposalsFromShortages(netReqs, currentUser.fullName, currentUser.id);
     if (createdProposals.length > 0) {
       setSupplyProposals(prev => [...createdProposals, ...prev]);
@@ -4648,7 +5077,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const targetProject = customProjects.find(p => p.id === targetOrder.projectId);
 
-    const productionNumber = `PROD-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const productionNumber = nextDocNumber('PROD', productionOrders.map(x => x.productionNumber), 4);
 
     const bomItems: ProductionMaterialItem[] = targetOrder.items.map((it, idx) => {
       const mat = materials.find(m => m.id === it.productId) || materials[0];
@@ -4836,15 +5265,177 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`✓ تم خصم ${qtyToConsume} ${targetMat.unit} من المخزون وتوثيق التكلفة الفعلية (${actualCostTotal.toLocaleString('ar-EG')} ج.م)`, 'success');
   };
 
+  // Station labor + machine time absorbed into WIP (Dr WIP, Cr direct labor) when an order finishes.
+  const postLaborToWip = (moRef: string, amount: number) => {
+    if (amount <= 0) return;
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const laborAcc = getSafeAccount('512', 'expense');
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: daysFromToday(0),
+      periodId: currentOpenPeriod().id,
+      reference: `تحميل مصنعيات أمر التصنيع ${moRef}`,
+      description: `تحميل أجور الفنيين وتشغيل الماكينات على أمر التصنيع ${moRef}`,
+      sourceDocument: moRef,
+      sourceType: 'material_issue_wip',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        { accountId: wipAcc.id, accountCode: wipAcc.code, accountName: wipAcc.nameAr, costCenterId: 'cc-2', costCenterName: 'قسم التجميع والنجارة اليدوية', debit: amount, credit: 0, description: 'تحميل مصنعيات ومحطات التشغيل على الإنتاج تحت التشغيل' },
+        { accountId: laborAcc.id, accountCode: laborAcc.code, accountName: laborAcc.nameAr, debit: 0, credit: amount, description: 'توزيع تكلفة العمالة والماكينات المباشرة على الإنتاج' }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+    if (postResult.entry) setJournalEntries(prev => [postResult.entry!, ...prev]);
+  };
+
+  // First station starts: materials are issued to the order (stock down, WIP up) and the
+  // project moves to "in production". Blocked while any material is short.
+  const startProductionOrder = (productionOrderId: string): boolean => {
+    const mo = productionOrders.find(o => o.id === productionOrderId);
+    if (!mo) return false;
+    if (mo.status !== 'pending') return true;
+
+    const short = mo.materials.filter(m => m.status === 'shortage');
+    if (short.length > 0) {
+      showToast(`⛔ لا يمكن بدء التشغيل: عجز في ${short.map(m => m.materialName).join('، ')}. يجب استلام الخامات أولاً`, 'error');
+      return false;
+    }
+
+    const issuedCost = mo.materials.reduce((sum, m) => sum + m.requiredQuantity * m.estimatedUnitCost, 0);
+    setProductionOrders(prev => prev.map(o => o.id !== productionOrderId ? o : {
+      ...o,
+      status: 'in_production',
+      materials: o.materials.map(m => ({
+        ...m,
+        consumedQuantity: m.requiredQuantity,
+        remainingQuantity: 0,
+        reservedQuantity: m.requiredQuantity,
+        actualTotalCost: m.requiredQuantity * m.actualUnitCost,
+        status: 'consumed' as const
+      })),
+      totalActualMaterialCost: issuedCost,
+      materialVariance: issuedCost - o.totalEstimatedMaterialCost
+    }));
+
+    // Stock leaves the warehouse against this order, on one issue note per warehouse
+    const today = new Date().toISOString().substring(0, 10);
+    const picks = mo.materials.flatMap(m => {
+      const item = resolveCatalogItem(m.materialCode);
+      const card = itemMasterCards.find(c => item?.aliases.some(a => a.toUpperCase() === c.code.toUpperCase()));
+      if (!card || m.requiredQuantity <= 0) return [];
+      return pickFromWarehouses(card, m.requiredQuantity).map(p => ({ ...p, card, unitCost: m.estimatedUnitCost }));
+    });
+    const byWarehouse = new Map<string, typeof picks>();
+    picks.forEach(p => byWarehouse.set(p.warehouseId, [...(byWarehouse.get(p.warehouseId) || []), p]));
+
+    const existingGins = goodsIssueNotes.map(g => g.ginNumber);
+    const newGins: GoodsIssueNote[] = [];
+    const newLedger: StockLedgerEntry[] = [];
+    const runningStock = new Map(itemMasterCards.map(c => [c.id, c.currentStock]));
+    byWarehouse.forEach((lines, warehouseId) => {
+      const wh = warehouses.find(w => w.id === warehouseId);
+      const ginNumber = nextDocNumber('GIN', [...existingGins, ...newGins.map(g => g.ginNumber)], 4);
+      const items: GINLineItem[] = lines.map((l, idx) => ({
+        id: `gin-line-${Date.now()}-${newGins.length}-${idx}`,
+        itemId: l.card.id,
+        itemCode: l.card.code,
+        itemName: l.card.nameAr,
+        unit: l.card.unitNameAr,
+        requestedQty: l.qty,
+        issuedQty: l.qty,
+        unitCost: l.unitCost,
+        totalCost: l.qty * l.unitCost,
+        locationBin: l.card.locationBin,
+        notes: 'صرف تلقائي عند بدء أول محطة'
+      }));
+      newGins.push({
+        id: `gin-${Date.now()}-${newGins.length}`,
+        ginNumber,
+        type: 'production_mo',
+        productionOrderId: mo.id,
+        productionOrderNumber: mo.productionNumber,
+        costCenterId: 'cc-1',
+        costCenterName: 'قسم تقطيع الـ CNC وشريط الشاط',
+        warehouseId,
+        warehouseName: wh?.name || '',
+        date: today,
+        items,
+        totalAmount: items.reduce((s, it) => s + it.totalCost, 0),
+        status: 'posted',
+        requestedByUserName: currentUser.fullName,
+        issuedByUserName: wh?.managerName || currentUser.fullName,
+        notes: `صرف خامات ${mo.productionNumber} - ${mo.customerName} (تلقائي عند بدء التشغيل)`
+      });
+      lines.forEach((l, idx) => {
+        const balanceAfter = Math.max(0, (runningStock.get(l.card.id) || 0) - l.qty);
+        runningStock.set(l.card.id, balanceAfter);
+        newLedger.push({
+          id: `sle-${Date.now()}-${newGins.length}-${idx}`,
+          itemId: l.card.id,
+          itemCode: l.card.code,
+          itemName: l.card.nameAr,
+          date: today,
+          documentType: 'GIN',
+          documentNumber: ginNumber,
+          warehouseId,
+          warehouseName: wh?.name || '',
+          qtyIn: 0,
+          qtyOut: l.qty,
+          balanceAfter,
+          unitCost: l.unitCost,
+          totalCost: l.qty * l.unitCost,
+          userName: currentUser.fullName,
+          notes: `إذن صرف ${ginNumber} - صرف خامات لأمر تصنيع (${mo.productionNumber})`
+        });
+      });
+    });
+
+    setItemMasterCards(prev => prev.map(card => picks
+      .filter(p => p.card.id === card.id)
+      .reduce((c, p) => adjustWarehouseStock(c, p.warehouseId, -p.qty), card)));
+    if (newGins.length > 0) setGoodsIssueNotes(prev => [...newGins, ...prev]);
+    if (newLedger.length > 0) setStockLedgerEntries(prev => [...newLedger, ...prev]);
+
+    if (issuedCost > 0) recordInventoryWipMovement(productionOrderId, issuedCost, `صرف خامات ${mo.projectNumber} - ${mo.customerName}`);
+    updateProjectStatus(mo.projectId, 'in_production');
+    addTimelineEvent(mo.projectId, `بدء التصنيع ${mo.productionNumber}`, `صرف خامات بقيمة ${issuedCost.toLocaleString('ar-EG')} ج.م للورشة وبدء محطة التقطيع`, 'production');
+    showToast(`⚙️ بدء تشغيل ${mo.productionNumber}: تم صرف الخامات (${issuedCost.toLocaleString('ar-EG')} ج.م) وترحيل قيد الإنتاج تحت التشغيل`, 'success');
+    return true;
+  };
+
   const completeProductionOrder = (productionOrderId: string, completionPhotos: string[], notes?: string) => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const targetProd = productionOrders.find(p => p.id === productionOrderId);
     if (!targetProd) return;
+    if (targetProd.status === 'pending') {
+      showToast(`لا يمكن إنهاء ${targetProd.productionNumber} قبل بدء التشغيل وصرف الخامات`, 'error');
+      return;
+    }
+    const openStations = workOrders.filter(wo => wo.manufacturingOrderId === productionOrderId && wo.status !== 'completed');
+    if (openStations.length > 0) {
+      showToast(`باقي ${openStations.length} محطة لم تكتمل في ${targetProd.productionNumber}: ${openStations.map(wo => wo.workCenterName).join('، ')}`, 'warning');
+      return;
+    }
+
+    // Labor follows how each crew member is paid (piece / day / month); machines by the hour.
+    // Outside-shop work and scrap replacements were already charged to WIP when they happened.
+    const stations = workOrders.filter(wo => wo.manufacturingOrderId === productionOrderId);
+    const costs = stations.map(wo => stationCost(wo, workCenters.find(w => w.id === wo.workCenterId), shopWorkers));
+    const laborCost = Math.round(costs.reduce((sum, c) => sum + c.labor + c.machine, 0));
+    const subcontractCost = Math.round(costs.reduce((sum, c) => sum + c.subcontract, 0));
+    const scrapCost = scrapClaims.filter(s => s.manufacturingOrderId === productionOrderId && s.wipPosted).reduce((sum, s) => sum + s.estimatedCost, 0);
+    const materialCost = targetProd.totalActualMaterialCost || targetProd.totalEstimatedMaterialCost;
+    const totalCost = materialCost + laborCost + subcontractCost + scrapCost;
+    const isRemake = targetProd.kind === 'remake';
 
     setProductionOrders(prev => prev.map(p => {
       if (p.id === productionOrderId) {
         return {
           ...p,
+          totalLaborCost: laborCost,
+          totalSubcontractCost: subcontractCost,
           status: 'completed',
           actualCompletionDate: timestamp,
           completionPhotos: completionPhotos.length > 0 ? completionPhotos : p.completionPhotos,
@@ -4854,12 +5445,226 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return p;
     }));
 
-    const targetProject = customProjects.find(p => p.id === targetProd.projectId);
-    if (targetProject) {
-      updateProjectStatus(targetProject.id, 'production_completed');
+    postLaborToWip(targetProd.productionNumber, laborCost);
+    const breakdown = `خامات ${materialCost.toLocaleString('ar-EG')} + مصنعيات ${laborCost.toLocaleString('ar-EG')}${subcontractCost ? ` + تشغيل خارجي ${subcontractCost.toLocaleString('ar-EG')}` : ''}${scrapCost ? ` + بدائل هالك ${scrapCost.toLocaleString('ar-EG')}` : ''}`;
+
+    if (isRemake && targetProd.remake?.chargeTo !== 'customer') {
+      // Parts made twice are a cost of poor quality, not stock to sell
+      postWipToReworkExpense(targetProd, totalCost);
+      addTimelineEvent(targetProd.projectId, `النواقص جاهزة ${targetProd.productionNumber}`, `تكلفة إعادة التصنيع ${totalCost.toLocaleString('ar-EG')} ج.م (${breakdown}) - جاهزة لزيارة الاستكمال`, 'production');
+      showToast(`🔁 ${targetProd.productionNumber} خلص: ${totalCost.toLocaleString('ar-EG')} ج.م اتسجلت كتكلفة إعادة تصنيع - جاهز لزيارة استكمال`, 'success');
+      return;
     }
 
-    showToast(`🎉 تم إكتمال تصنيع أمر الإنتاج (${targetProd.productionNumber}) وجاهز للتركيب!`, 'success');
+    recordProductionCompletionToFinishedGoods(productionOrderId, totalCost, `${targetProd.projectNumber} - ${targetProd.customerName}`);
+
+    const targetProject = customProjects.find(p => p.id === targetProd.projectId);
+    if (targetProject && !isRemake) {
+      updateProjectStatus(targetProject.id, 'production_completed');
+    }
+    if (targetProject) {
+      addTimelineEvent(targetProject.id, `اكتمال التصنيع ${targetProd.productionNumber}`, `تكلفة التصنيع الفعلية ${totalCost.toLocaleString('ar-EG')} ج.م (${breakdown})`, 'production');
+    }
+
+    showToast(`🎉 اكتمل ${targetProd.productionNumber}: تم تحميل المصنعيات وتحويل التكلفة (${totalCost.toLocaleString('ar-EG')} ج.م) لمخزون الإنتاج التام - جاهز لجدولة التركيب`, 'success');
+  };
+
+  const postWipToReworkExpense = (mo: ProductionOrder, amount: number) => {
+    if (amount <= 0) return;
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const reworkAcc = getSafeAccount('513', 'expense');
+    const who = mo.remake?.chargeTo === 'supplier' ? ' (مطالبة على المورد)' : mo.remake?.chargeTo === 'transport' ? ' (مطالبة على النقل)' : '';
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: daysFromToday(0),
+      periodId: currentOpenPeriod().id,
+      reference: `تكلفة إعادة تصنيع ${mo.productionNumber}`,
+      description: `إقفال تكلفة النواقص وإعادة التصنيع لمشروع ${mo.projectNumber} - ${mo.customerName}${who}`,
+      sourceDocument: mo.productionNumber,
+      sourceType: 'production_completion',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        { accountId: reworkAcc.id, accountCode: reworkAcc.code, accountName: reworkAcc.nameAr, costCenterId: 'cc-2', costCenterName: 'قسم التجميع والنجارة اليدوية', debit: amount, credit: 0, description: `تكلفة الجودة: إعادة تصنيع قطع${who}` },
+        { accountId: wipAcc.id, accountCode: wipAcc.code, accountName: wipAcc.nameAr, debit: 0, credit: amount, description: 'إقفال الإنتاج تحت التشغيل لأمر إعادة التصنيع' }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+    if (postResult.entry) setJournalEntries(prev => [postResult.entry!, ...prev]);
+  };
+
+  // Work sent out (lacquer doors, glass...) comes back with a bill: the order carries the cost
+  const postSubcontractCost = (productionOrderId: string, vendorName: string, amount: number, operationName: string) => {
+    const mo = productionOrders.find(o => o.id === productionOrderId);
+    if (!mo || amount <= 0) return;
+    const genJournal = journals.find(j => j.type === 'general') || journals[4];
+    const wipAcc = getSafeAccount('1133', 'asset');
+    const apAcc = getSafeAccount('2111', 'liability');
+    const postResult = AccountingService.createPostedEntry({
+      journal: genJournal,
+      date: daysFromToday(0),
+      periodId: currentOpenPeriod().id,
+      reference: `تشغيل لدى الغير ${mo.productionNumber}`,
+      description: `${operationName} لدى ${vendorName} - مشروع ${mo.projectNumber} (${mo.customerName})`,
+      sourceDocument: mo.productionNumber,
+      sourceType: 'material_issue_wip',
+      branchId: currentBranch.id,
+      branchName: currentBranch.name,
+      lines: [
+        { accountId: wipAcc.id, accountCode: wipAcc.code, accountName: wipAcc.nameAr, costCenterId: 'cc-3', costCenterName: 'قسم الدهانات والتشطيب والدوكو', debit: amount, credit: 0, description: `تحميل تكلفة تشغيل خارجي على ${mo.productionNumber}` },
+        { accountId: apAcc.id, accountCode: apAcc.code, accountName: apAcc.nameAr, debit: 0, credit: amount, description: `مستحق لـ ${vendorName}` }
+      ],
+      userName: currentUser.fullName
+    }, fiscalPeriods);
+    if (postResult.entry) setJournalEntries(prev => [postResult.entry!, ...prev]);
+    addTimelineEvent(mo.projectId, `استلام تشغيل خارجي - ${vendorName}`, `${operationName}: ${amount.toLocaleString('ar-EG')} ج.م على حساب ${mo.productionNumber}`, 'production');
+  };
+
+  // A scrapped part needs a new board: it leaves stock and its cost lands on the order
+  const issueScrapReplacement = (productionOrderId: string, materialCode: string, quantity: number, cost: number): string => {
+    const ginNumber = nextDocNumber('GIN', [...goodsIssueNotes.map(g => g.ginNumber), ...scrapClaims.map(s => s.replacementGINNumber || '')].filter(Boolean), 4);
+    const item = resolveCatalogItem(materialCode);
+    if (item) {
+      setItemMasterCards(prev => prev.map(card => {
+        if (!item.aliases.some(a => a.toUpperCase() === card.code.toUpperCase())) return card;
+        const currentStock = Math.max(0, card.currentStock - quantity);
+        return { ...card, currentStock, availableStock: Math.max(0, currentStock - (card.reservedStock || 0)) };
+      }));
+    }
+    recordInventoryWipMovement(productionOrderId, cost, `صرف بديل هالك ${ginNumber}`);
+    return ginNumber;
+  };
+
+  const createRemakeOrder = (input: RemakeOrderInput): ProductionOrder | null => {
+    const project = customProjects.find(p => p.id === input.projectId);
+    const parent = productionOrders.find(o => o.id === input.parentProductionId) || productionOrders.find(o => o.projectId === input.projectId && o.kind !== 'remake');
+    if (!project && !parent) return null;
+    const moId = `prod-rmk-${Date.now()}`;
+    const productionNumber = nextDocNumber('RMK', productionOrders.filter(o => o.kind === 'remake').map(o => o.productionNumber), 3);
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const today = daysFromToday(0);
+
+    // Boards: a few parts fit on one sheet; parts from offcuts cost nothing new
+    const byMaterial = new Map<string, { name: string; area: number }>();
+    input.parts.forEach(p => {
+      const prev = byMaterial.get(p.materialCode) || { name: p.materialName, area: 0 };
+      prev.area += (p.lengthMm * p.widthMm * p.quantity) / 1_000_000;
+      byMaterial.set(p.materialCode, prev);
+    });
+    const materialsList = Array.from(byMaterial.entries()).map(([code, v], i) => {
+      const item = resolveCatalogItem(code);
+      const sheets = input.fromOffcuts ? 0 : Math.max(1, Math.ceil((v.area * 1.2) / 2.977));
+      const available = item ? availableStockFor(item, itemMasterCards, materials) : 0;
+      const unitCost = input.fromOffcuts ? 0 : (item?.unitCost || 1500);
+      return {
+        id: `${moId}-m${i + 1}`,
+        productionOrderId: moId,
+        materialId: input.fromOffcuts ? `OFFCUT-${code}` : (item?.key || code),
+        materialName: input.fromOffcuts ? `${v.name} (من البواقي)` : (item?.name || v.name),
+        materialCode: input.fromOffcuts ? `OFFCUT-${code}` : (item?.key || code),
+        unit: 'لوح',
+        requiredQuantity: sheets,
+        reservedQuantity: input.fromOffcuts ? 0 : Math.min(sheets, available),
+        consumedQuantity: 0,
+        remainingQuantity: sheets,
+        estimatedUnitCost: unitCost,
+        estimatedTotalCost: sheets * unitCost,
+        actualUnitCost: unitCost,
+        actualTotalCost: 0,
+        status: (input.fromOffcuts || available >= sheets ? 'reserved' : 'shortage') as 'reserved' | 'shortage'
+      };
+    });
+    const short = materialsList.some(m => m.status === 'shortage');
+
+    const pieces = input.parts.reduce((s, p) => s + p.quantity, 0);
+    const painted = input.parts.filter(p => p.needsPaint).reduce((s, p) => s + p.quantity, 0);
+    // Painted parts skip the PVC edge bander; they go from the saw to the paint shop
+    const banded = pieces - painted;
+    const steps: Array<{ cat: WorkCenter['category']; name: string; minutes: number; parts: number; preds: number[] }> = [
+      { cat: 'cutting_cnc', name: `تقطيع نواقص (${pieces} قطعة)${input.fromOffcuts ? ' من البواقي' : ''}`, minutes: 20 + pieces * 5, parts: pieces, preds: [] }
+    ];
+    if (banded > 0) steps.push({ cat: 'edge_banding', name: 'قشاط حواف النواقص', minutes: 15 + banded * 4, parts: banded, preds: [0] });
+    const drillIdx = steps.length;
+    steps.push({ cat: 'drilling_routing', name: 'تخريم النواقص (مفصلات / كامات)', minutes: 15 + pieces * 3, parts: pieces, preds: [drillIdx - 1] });
+    if (painted > 0) steps.push({ cat: 'paint_finishing', name: `دهان ${painted} قطعة ومطابقة اللون مع العينة`, minutes: painted * 20, parts: painted, preds: [0] });
+    if (input.includesAssembly) steps.push({ cat: 'assembly', name: 'إعادة تجميع الوحدة', minutes: 60, parts: 1, preds: [drillIdx] });
+    // Packing waits for every branch nothing else follows (bodies and painted parts)
+    steps.push({ cat: 'packaging_qc', name: 'فحص وتغليف النواقص في طرد واحد مكتوب عليه "نواقص"', minutes: 20, parts: 1, preds: steps.map((_, i) => i).filter(i => i !== 0 && !steps.some(st => st.preds.includes(i))) });
+
+    const firstSeq = workOrders.length + 101;
+    const routing: WorkOrder[] = steps.map((st, i) => {
+      const wc = workCenters.find(w => w.category === st.cat);
+      return {
+        id: `${moId}-wo${i + 1}`,
+        workOrderNumber: `WO-${new Date().getFullYear()}-${String(firstSeq + i).padStart(4, '0')}`,
+        manufacturingOrderId: moId,
+        manufacturingOrderNumber: productionNumber,
+        projectId: input.projectId,
+        projectNumber: parent?.projectNumber || project?.projectNumber || '',
+        customerName: parent?.customerName || project?.customerName || '',
+        sequenceOrder: i + 1,
+        operationName: st.name,
+        operationCategory: st.cat,
+        workCenterId: wc?.id || st.cat,
+        workCenterName: wc?.name || st.name,
+        plannedDurationMinutes: st.minutes,
+        actualDurationMinutes: 0,
+        scheduledStartDate: `${today} 09:00`,
+        scheduledEndDate: `${today} 17:00`,
+        assignedTechnicians: [],
+        status: i === 0 ? (short ? 'blocked' : 'ready') : 'pending',
+        stopReason: i === 0 && short ? 'material_missing' : undefined,
+        progressPercentage: 0,
+        partsToProcessCount: st.parts,
+        partsCompletedCount: 0,
+        predecessorIds: st.preds.map(p => `${moId}-wo${p + 1}`),
+        specialInstructions: i === 0 ? `⚡ عاجل - ${input.parts.map(p => `${p.partName} ${p.lengthMm}×${p.widthMm} (${p.quantity})`).join('، ')}` : undefined
+      };
+    });
+
+    const remakeMO: ProductionOrder = {
+      id: moId,
+      productionNumber,
+      orderId: parent?.orderId || input.projectId,
+      orderNumber: parent?.orderNumber || project?.projectNumber || '',
+      projectId: input.projectId,
+      projectNumber: parent?.projectNumber || project?.projectNumber || '',
+      customerId: parent?.customerId || project?.customerId || '',
+      customerName: parent?.customerName || project?.customerName || '',
+      customerPhone: parent?.customerPhone || project?.customerPhone || '',
+      branchId: parent?.branchId || project?.branchId || currentBranch.id,
+      branchName: parent?.branchName || project?.branchName || currentBranch.name,
+      workshopLocation: 'مصنع العبور الرئيسي - خط النواقص السريع',
+      startDate: today,
+      expectedCompletionDate: daysFromToday(painted > 0 ? 4 : 2),
+      assignedTeam: [],
+      status: 'pending',
+      notes: input.notes,
+      completionPhotos: [],
+      materials: materialsList,
+      totalEstimatedMaterialCost: materialsList.reduce((s, m) => s + m.estimatedTotalCost, 0),
+      totalActualMaterialCost: 0,
+      materialVariance: 0,
+      createdDate: timestamp,
+      kind: 'remake',
+      parentProductionId: parent?.id,
+      priority: 'urgent',
+      remake: {
+        source: input.source,
+        reason: input.reason,
+        chargeTo: input.chargeTo,
+        reportedBy: input.reportedBy,
+        parts: input.parts,
+        fromOffcuts: input.fromOffcuts,
+        includesAssembly: input.includesAssembly
+      }
+    };
+    setProductionOrders(prev => [remakeMO, ...prev]);
+    setWorkOrders(prev => [...routing, ...prev]);
+    addTimelineEvent(input.projectId, `أمر نواقص ${productionNumber}`, `${pieces} قطعة تتعمل تاني${parent ? ` (من ${parent.productionNumber})` : ''} - على حساب ${input.chargeTo === 'customer' ? 'العميل' : input.chargeTo === 'supplier' ? 'المورد' : input.chargeTo === 'transport' ? 'شركة النقل' : 'المصنع'}`, 'production');
+    showToast(`🔁 اتعمل أمر النواقص ${productionNumber} (${pieces} قطعة)${short ? ' - مستني خامة' : ' - جاهز للتقطيع'}`, short ? 'warning' : 'success');
+    return remakeMO;
   };
 
   const scheduleInstallation = (
@@ -4874,7 +5679,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetProd = productionOrders.find(p => p.id === productionOrderId);
     if (!targetProd) throw new Error('Production Order not found');
 
-    const installationNumber = `INST-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const installationNumber = nextDocNumber('INST', installationRecords.map(i => i.installationNumber), 3);
     const teamNames = assignedTeamIds.map(id => users.find(u => u.id === id)?.fullName || 'فني تركيبات');
 
     const newInst: InstallationRecord = {
@@ -4903,7 +5708,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setInstallationRecords(prev => [newInst, ...prev]);
 
     const targetProject = customProjects.find(p => p.id === targetProd.projectId);
-    if (targetProject) {
+    if (targetProject && targetProd.kind !== 'remake') {
       updateProjectStatus(targetProject.id, 'installation_scheduled');
     }
 
@@ -4966,7 +5771,45 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateProjectStatus(targetProject.id, 'completed');
     }
 
-    showToast(`🎉 تم تسليم المشروع بالكامل للعميل وإغلاق الملف بنجاح 100%!`, 'success');
+    // Final tax invoice for the contract (incl. approved change orders), settled against the
+    // deposits already collected, unless the project was invoiced earlier.
+    const contract = customContracts.find(c => c.projectId === targetInst.projectId);
+    const alreadyInvoiced = salesInvoices.some(i => i.projectId === targetInst.projectId);
+    let balanceNote = '';
+    if (contract && !alreadyInvoiced) {
+      const projectAdvances = customerAdvances.filter(a => a.projectId === targetInst.projectId && a.remainingAmount > 0);
+      const subtotal = contract.totalValue;
+      const taxAmount = Math.round(subtotal * 0.14);
+      const advanceToApply = Math.min(subtotal + taxAmount, projectAdvances.reduce((sum, a) => sum + a.remainingAmount, 0));
+      const invoice = createSalesInvoice({
+        customerId: contract.customerId,
+        customerName: contract.customerName,
+        orderId: contract.id,
+        orderNumber: contract.contractNumber,
+        projectId: contract.projectId,
+        projectNumber: contract.projectNumber,
+        date: daysFromToday(0),
+        dueDate: daysFromToday(2),
+        subtotal,
+        taxAmount,
+        advanceAppliedAmount: advanceToApply,
+        advanceIds: projectAdvances.map(a => a.id),
+        notes: `فاتورة ضريبية نهائية - ${contract.projectNumber} بعد التسليم (${targetInst.installationNumber})`
+      });
+      balanceNote = invoice.balanceDue > 0 ? ` - متبقي على العميل ${invoice.balanceDue.toLocaleString('ar-EG')} ج.م` : ' - العقد محصل بالكامل';
+    }
+
+    // Cost of the delivered order leaves finished goods into cost of sales
+    const mo = productionOrders.find(o => o.id === targetInst.productionOrderId);
+    if (mo) {
+      const cost = (mo.totalActualMaterialCost || mo.totalEstimatedMaterialCost) + (mo.totalLaborCost || 0);
+      recordDeliveryCogsAccounting(mo.productionNumber, cost, `تكلفة مبيعات ${mo.projectNumber} - ${mo.customerName}`);
+    }
+
+    if (targetProject) {
+      addTimelineEvent(targetProject.id, 'التسليم النهائي وإغلاق المشروع', `توقيع محضر الاستلام ${targetInst.installationNumber} وإصدار الفاتورة الضريبية${balanceNote}`, 'handover');
+    }
+    showToast(`🎉 تم التسليم النهائي وإصدار الفاتورة الضريبية وتسجيل تكلفة المبيعات${balanceNote}`, 'success');
   };
 
   // ----------------------------------------------------
@@ -4976,7 +5819,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addCompanyExpense = (expenseData: any): CompanyExpense => {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const today = timestamp.substring(0, 10);
-    const expenseNumber = `EXP-2026-${Math.floor(100 + Math.random() * 900)}`;
+    const expenseNumber = nextDocNumber('EXP', expenses.map(x => x.expenseNumber), 3);
 
     const categoryNames: Record<ExpenseCategory, string> = {
       rent: 'إيجار مقرات ومعارض',
@@ -5217,7 +6060,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetEntry = journalEntries.find(e => e.id === entryId);
     if (!targetEntry) return false;
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const result = AccountingService.reverseEntry(targetEntry, reason, currentUser.fullName, currentPeriod.id, fiscalPeriods);
 
     if (result.error) {
@@ -5243,6 +6086,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
+  // The open fiscal period that covers today (falls back to the earliest open one).
+  const currentOpenPeriod = () => {
+    const today = daysFromToday(0);
+    return fiscalPeriods.find(p => !p.isClosed && p.startDate <= today && today <= p.endDate)
+      || fiscalPeriods.find(p => !p.isClosed)
+      || fiscalPeriods[fiscalPeriods.length - 1];
+  };
+
   // Helper to safely get account from Chart of Accounts
   const getSafeAccount = (codePrefix: string, fallbackType?: string): Account => {
     const found = chartOfAccounts.find(a => a.code === codePrefix) ||
@@ -5260,12 +6111,12 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     orderId?: string;
     projectId?: string;
     notes?: string;
-  }): CustomerAdvance => {
+  }, options?: { silent?: boolean }): CustomerAdvance => {
     const targetCust = customers.find(c => c.id === data.customerId);
     const custName = targetCust?.fullName || 'عميل تعاقد';
-    const advanceNumber = `ADV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const advanceNumber = nextDocNumber('ADV', customerAdvances.map(x => x.advanceNumber), 4);
     const today = new Date().toISOString().substring(0, 10);
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const cashOrBankJournal = data.paymentMethod === 'cash' 
       ? (journals.find(j => j.type === 'cash') || journals[2])
       : (journals.find(j => j.type === 'bank') || journals[3]);
@@ -5341,13 +6192,15 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'success'
     });
 
-    showToast(`✓ تم تسجيل الدفعة المقدمة (${advanceNumber}) بمبلغ ${data.amount.toLocaleString('ar-EG')} ج.م كالتزام دائن`, 'success');
+    if (!options?.silent) {
+      showToast(`✓ تم تسجيل الدفعة المقدمة (${advanceNumber}) بمبلغ ${data.amount.toLocaleString('ar-EG')} ج.م كالتزام دائن`, 'success');
+    }
     return advanceRecord;
   };
 
   const createSalesInvoice = (invoiceData: any): SalesInvoice => {
     const today = new Date().toISOString().substring(0, 10);
-    const invoiceNumber = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const invoiceNumber = nextDocNumber('INV', salesInvoices.map(i => i.invoiceNumber), 4);
     const targetCust = customers.find(c => c.id === invoiceData.customerId);
     const custName = targetCust?.fullName || invoiceData.customerName || 'عميل';
 
@@ -5359,7 +6212,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const netReceivable = Math.max(0, totalAmount - advanceApplied);
 
     const salesJournal = journals.find(j => j.type === 'sales') || journals[0];
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
 
     const arAcc = getSafeAccount('1121', 'asset');
     const revAcc = getSafeAccount('411', 'revenue');
@@ -5469,6 +6322,28 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setJournalEntries(prev => [postResult.entry!, ...prev]);
     }
 
+    // Deduct the applied amount from several advances, oldest first. The split is worked
+    // out up front so the state updater stays pure (React may call it twice).
+    if (advanceApplied > 0 && Array.isArray(invoiceData.advanceIds) && invoiceData.advanceIds.length > 0) {
+      let left = advanceApplied;
+      const takes = new Map<string, number>();
+      [...customerAdvances]
+        .filter(a => invoiceData.advanceIds.includes(a.id))
+        .sort((x, y) => x.date.localeCompare(y.date))
+        .forEach(a => {
+          const take = Math.min(left, a.remainingAmount);
+          if (take > 0) takes.set(a.id, take);
+          left -= take;
+        });
+      setCustomerAdvances(prev => prev.map(a => {
+        const take = takes.get(a.id);
+        if (!take) return a;
+        const newApplied = a.appliedAmount + take;
+        const newRemaining = Math.max(0, a.amount - newApplied);
+        return { ...a, appliedAmount: newApplied, remainingAmount: newRemaining, status: newRemaining === 0 ? 'fully_applied' : 'partially_applied' };
+      }));
+    }
+
     // Deduct advance remaining if applied
     if (advanceApplied > 0 && invoiceData.advanceId) {
       setCustomerAdvances(prev => prev.map(a => {
@@ -5509,7 +6384,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const advAcc = getSafeAccount('212', 'liability');
     const arAcc = getSafeAccount('1121', 'asset');
@@ -5590,7 +6465,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createVendorBill = (billData: any): VendorBill => {
     const today = new Date().toISOString().substring(0, 10);
-    const billNumber = `BILL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const billNumber = nextDocNumber('BILL', vendorBills.map(x => x.billNumber), 4);
     const targetSup = suppliers.find(s => s.id === billData.supplierId);
     const supName = targetSup?.name || billData.supplierName || 'مورد';
 
@@ -5602,7 +6477,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const netPayable = Math.max(0, totalAmount - withholdingTaxAmount);
 
     const purJournal = journals.find(j => j.type === 'purchase') || journals[1];
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
 
     const grIrAcc = getSafeAccount('213', 'liability');
     const apAcc = getSafeAccount('2111', 'liability');
@@ -5717,7 +6592,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const bill = vendorBills.find(b => b.id === billId);
     if (!bill || amount <= 0) return false;
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const journal = paymentMethod === 'cash' 
       ? (journals.find(j => j.type === 'cash') || journals[2])
       : (journals.find(j => j.type === 'bank') || journals[3]);
@@ -5803,7 +6678,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!targetCheck) return;
 
     if (newStatus === 'cleared') {
-      const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+      const currentPeriod = currentOpenPeriod();
       const bankJournal = journals.find(j => j.type === 'bank') || journals[3];
       const bankAcc = chartOfAccounts.find(a => a.id === clearanceAccountId) || getSafeAccount('11121', 'asset');
       const pdcReceivableAcc = getSafeAccount('1113', 'asset');
@@ -5932,7 +6807,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ----------------------------------------------------
 
   const recordInventoryWipMovement = (productionOrderId: string, totalMaterialCost: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const moRef = productionOrders.find(o => o.id === productionOrderId)?.productionNumber || productionOrderId;
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const wipAcc = getSafeAccount('1133', 'asset');
     const rawAcc = getSafeAccount('1131', 'asset');
@@ -5941,9 +6817,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       journal: genJournal,
       date: new Date().toISOString().substring(0, 10),
       periodId: currentPeriod.id,
-      reference: `صرف خامات لأمر الشغل ${productionOrderId}`,
-      description: `صرف ألواح وخامات للورشة لأمر الشغل (${productionOrderId}) - ${notes || 'صرف وتصنيع'}`,
-      sourceDocument: productionOrderId,
+      reference: `صرف خامات لأمر الشغل ${moRef}`,
+      description: `صرف ألواح وخامات للورشة لأمر الشغل (${moRef}) - ${notes || 'صرف وتصنيع'}`,
+      sourceDocument: moRef,
       sourceType: 'material_issue_wip',
       branchId: currentBranch.id,
       branchName: currentBranch.name,
@@ -5976,7 +6852,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const recordProductionCompletionToFinishedGoods = (productionOrderId: string, finalTotalCost: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const moRef = productionOrders.find(o => o.id === productionOrderId)?.productionNumber || productionOrderId;
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const finAcc = getSafeAccount('1134', 'asset');
     const wipAcc = getSafeAccount('1133', 'asset');
@@ -5985,9 +6862,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       journal: genJournal,
       date: new Date().toISOString().substring(0, 10),
       periodId: currentPeriod.id,
-      reference: `إتمام تصنيع ${productionOrderId}`,
-      description: `استلام منتج تام الصنع (مطبخ / أثاث جاهز) من الورشة (${productionOrderId}) - ${notes || ''}`,
-      sourceDocument: productionOrderId,
+      reference: `إتمام تصنيع ${moRef}`,
+      description: `استلام منتج تام الصنع (مطبخ / أثاث جاهز) من الورشة (${moRef}) - ${notes || ''}`,
+      sourceDocument: moRef,
       sourceType: 'production_completion',
       branchId: currentBranch.id,
       branchName: currentBranch.name,
@@ -6018,7 +6895,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const recordDeliveryCogsAccounting = (orderId: string, cogsAmount: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const cogsAcc = getSafeAccount('514', 'cogs');
     const finAcc = getSafeAccount('1134', 'asset');
@@ -6060,7 +6937,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const recordScrapWasteAccounting = (reason: string, scrapAmount: number, notes?: string) => {
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const scrapAcc = getSafeAccount('1135', 'expense');
     const rawAcc = getSafeAccount('1131', 'asset');
@@ -6124,8 +7001,24 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }[];
     notes?: string;
   }): GoodsReceiptNote => {
+    // Receiving against a purchase order moves the PO to partially / fully received
+    if (data.purchaseOrderId) {
+      const keyOf = (code: string) => resolveCatalogItem(code)?.key || code.toUpperCase();
+      setEnterprisePurchaseOrders(prev => prev.map(po => {
+        if (po.poNumber !== data.purchaseOrderId) return po;
+        const items = po.items.map(it => {
+          const received = data.items
+            .filter((r: { itemCode: string; receivedQty: number }) => keyOf(r.itemCode) === keyOf(it.itemCode))
+            .reduce((sum: number, r: { receivedQty: number }) => sum + r.receivedQty, 0);
+          return received > 0 ? { ...it, receivedQuantity: Math.min(it.quantity, (it.receivedQuantity || 0) + received) } : it;
+        });
+        const full = items.every(it => (it.receivedQuantity || 0) >= it.quantity);
+        return { ...po, items, status: full ? 'fully_received' : 'partially_received' };
+      }));
+    }
+
     const today = new Date().toISOString().substring(0, 10);
-    const grnNumber = `GRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const grnNumber = nextDocNumber('GRN', goodsReceiptNotes.map(x => x.grnNumber), 4);
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
     const targetSup = suppliers.find(s => s.id === data.supplierId);
     const supName = targetSup?.name || (data.type === 'purchase_receipt' ? 'مورد خامات' : undefined);
@@ -6147,7 +7040,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const totalAmount = lineItems.reduce((s, it) => s + it.totalCost, 0);
 
     // 1. Accounting Impact: Debit Inventory / Credit GR-IR Clearing or WIP
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const rawInvAcc = getSafeAccount('1131', 'asset');
     const fgInvAcc = getSafeAccount('1134', 'asset');
@@ -6226,14 +7119,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const newAvgCost = oldStock + addQty > 0
           ? Math.round(((oldStock * item.weightedAvgCost) + (addQty * receiptLine.unitCost)) / newStock)
           : receiptLine.unitCost;
-        
+
         return {
-          ...item,
-          currentStock: newStock,
-          availableStock: item.availableStock + addQty,
+          ...adjustWarehouseStock(item, targetWh.id, addQty),
           weightedAvgCost: newAvgCost,
-          lastPurchasePrice: receiptLine.unitCost,
-          status: newStock <= 0 ? 'out_of_stock' : (newStock < item.minStockLevel ? 'low_stock' : 'active')
+          lastPurchasePrice: receiptLine.unitCost
         };
       }
       return item;
@@ -6286,6 +7176,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     costCenterName?: string;
     machineName?: string;
     warehouseId: string;
+    requisitionId?: string;
     items: {
       itemId: string;
       itemCode: string;
@@ -6300,15 +7191,16 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notes?: string;
   }): GoodsIssueNote => {
     const today = new Date().toISOString().substring(0, 10);
-    const ginNumber = `GIN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const ginNumber = nextDocNumber('GIN', goodsIssueNotes.map(x => x.ginNumber), 4);
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
+    const requisition = data.requisitionId ? materialRequisitions.find(m => m.id === data.requisitionId) : undefined;
 
-    // 0. Strict Negative Stock Prevention Check
+    // 0. Strict Negative Stock Prevention Check: free stock overall, and on the shelves of this warehouse
     for (const item of data.items) {
       const card = itemMasterCards.find(c => c.id === item.itemId || c.code === item.itemCode);
-      const available = card ? card.availableStock : 0;
+      const available = card ? Math.min(card.availableStock, stockAt(card, targetWh.id)) : 0;
       if (item.issuedQty > available) {
-        const errorMsg = `عفواً: الكمية المتاحة للصنف [${card?.nameAr || item.itemName}] في المستودع هي (${available} ${card?.unitNameAr || item.unit}) فقط، ولا يمكن صرف (${item.issuedQty}).`;
+        const errorMsg = `عفواً: الكمية المتاحة للصنف [${card?.nameAr || item.itemName}] في (${targetWh.name}) هي (${available} ${card?.unitNameAr || item.unit}) فقط، ولا يمكن صرف (${item.issuedQty}).`;
         showToast(errorMsg, 'error');
         throw new Error(errorMsg);
       }
@@ -6331,7 +7223,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const totalAmount = lineItems.reduce((s, it) => s + it.totalCost, 0);
 
     // 1. Accounting Impact: Credit Raw Materials / Debit WIP, Maintenance, or Scrap
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const rawInvAcc = getSafeAccount('1131', 'asset');
     const wipAcc = getSafeAccount('1133', 'asset');
@@ -6402,8 +7294,11 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalAmount,
       status: 'posted',
       journalEntryId: postResult.entry?.id,
-      requestedByUserName: currentUser.fullName,
+      requestedByUserName: requisition?.requestedByUserName || currentUser.fullName,
+      approvedByUserName: requisition?.approvedByUserName,
       issuedByUserName: targetWh.managerName || currentUser.fullName,
+      requisitionId: requisition?.id,
+      requisitionNumber: requisition?.requisitionNumber,
       notes: data.notes
     };
 
@@ -6412,20 +7307,17 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setJournalEntries(prev => [postResult.entry!, ...prev]);
     }
 
-    // 2. Decrease Stock in itemMasterCards
+    // The workshop request is closed by the issue that fulfils it
+    if (requisition) {
+      setMaterialRequisitions(prev => prev.map(m => m.id === requisition.id
+        ? { ...m, status: 'fully_issued', ginId: newGIN.id, ginNumber }
+        : m));
+    }
+
+    // 2. Decrease Stock in itemMasterCards (from the issuing warehouse)
     setItemMasterCards(prev => prev.map(item => {
       const issueLine = lineItems.find(l => l.itemId === item.id || l.itemCode === item.code);
-      if (issueLine) {
-        const newStock = Math.max(0, item.currentStock - issueLine.issuedQty);
-        const newAvail = Math.max(0, item.availableStock - issueLine.issuedQty);
-        return {
-          ...item,
-          currentStock: newStock,
-          availableStock: newAvail,
-          status: newStock <= 0 ? 'out_of_stock' : (newStock < item.minStockLevel ? 'low_stock' : 'active')
-        };
-      }
-      return item;
+      return issueLine ? adjustWarehouseStock(item, targetWh.id, -issueLine.issuedQty) : item;
     }));
 
     // 3. Add to Stock Ledger History
@@ -6537,7 +7429,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createStocktakeSession = (data: any): StocktakeSession => {
-    const sessionNumber = `STK-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const sessionNumber = nextDocNumber('STK', stocktakeSessions.map(s => s.sessionNumber), 4);
     const today = new Date().toISOString().substring(0, 10);
     const targetWh = warehouses.find(w => w.id === data.warehouseId) || warehouses[0];
 
@@ -6587,7 +7479,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const session = stocktakeSessions.find(s => s.id === sessionId);
     if (!session || session.status === 'posted') return false;
 
-    const currentPeriod = fiscalPeriods.find(p => !p.isClosed) || fiscalPeriods[1];
+    const currentPeriod = currentOpenPeriod();
     const genJournal = journals.find(j => j.type === 'general') || journals[4];
     const rawInvAcc = getSafeAccount('1131', 'asset');
     const varianceLossAcc = getSafeAccount('1135', 'expense');
@@ -6654,19 +7546,42 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    // Update item stocks to match countedQty
+    // Book each counted difference on the counted warehouse, so stock and the variance entry agree
+    const sessionWh = warehouses.find(w => w.id === session.warehouseId);
+    const whId = sessionWh?.id || session.warehouseId;
+    const today = new Date().toISOString().substring(0, 10);
+    const varianceLines = session.lines
+      .filter(l => l.varianceQty !== 0)
+      .map(l => ({ line: l, card: itemMasterCards.find(c => c.id === l.itemId || c.code === l.itemCode) }))
+      .filter((x): x is { line: StocktakeLine; card: ItemMasterCard } => !!x.card);
+
     setItemMasterCards(prev => prev.map(item => {
-      const stkLine = session.lines.find(l => l.itemId === item.id || l.itemCode === item.code);
-      if (stkLine) {
-        return {
-          ...item,
-          currentStock: stkLine.countedQty,
-          availableStock: Math.max(0, stkLine.countedQty - item.reservedStock),
-          status: stkLine.countedQty <= 0 ? 'out_of_stock' : (stkLine.countedQty < item.minStockLevel ? 'low_stock' : 'active')
-        };
-      }
-      return item;
+      const v = varianceLines.find(x => x.card.id === item.id);
+      return v ? adjustWarehouseStock(item, whId, v.line.varianceQty) : item;
     }));
+    if (varianceLines.length > 0) {
+      setStockLedgerEntries(prev => [
+        ...varianceLines.map(({ line, card }, idx): StockLedgerEntry => ({
+          id: `sle-${Date.now()}-${idx}`,
+          itemId: card.id,
+          itemCode: card.code,
+          itemName: card.nameAr,
+          date: today,
+          documentType: line.varianceQty > 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT',
+          documentNumber: session.sessionNumber,
+          warehouseId: whId,
+          warehouseName: session.warehouseName,
+          qtyIn: Math.max(0, line.varianceQty),
+          qtyOut: Math.max(0, -line.varianceQty),
+          balanceAfter: Math.max(0, card.currentStock + line.varianceQty),
+          unitCost: line.unitCost,
+          totalCost: Math.abs(line.varianceAmount),
+          userName: currentUser.fullName,
+          notes: `تسوية جرد ${session.sessionNumber}: ${line.varianceQty > 0 ? 'زيادة' : 'عجز'} ${Math.abs(line.varianceQty)} ${line.unit}${line.notes ? ` - ${line.notes}` : ''}`
+        })),
+        ...prev
+      ]);
+    }
 
     setStocktakeSessions(prev => prev.map(s => {
       if (s.id === sessionId) {
@@ -6684,7 +7599,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createMaterialRequisition = (data: any): MaterialRequisition => {
-    const requisitionNumber = `MRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const requisitionNumber = nextDocNumber('MRN', materialRequisitions.map(m => m.requisitionNumber), 4);
     const today = new Date().toISOString().substring(0, 10);
     const newMRN: MaterialRequisition = {
       id: `mrn-${Date.now()}`,
@@ -6747,7 +7662,118 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('تم رفض طلب صرف الخامات وإعادته للتعديل', 'info');
   };
 
+  // A transfer note: the goods leave the source shelves now (in transit) and land on the
+  // destination shelves when the receiving warehouse confirms.
+  const createWarehouseTransfer = (data: {
+    sourceWarehouseId: string;
+    destinationWarehouseId: string;
+    itemId: string;
+    quantity: number;
+    driverName?: string;
+    notes?: string;
+  }): StockTransfer | null => {
+    const sourceWh = warehouses.find(w => w.id === data.sourceWarehouseId);
+    const destWh = warehouses.find(w => w.id === data.destinationWarehouseId);
+    const card = itemMasterCards.find(c => c.id === data.itemId);
+    if (!sourceWh || !destWh || !card) return null;
+    if (sourceWh.id === destWh.id) {
+      showToast('لا يمكن التحويل لنفس المستودع', 'warning');
+      return null;
+    }
+    const onShelf = Math.min(stockAt(card, sourceWh.id), card.availableStock);
+    if (data.quantity <= 0 || data.quantity > onShelf) {
+      showToast(`الكمية المتاحة من (${card.nameAr}) في ${sourceWh.name} هي ${onShelf} ${card.unitNameAr} فقط`, 'error');
+      return null;
+    }
+
+    const today = new Date().toISOString().substring(0, 10);
+    const transferNumber = nextDocNumber('TRF', stockTransfers.map(t => t.transferNumber), 3);
+    const transfer: StockTransfer = {
+      id: `trf-${Date.now()}`,
+      transferNumber,
+      sourceBranchId: sourceWh.branchId,
+      sourceBranchName: sourceWh.name,
+      destinationBranchId: destWh.branchId,
+      destinationBranchName: destWh.name,
+      sourceWarehouseId: sourceWh.id,
+      destinationWarehouseId: destWh.id,
+      driverName: data.driverName,
+      status: 'sent',
+      items: [{ itemId: card.id, itemType: 'material', itemName: card.nameAr, itemCode: card.code, quantity: data.quantity, unit: card.unitNameAr }],
+      requestedDate: today,
+      sentDate: today,
+      requestedByUserId: currentUser.id,
+      requestedByUserName: currentUser.fullName,
+      approvedByUserName: sourceWh.managerName,
+      notes: data.notes
+    };
+
+    setStockTransfers(prev => [transfer, ...prev]);
+    setItemMasterCards(prev => prev.map(c => c.id === card.id ? adjustWarehouseStock(c, sourceWh.id, -data.quantity) : c));
+    setStockLedgerEntries(prev => [{
+      id: `sle-${Date.now()}`,
+      itemId: card.id,
+      itemCode: card.code,
+      itemName: card.nameAr,
+      date: today,
+      documentType: 'TRANSFER_OUT',
+      documentNumber: transferNumber,
+      warehouseId: sourceWh.id,
+      warehouseName: sourceWh.name,
+      qtyIn: 0,
+      qtyOut: data.quantity,
+      balanceAfter: Math.max(0, card.currentStock - data.quantity),
+      unitCost: card.weightedAvgCost,
+      totalCost: data.quantity * card.weightedAvgCost,
+      userName: currentUser.fullName,
+      notes: `تحويل صادر ${transferNumber} إلى ${destWh.name}${data.driverName ? ` (${data.driverName})` : ''} - في الطريق`
+    }, ...prev]);
+    addAuditLog({
+      category: 'inventory',
+      action: 'إذن تحويل مخزني',
+      actionEn: 'Warehouse Transfer Sent',
+      target: transferNumber,
+      details: `${data.quantity} ${card.unitNameAr} ${card.nameAr} من ${sourceWh.name} إلى ${destWh.name}`,
+      status: 'success'
+    });
+    showToast(`🚚 تم إصدار التحويل ${transferNumber}: ${data.quantity} ${card.unitNameAr} خرجت من ${sourceWh.name} وفي الطريق`, 'success');
+    return transfer;
+  };
+
   const confirmWarehouseTransfer = (transferId: string) => {
+    const transfer = stockTransfers.find(t => t.id === transferId);
+    const destWh = transfer?.destinationWarehouseId ? warehouses.find(w => w.id === transfer.destinationWarehouseId) : undefined;
+    if (transfer && destWh && transfer.status !== 'received') {
+      const today = new Date().toISOString().substring(0, 10);
+      const arriving = transfer.items
+        .map(it => ({ it, card: itemMasterCards.find(c => c.id === it.itemId || c.code === it.itemCode) }))
+        .filter((x): x is { it: StockTransferItem; card: ItemMasterCard } => !!x.card);
+      setItemMasterCards(prev => prev.map(c => {
+        const line = arriving.find(a => a.card.id === c.id);
+        return line ? adjustWarehouseStock(c, destWh.id, line.it.quantity) : c;
+      }));
+      setStockLedgerEntries(prev => [
+        ...arriving.map(({ it, card }, idx): StockLedgerEntry => ({
+          id: `sle-${Date.now()}-${idx}`,
+          itemId: card.id,
+          itemCode: card.code,
+          itemName: card.nameAr,
+          date: today,
+          documentType: 'TRANSFER_IN',
+          documentNumber: transfer.transferNumber,
+          warehouseId: destWh.id,
+          warehouseName: destWh.name,
+          qtyIn: it.quantity,
+          qtyOut: 0,
+          balanceAfter: card.currentStock + it.quantity,
+          unitCost: card.weightedAvgCost,
+          totalCost: it.quantity * card.weightedAvgCost,
+          userName: currentUser.fullName,
+          notes: `تحويل وارد ${transfer.transferNumber} من ${transfer.sourceBranchName}`
+        })),
+        ...prev
+      ]);
+    }
     setStockTransfers(prev => prev.map(t => {
       if (t.id === transferId) {
         return {
@@ -6821,6 +7847,23 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         recordMilestonePayment,
         selectedProjectId,
         portalCurrentCustomerId,
+        workCenters,
+        setWorkCenters,
+        workOrders,
+        setWorkOrders,
+        scrapClaims,
+        setScrapClaims,
+        offCutReturns,
+        setOffCutReturns,
+        manufacturingPackages,
+        setManufacturingPackages,
+        qualityInspections,
+        setQualityInspections,
+        shopWorkers,
+        setShopWorkers,
+        postSubcontractCost,
+        issueScrapReplacement,
+        createRemakeOrder,
         productionOrders,
         installationRecords,
         selectedProductionOrderId,
@@ -6939,6 +7982,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         approveTechnicalDesign,
         saveTechnicalBOM,
         approveTechnicalBOM,
+        approveBOMNesting,
         createBOMRevision,
         releaseTechnicalPackageToPlanning,
         createEngineeringChangeRequest,
@@ -6948,6 +7992,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createProductionOrderFromCustomOrder,
         reserveProductionMaterials,
         consumeProductionMaterials,
+        startProductionOrder,
         completeProductionOrder,
         scheduleInstallation,
         completeInstallation,
@@ -6975,6 +8020,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         approveMaterialRequisition,
         rejectMaterialRequisition,
         confirmWarehouseTransfer,
+        createWarehouseTransfer,
         planningDemands,
         supplyProposals,
         workCenterCapacities,

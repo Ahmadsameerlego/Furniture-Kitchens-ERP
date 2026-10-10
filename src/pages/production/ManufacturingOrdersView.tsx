@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ProductionOrder, ProductionOrderStatus } from '../../types/erp';
 import { WorkOrder, ScrapClaimRecord, WorkCenter } from '../../types/production';
 import { ProductionService } from '../../services/productionService';
+import { useERP } from '../../context/ERPContext';
 import {
   Factory,
   Search,
@@ -48,6 +49,7 @@ export const ManufacturingOrdersView: React.FC<ManufacturingOrdersViewProps> = (
   onOpenQualityModal,
   onCompleteOrder
 }) => {
+  const { shopWorkers } = useERP();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -114,7 +116,7 @@ export const ManufacturingOrdersView: React.FC<ManufacturingOrdersViewProps> = (
                   const completedWOCount = relatedWOs.filter(w => w.status === 'completed').length;
                   const totalWOCount = relatedWOs.length || 5;
                   const progressPct = Math.round((completedWOCount / totalWOCount) * 100);
-                  const costing = ProductionService.calculateJobCosting(order, workOrders, scrapClaims, workCenters);
+                  const costing = ProductionService.calculateJobCosting(order, workOrders, scrapClaims, workCenters, shopWorkers);
 
                   return (
                     <tr key={order.id} className="hover:bg-slate-50/80 transition-all">
@@ -126,6 +128,7 @@ export const ManufacturingOrdersView: React.FC<ManufacturingOrdersViewProps> = (
                           </span>
                         </div>
                         <span className="text-[11px] text-slate-500 block mt-0.5">مشروع: {order.projectNumber}</span>
+                        {order.kind === 'remake' && <span className="mt-1 inline-block px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-black">🔁 نواقص</span>}
                       </td>
 
                       {/* Customer */}

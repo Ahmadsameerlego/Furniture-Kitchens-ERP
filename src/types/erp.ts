@@ -1,3 +1,5 @@
+import type { KitchenConfiguration } from './configurator';
+
 export type BusinessType = 'furniture' | 'kitchens' | 'furniture_kitchens';
 export type BusinessModel = 'ready_made' | 'custom_made' | 'ready_custom';
 export type LocationType = 'showroom' | 'warehouse' | 'workshop';
@@ -63,6 +65,9 @@ export type ModuleId =
   | 'mfg_job_cards'
   | 'mfg_scrap'
   | 'mfg_qc'
+  | 'mfg_daily'
+  | 'mfg_remake'
+  | 'mfg_workforce'
   | 'installation'
   | 'finance'
   | 'acc_dashboard'
@@ -720,6 +725,8 @@ export interface ProjectQuotation {
   acceptedAt?: string;
   acceptedByCustomerName?: string;
   breakdown?: QuotationBreakdown;
+  /** Present when the quotation was produced by the kitchen configurator; drives the BOM later. */
+  configuration?: KitchenConfiguration;
 }
 
 export interface ProjectTimelineEvent {
@@ -786,7 +793,40 @@ export interface ProductionOrder {
   totalEstimatedMaterialCost: number;
   totalActualMaterialCost: number;
   materialVariance: number;
+  /** Station labor + machine cost absorbed when the order is completed. */
+  totalLaborCost?: number;
+  /** Outside-shop work (lacquer, glass...) charged to this order. */
+  totalSubcontractCost?: number;
   createdDate: string;
+  /** main = the project's order; remake = missing or broken parts made again. */
+  kind?: 'main' | 'remake';
+  parentProductionId?: string;
+  priority?: 'normal' | 'high' | 'urgent';
+  remake?: RemakeDetails;
+}
+
+export type RemakeSource = 'factory_qc' | 'site_installation' | 'after_handover';
+export type RemakeReason = 'transport_damage' | 'site_measure_error' | 'manufacturing_defect' | 'cutting_error' | 'customer_change' | 'missing_part';
+export type RemakeChargeTo = 'factory' | 'customer' | 'supplier' | 'transport';
+
+export interface RemakePart {
+  partName: string;
+  materialCode: string;
+  materialName: string;
+  lengthMm: number;
+  widthMm: number;
+  quantity: number;
+  needsPaint?: boolean;
+}
+
+export interface RemakeDetails {
+  source: RemakeSource;
+  reason: RemakeReason;
+  chargeTo: RemakeChargeTo;
+  reportedBy: string;
+  parts: RemakePart[];
+  fromOffcuts: boolean;
+  includesAssembly: boolean;
 }
 
 export type InstallationStatus =
@@ -1059,6 +1099,9 @@ export interface StockTransfer {
   sourceBranchName: string;
   destinationBranchId: string;
   destinationBranchName: string;
+  sourceWarehouseId?: string;
+  destinationWarehouseId?: string;
+  driverName?: string;
   status: StockTransferStatus;
   items: StockTransferItem[];
   requestedDate: string;
@@ -1443,6 +1486,7 @@ export interface ItemMasterCard {
   sellingPrice: number;    // EGP
   defaultWarehouseId: string;
   defaultWarehouseName: string;
+  warehouseStock?: Record<string, number>; // on-hand quantity per warehouse id (goods in transit are in no warehouse)
   locationBin: string;     // e.g. "ممر 2 - رف B - خانة 04"
   specifications: { key: string; value: string }[];
   supplierId?: string;
@@ -1533,6 +1577,8 @@ export interface GoodsIssueNote {
   requestedByUserName: string;
   approvedByUserName?: string;
   issuedByUserName: string;
+  requisitionId?: string;
+  requisitionNumber?: string;
   notes?: string;
 }
 
@@ -1558,6 +1604,7 @@ export interface MaterialRequisition {
   }[];
   status: 'pending' | 'approved' | 'partially_issued' | 'fully_issued' | 'rejected';
   ginId?: string;
+  ginNumber?: string;
   notes?: string;
 }
 
@@ -1617,3 +1664,9 @@ export interface StockLedgerEntry {
 
 export * from './procurement';
 export * from './sales';
+
+export interface RemakeOrderInput extends RemakeDetails {
+  projectId: string;
+  parentProductionId?: string;
+  notes?: string;
+}

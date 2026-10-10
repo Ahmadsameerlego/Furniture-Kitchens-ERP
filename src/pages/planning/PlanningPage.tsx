@@ -56,6 +56,7 @@ export const PlanningPage: React.FC<PlanningPageProps> = ({ initialTab = 'plan_d
     rescheduleProjectTimeline,
     updateWorkCenterCapacityHours,
     batchGenerateProposalsFromShortages,
+    itemMasterCards,
     setActiveModule
   } = useERP();
 
@@ -71,7 +72,7 @@ export const PlanningPage: React.FC<PlanningPageProps> = ({ initialTab = 'plan_d
   const [selectedProjectToReschedule, setSelectedProjectToReschedule] = useState<ProjectPlanningReadiness | null>(null);
 
   // Calculate Net Requirements on current demands
-  const netRequirements = calculateNetRequirements(planningDemands);
+  const netRequirements = calculateNetRequirements(planningDemands, itemMasterCards);
 
   const handleOpenProposalDetails = (proposal: SupplyProposal) => {
     setSelectedProposal(proposal);
@@ -128,7 +129,7 @@ export const PlanningPage: React.FC<PlanningPageProps> = ({ initialTab = 'plan_d
     <div className="space-y-6">
       
       {/* Top Navigation Tabs */}
-      <div className="bg-white rounded-2xl p-2 border border-slate-200/80 shadow-xs flex items-center gap-1.5 overflow-x-auto">
+      <div className="bg-white rounded-2xl p-2 border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-1.5">
         {navigationTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -144,11 +145,11 @@ export const PlanningPage: React.FC<PlanningPageProps> = ({ initialTab = 'plan_d
               }}
               className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                 isActive 
-                  ? 'bg-indigo-600 text-white shadow-sm' 
+                  ? 'bg-[#361D13] text-white shadow-sm' 
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-[#C87A38]' : 'text-slate-400'}`} />
               <span>{tab.label}</span>
             </button>
           );

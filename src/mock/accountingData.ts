@@ -274,11 +274,91 @@ export const initialCustomerAdvances: CustomerAdvance[] = [
     remainingAmount: 100000,
     paymentMethod: 'bank_transfer',
     accountId: 'acc-11121',
-    date: '2026-08-25',
+    date: '2026-08-18',
     journalEntryId: 'je-adv-101',
     status: 'active',
     notes: 'عربون مقدم تعاقد تصنيع مطبخ رويال HPL',
     receivedByUserName: 'أحمد سمير (المالية)'
+  },
+  {
+    id: 'adv-102',
+    advanceNumber: 'ADV-2026-0002',
+    customerId: 'cust-11',
+    customerName: 'م. حازم السعدني',
+    orderId: 'cnt-102',
+    orderNumber: 'CNT-2026-002',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    amount: 66000,
+    appliedAmount: 0,
+    remainingAmount: 66000,
+    paymentMethod: 'check',
+    accountId: 'acc-11121',
+    date: '2026-07-14',
+    journalEntryId: 'je-adv-102',
+    status: 'active',
+    notes: 'عربون 40% غرفة النوم والدريسنج (RCP-2026-002)',
+    receivedByUserName: 'سارة الشريف (المالية)'
+  },
+  {
+    id: 'adv-103',
+    advanceNumber: 'ADV-2026-0003',
+    customerId: 'cust-11',
+    customerName: 'م. حازم السعدني',
+    orderId: 'cnt-102',
+    orderNumber: 'CNT-2026-002',
+    projectId: 'prj-102',
+    projectNumber: 'PRJ-2026-002',
+    amount: 66000,
+    appliedAmount: 0,
+    remainingAmount: 66000,
+    paymentMethod: 'cash',
+    accountId: 'acc-11111',
+    date: '2026-08-24',
+    journalEntryId: 'je-adv-103',
+    status: 'active',
+    notes: 'دفعة الشحن 40% غرفة النوم والدريسنج (RCP-2026-004)',
+    receivedByUserName: 'سارة الشريف (المالية)'
+  },
+  {
+    id: 'adv-104',
+    advanceNumber: 'ADV-2026-0004',
+    customerId: 'cust-12',
+    customerName: 'أ. شريف مدكور',
+    orderId: 'cnt-103',
+    orderNumber: 'CNT-2026-003',
+    projectId: 'prj-103',
+    projectNumber: 'PRJ-2026-003',
+    amount: 84000,
+    appliedAmount: 0,
+    remainingAmount: 84000,
+    paymentMethod: 'bank_transfer',
+    accountId: 'acc-11121',
+    date: '2026-08-18',
+    journalEntryId: 'je-adv-104',
+    status: 'active',
+    notes: 'عربون 40% المطبخ الكلاسيك (RCP-2026-003)',
+    receivedByUserName: 'سارة الشريف (المالية)'
+  },
+  {
+    id: 'adv-105',
+    advanceNumber: 'ADV-2026-0005',
+    customerId: 'cust-6',
+    customerName: 'د. نورهان علي',
+    orderId: 'cnt-104',
+    orderNumber: 'CNT-2026-004',
+    projectId: 'prj-104',
+    projectNumber: 'PRJ-2026-004',
+    amount: 70000,
+    appliedAmount: 0,
+    remainingAmount: 70000,
+    paymentMethod: 'card',
+    accountId: 'acc-11121',
+    date: '2026-08-26',
+    journalEntryId: 'je-adv-105',
+    status: 'active',
+    notes: 'عربون 40% مطبخ الأكريليك (RCP-2026-005)',
+    receivedByUserName: 'سارة الشريف (المالية)'
   }
 ];
 
@@ -348,13 +428,113 @@ export const initialVendorBills: VendorBill[] = [
 ];
 
 export const initialJournalEntries: JournalEntry[] = [
+  {
+    id: 'je-adv-102',
+    entryNumber: 'JE-2026-000090',
+    date: '2026-07-14',
+    periodId: 'per-2026-07',
+    journalId: 'jrn-bnk',
+    journalName: 'دفتر يومية البنوك والشيكات',
+    sourceDocument: 'ADV-2026-0002',
+    sourceType: 'customer_advance',
+    reference: 'عربون تعاقد م. حازم السعدني',
+    description: 'عربون 40% غرفة النوم والدريسنج (RCP-2026-002)',
+    lines: [
+      { id: 'line-je-adv-102-1', accountId: 'acc-11121', accountCode: '11121', accountName: 'حساب البنك الأهلي المصري (NBE)', debit: 66000, credit: 0, description: 'تحصيل دفعة العميل' },
+      { id: 'line-je-adv-102-2', accountId: 'acc-212', accountCode: '212', accountName: 'دفعات مقدمة وعرابين تعاقدات العملاء', partnerId: 'cust-11', partnerType: 'customer', partnerName: 'م. حازم السعدني', debit: 0, credit: 66000, description: 'التزام على الشركة حتى التسليم والفوترة' }
+    ],
+    totalDebit: 66000,
+    totalCredit: 66000,
+    status: 'posted',
+    branchId: 'branch-1',
+    branchName: 'معرض القاهرة الرئيسي',
+    createdAt: '2026-07-14 15:00:00',
+    createdByUserName: 'سارة الشريف (المالية)',
+    postedAt: '2026-07-14 15:00:00',
+    postedByUserName: 'سارة الشريف (المالية)'
+  },
+  {
+    id: 'je-adv-103',
+    entryNumber: 'JE-2026-000098',
+    date: '2026-08-24',
+    periodId: 'per-2026-08',
+    journalId: 'jrn-csh',
+    journalName: 'دفتر يومية الخزائن والنقدية',
+    sourceDocument: 'ADV-2026-0003',
+    sourceType: 'customer_advance',
+    reference: 'عربون تعاقد م. حازم السعدني',
+    description: 'دفعة الشحن 40% غرفة النوم والدريسنج (RCP-2026-004)',
+    lines: [
+      { id: 'line-je-adv-103-1', accountId: 'acc-11111', accountCode: '11111', accountName: 'خزينة المعرض الرئيسي (القاهرة)', debit: 66000, credit: 0, description: 'تحصيل دفعة العميل' },
+      { id: 'line-je-adv-103-2', accountId: 'acc-212', accountCode: '212', accountName: 'دفعات مقدمة وعرابين تعاقدات العملاء', partnerId: 'cust-11', partnerType: 'customer', partnerName: 'م. حازم السعدني', debit: 0, credit: 66000, description: 'التزام على الشركة حتى التسليم والفوترة' }
+    ],
+    totalDebit: 66000,
+    totalCredit: 66000,
+    status: 'posted',
+    branchId: 'branch-1',
+    branchName: 'معرض القاهرة الرئيسي',
+    createdAt: '2026-08-24 15:00:00',
+    createdByUserName: 'سارة الشريف (المالية)',
+    postedAt: '2026-08-24 15:00:00',
+    postedByUserName: 'سارة الشريف (المالية)'
+  },
+  {
+    id: 'je-adv-104',
+    entryNumber: 'JE-2026-000096',
+    date: '2026-08-18',
+    periodId: 'per-2026-08',
+    journalId: 'jrn-bnk',
+    journalName: 'دفتر يومية البنوك والشيكات',
+    sourceDocument: 'ADV-2026-0004',
+    sourceType: 'customer_advance',
+    reference: 'عربون تعاقد أ. شريف مدكور',
+    description: 'عربون 40% المطبخ الكلاسيك (RCP-2026-003)',
+    lines: [
+      { id: 'line-je-adv-104-1', accountId: 'acc-11121', accountCode: '11121', accountName: 'حساب البنك الأهلي المصري (NBE)', debit: 84000, credit: 0, description: 'تحصيل دفعة العميل' },
+      { id: 'line-je-adv-104-2', accountId: 'acc-212', accountCode: '212', accountName: 'دفعات مقدمة وعرابين تعاقدات العملاء', partnerId: 'cust-12', partnerType: 'customer', partnerName: 'أ. شريف مدكور', debit: 0, credit: 84000, description: 'التزام على الشركة حتى التسليم والفوترة' }
+    ],
+    totalDebit: 84000,
+    totalCredit: 84000,
+    status: 'posted',
+    branchId: 'branch-1',
+    branchName: 'معرض القاهرة الرئيسي',
+    createdAt: '2026-08-18 15:00:00',
+    createdByUserName: 'سارة الشريف (المالية)',
+    postedAt: '2026-08-18 15:00:00',
+    postedByUserName: 'سارة الشريف (المالية)'
+  },
+  {
+    id: 'je-adv-105',
+    entryNumber: 'JE-2026-000099',
+    date: '2026-08-26',
+    periodId: 'per-2026-08',
+    journalId: 'jrn-bnk',
+    journalName: 'دفتر يومية البنوك والشيكات',
+    sourceDocument: 'ADV-2026-0005',
+    sourceType: 'customer_advance',
+    reference: 'عربون تعاقد د. نورهان علي',
+    description: 'عربون 40% مطبخ الأكريليك (RCP-2026-005)',
+    lines: [
+      { id: 'line-je-adv-105-1', accountId: 'acc-11121', accountCode: '11121', accountName: 'حساب البنك الأهلي المصري (NBE)', debit: 70000, credit: 0, description: 'تحصيل دفعة العميل' },
+      { id: 'line-je-adv-105-2', accountId: 'acc-212', accountCode: '212', accountName: 'دفعات مقدمة وعرابين تعاقدات العملاء', partnerId: 'cust-6', partnerType: 'customer', partnerName: 'د. نورهان علي', debit: 0, credit: 70000, description: 'التزام على الشركة حتى التسليم والفوترة' }
+    ],
+    totalDebit: 70000,
+    totalCredit: 70000,
+    status: 'posted',
+    branchId: 'branch-4',
+    branchName: 'معرض الإسكندرية - سموحة',
+    createdAt: '2026-08-26 15:00:00',
+    createdByUserName: 'سارة الشريف (المالية)',
+    postedAt: '2026-08-26 15:00:00',
+    postedByUserName: 'سارة الشريف (المالية)'
+  },
   // 0. Initial Sales Invoice (محمد حسن 285,000)
   {
     id: 'je-inv-101',
     entryNumber: 'JE-2026-000100',
     date: '2026-08-25',
     periodId: 'per-2026-08',
-    journalId: 'jrn-sal',
+    journalId: 'jrn-sales',
     journalName: 'دفتر يومية المبيعات والفواتير',
     sourceDocument: 'INV-2026-0001',
     sourceType: 'sales_invoice',
@@ -406,7 +586,7 @@ export const initialJournalEntries: JournalEntry[] = [
   {
     id: 'je-adv-101',
     entryNumber: 'JE-2026-000101',
-    date: '2026-08-25',
+    date: '2026-08-18',
     periodId: 'per-2026-08',
     journalId: 'jrn-bnk',
     journalName: 'دفتر يومية البنوك والشيكات',
@@ -442,9 +622,9 @@ export const initialJournalEntries: JournalEntry[] = [
     status: 'posted',
     branchId: 'branch-1',
     branchName: 'معرض القاهرة الرئيسي',
-    createdAt: '2026-08-25 10:00:00',
+    createdAt: '2026-08-18 19:10:00',
     createdByUserName: 'أحمد سمير (المالية)',
-    postedAt: '2026-08-25 10:00:00',
+    postedAt: '2026-08-18 19:10:00',
     postedByUserName: 'أحمد سمير (المالية)'
   },
 
@@ -549,11 +729,11 @@ export const initialJournalEntries: JournalEntry[] = [
     postedByUserName: 'أحمد سمير (المالية)'
   },
 
-  // 4. Material Issue to WIP (MDF 70k + Accessories 20k = 90k)
+  // 4. Material Issue to WIP (PROD-2026-0012 consumption = 92,690)
   {
     id: 'je-wip-101',
     entryNumber: 'JE-2026-000104',
-    date: '2026-08-22',
+    date: '2026-08-26',
     periodId: 'per-2026-08',
     journalId: 'jrn-gen',
     journalName: 'دفتر العمليات العامة والتشغيلية والمخزون',
@@ -569,9 +749,9 @@ export const initialJournalEntries: JournalEntry[] = [
         accountName: 'إنتاج تحت التشغيل بورش التصنيع (WIP)',
         costCenterId: 'cc-1',
         costCenterName: 'قسم تقطيع الـ CNC وشريط الشاط',
-        debit: 90000,
+        debit: 92690,
         credit: 0,
-        description: 'تحميل خامات أمر تصنيع مطبخ رويال'
+        description: 'تحميل خامات أمر تصنيع مطبخ رويال PRJ-2026-001'
       },
       {
         id: 'line-wip-2',
@@ -579,18 +759,18 @@ export const initialJournalEntries: JournalEntry[] = [
         accountCode: '1131',
         accountName: 'مخزون الخامات والألواح والأخشاب',
         debit: 0,
-        credit: 90000,
+        credit: 92690,
         description: 'خصم الخامات المنصرفة من رصيد المخزن'
       }
     ],
-    totalDebit: 90000,
-    totalCredit: 90000,
+    totalDebit: 92690,
+    totalCredit: 92690,
     status: 'posted',
     branchId: 'branch-1',
     branchName: 'ورشة تصنيع العبور',
-    createdAt: '2026-08-22 09:00:00',
+    createdAt: '2026-08-26 18:00:00',
     createdByUserName: 'مدير الإنتاج',
-    postedAt: '2026-08-22 09:00:00',
+    postedAt: '2026-08-26 18:00:00',
     postedByUserName: 'أحمد سمير (المالية)'
   },
 
@@ -598,7 +778,7 @@ export const initialJournalEntries: JournalEntry[] = [
   {
     id: 'je-wip-labor-101',
     entryNumber: 'JE-2026-000105',
-    date: '2026-08-24',
+    date: '2026-08-27',
     periodId: 'per-2026-08',
     journalId: 'jrn-gen',
     journalName: 'دفتر العمليات العامة والتشغيلية والمخزون',
@@ -633,9 +813,9 @@ export const initialJournalEntries: JournalEntry[] = [
     status: 'posted',
     branchId: 'branch-1',
     branchName: 'ورشة تصنيع العبور',
-    createdAt: '2026-08-24 16:00:00',
+    createdAt: '2026-08-27 17:00:00',
     createdByUserName: 'أحمد سمير (المالية)',
-    postedAt: '2026-08-24 16:00:00',
+    postedAt: '2026-08-27 17:00:00',
     postedByUserName: 'أحمد سمير (المالية)'
   },
 

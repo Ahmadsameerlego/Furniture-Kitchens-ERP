@@ -246,19 +246,19 @@ export const CustomerInvoicesAdvancesView: React.FC = () => {
       {activeSubTab === 'invoices' ? (
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[1050px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">رقم الفاتورة</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">العميل</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">تاريخ الإصدار</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">المبلغ الأساسي</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">ضريبة VAT 14%</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">الإجمالي</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">العربون المسوى</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">المتبقي للتحصيل</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الحالة</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center">الإجراءات</th>
+                  <th className="py-3.5 px-3 min-w-[80px]">رقم الفاتورة</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">العميل</th>
+                  <th className="py-3.5 px-3 min-w-[70px]">تاريخ الإصدار</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-left">المبلغ الأساسي</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-left">ضريبة VAT 14%</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-left">الإجمالي</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-left">العربون المسوى</th>
+                  <th className="py-3.5 px-3 min-w-[80px] text-left">المتبقي للتحصيل</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الحالة</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
@@ -270,17 +270,17 @@ export const CustomerInvoicesAdvancesView: React.FC = () => {
                   )
                   .map(inv => (
                     <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{inv.invoiceNumber}</td>
-                      <td className="py-3.5 px-4 font-sans font-bold text-slate-800">{inv.customerName}</td>
-                      <td className="py-3.5 px-4 text-slate-500 font-mono text-xs whitespace-nowrap">{inv.date}</td>
-                      <td className="py-3.5 px-4 text-left text-slate-700 whitespace-nowrap">{inv.subtotal.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-left text-slate-500 whitespace-nowrap">{inv.taxAmount.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-left font-black text-slate-900 whitespace-nowrap">{inv.totalAmount.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-left font-bold text-amber-700 whitespace-nowrap">
+                      <td className="py-3.5 px-3 font-bold text-slate-900 whitespace-nowrap">{inv.invoiceNumber}</td>
+                      <td className="py-3.5 px-3 font-sans font-bold text-slate-800">{inv.customerName}</td>
+                      <td className="py-3.5 px-3 text-slate-500 font-mono text-xs whitespace-nowrap">{inv.date}</td>
+                      <td className="py-3.5 px-3 text-left text-slate-700 whitespace-nowrap">{inv.subtotal.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-3 text-left text-slate-500 whitespace-nowrap">{inv.taxAmount.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-3 text-left font-black text-slate-900 whitespace-nowrap">{inv.totalAmount.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-3 text-left font-bold text-amber-700 whitespace-nowrap">
                         {inv.advanceAppliedAmount > 0 ? `-${inv.advanceAppliedAmount.toLocaleString()} EGP` : '-'}
                       </td>
-                      <td className="py-3.5 px-4 text-left font-black text-blue-700 whitespace-nowrap">{inv.balanceDue.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-left font-black text-blue-700 whitespace-nowrap">{inv.balanceDue.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-3 text-center font-sans">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-black shadow-2xs whitespace-nowrap ${
                           inv.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                           inv.status === 'partially_paid' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
@@ -292,7 +292,7 @@ export const CustomerInvoicesAdvancesView: React.FC = () => {
                           {inv.status === 'draft' && 'مسودة'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-center font-sans">
                         {inv.balanceDue > 0 && (
                           <button
                             onClick={() => handleOpenApplyModal(inv)}
@@ -320,17 +320,17 @@ export const CustomerInvoicesAdvancesView: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-right text-xs min-w-[950px]">
+            <table className="w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">رقم السند</th>
-                  <th className="py-3.5 px-4 min-w-[180px]">العميل</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px]">تاريخ الاستلام</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">طريقة السداد</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">قيمة العربون</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-left">المبلغ المسوى</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px] text-left">المتبقي كالتزام</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px] text-center">الحالة</th>
+                  <th className="py-3.5 px-3 min-w-[80px]">رقم السند</th>
+                  <th className="py-3.5 px-3 min-w-[110px]">العميل</th>
+                  <th className="py-3.5 px-3 min-w-[70px]">تاريخ الاستلام</th>
+                  <th className="py-3.5 px-3 min-w-[80px]">طريقة السداد</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-left">قيمة العربون</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-left">المبلغ المسوى</th>
+                  <th className="py-3.5 px-3 min-w-[80px] text-left">المتبقي كالتزام</th>
+                  <th className="py-3.5 px-3 min-w-[70px] text-center">الحالة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
@@ -342,19 +342,19 @@ export const CustomerInvoicesAdvancesView: React.FC = () => {
                   )
                   .map(adv => (
                     <tr key={adv.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{adv.advanceNumber}</td>
-                      <td className="py-3.5 px-4 font-sans font-bold text-slate-800">{adv.customerName}</td>
-                      <td className="py-3.5 px-4 text-slate-500 font-mono text-xs whitespace-nowrap">{adv.date}</td>
-                      <td className="py-3.5 px-4 font-sans text-slate-700 whitespace-nowrap">
+                      <td className="py-3.5 px-3 font-bold text-slate-900">{adv.advanceNumber}</td>
+                      <td className="py-3.5 px-3 font-sans font-bold text-slate-800">{adv.customerName}</td>
+                      <td className="py-3.5 px-3 text-slate-500 font-mono text-xs whitespace-nowrap">{adv.date}</td>
+                      <td className="py-3.5 px-3 font-sans text-slate-700">
                         {adv.paymentMethod === 'bank_transfer' && 'تحويل بنكي'}
                         {adv.paymentMethod === 'cash' && 'نقدية بالخزينة'}
                         {adv.paymentMethod === 'check' && 'شيك بنكي'}
                         {adv.paymentMethod === 'card' && 'بطاقة بنكية POS'}
                       </td>
-                      <td className="py-3.5 px-4 text-left font-black text-slate-900 whitespace-nowrap">{adv.amount.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-left font-bold text-emerald-700 whitespace-nowrap">{adv.appliedAmount.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-left font-black text-amber-800 whitespace-nowrap">{adv.remainingAmount.toLocaleString()} EGP</td>
-                      <td className="py-3.5 px-4 text-center font-sans whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-left font-black text-slate-900 whitespace-nowrap">{adv.amount.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-3 text-left font-bold text-emerald-700 whitespace-nowrap">{adv.appliedAmount.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-3 text-left font-black text-amber-800 whitespace-nowrap">{adv.remainingAmount.toLocaleString()} EGP</td>
+                      <td className="py-3.5 px-3 text-center font-sans">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-black shadow-2xs whitespace-nowrap ${
                           adv.status === 'fully_applied' ? 'bg-slate-100 text-slate-600 border border-slate-200' :
                           adv.status === 'partially_applied' ? 'bg-blue-50 text-blue-700 border border-blue-200' :

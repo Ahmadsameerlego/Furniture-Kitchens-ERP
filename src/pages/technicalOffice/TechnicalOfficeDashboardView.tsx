@@ -272,7 +272,7 @@ export const TechnicalOfficeDashboardView: React.FC = () => {
               <span className="text-purple-800 font-bold font-mono">HND-2026-003</span>
               <button 
                 onClick={() => {
-                  const hnd = pendingHandovers[0] || { id: 'hnd-103', projectNumber: 'TECH-2026-003', customerName: 'سارة علي' };
+                  const hnd = pendingHandovers[0] || { id: 'hnd-103', projectNumber: 'TECH-2026-003', customerName: '' };
                   setSelectedHandoverForReview(hnd);
                 }}
                 className="text-[#C87A38] font-black hover:underline flex items-center gap-1 cursor-pointer"

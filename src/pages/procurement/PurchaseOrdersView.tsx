@@ -229,16 +229,16 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-right text-xs">
             <thead className="bg-[#1E110B]/5 text-slate-700 font-black border-b border-slate-200/80">
-              <tr className="whitespace-nowrap">
-                <th className="py-4 px-5 min-w-[130px]">رقم الأمر</th>
-                <th className="py-4 px-4 min-w-[140px]">تاريخ الأمر / التوريد</th>
-                <th className="py-4 px-4 min-w-[180px]">المورد المعتمد</th>
-                <th className="py-4 px-4 min-w-[160px]">المشروع المرتبط</th>
-                <th className="py-4 px-4 min-w-[180px]">البنود ونسبة الاستلام</th>
-                <th className="py-4 px-4 text-center min-w-[130px]">القيمة الإجمالية</th>
-                <th className="py-4 px-4 text-center min-w-[130px]">حالة الاستلام</th>
-                <th className="py-4 px-4 text-center min-w-[150px]">الحالة</th>
-                <th className="py-4 px-5 text-center min-w-[170px]">الإجراءات</th>
+              <tr>
+                <th className="py-3 px-2 min-w-[80px]">رقم الأمر</th>
+                <th className="py-3 px-2 min-w-[90px]">تاريخ الأمر / التوريد</th>
+                <th className="py-3 px-2 min-w-[110px]">المورد المعتمد</th>
+                <th className="py-3 px-2 min-w-[100px]">المشروع المرتبط</th>
+                <th className="py-3 px-2 min-w-[110px]">البنود ونسبة الاستلام</th>
+                <th className="py-3 px-2 text-center min-w-[80px]">القيمة الإجمالية</th>
+                <th className="py-3 px-2 text-center min-w-[80px]">حالة الاستلام</th>
+                <th className="py-3 px-2 text-center min-w-[90px]">الحالة</th>
+                <th className="py-3 px-2 text-center min-w-[110px]">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
@@ -258,31 +258,31 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                   return (
                     <tr key={po.id} className="hover:bg-amber-50/20 transition-colors">
                       {/* PO Number */}
-                      <td className="py-4 px-5 font-mono font-black text-slate-900 text-xs whitespace-nowrap">
+                      <td className="py-3 px-2 font-mono font-black text-slate-900 text-xs whitespace-nowrap">
                         <span className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">
                           {po.poNumber}
                         </span>
                       </td>
 
                       {/* PO Date & Expected Delivery */}
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="font-mono font-bold text-slate-800 text-xs">{po.poDate}</div>
+                      <td className="py-3 px-2">
+                        <div className="font-mono font-bold text-slate-800 text-xs whitespace-nowrap">{po.poDate}</div>
                         <div className="text-[10px] text-slate-400 mt-0.5">
-                          تسليم: <strong className="text-amber-800 font-mono font-black">{po.expectedDeliveryDate}</strong>
+                          تسليم: <strong className="text-amber-800 font-mono font-black whitespace-nowrap">{po.expectedDeliveryDate}</strong>
                         </div>
                       </td>
 
                       {/* Supplier */}
-                      <td className="py-4 px-4">
+                      <td className="py-3 px-2">
                         <div className="font-bold text-slate-900 text-xs">{po.supplierName}</div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">{po.supplierTaxNumber || 'ضريبي'}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5 whitespace-nowrap">{po.supplierTaxNumber || 'ضريبي'}</div>
                       </td>
 
                       {/* Project */}
-                      <td className="py-4 px-4">
+                      <td className="py-3 px-2">
                         {po.projectNumber ? (
                           <div>
-                            <span className="font-bold text-indigo-700 block font-mono text-xs">{po.projectNumber}</span>
+                            <span className="font-bold text-indigo-700 block font-mono text-xs whitespace-nowrap">{po.projectNumber}</span>
                             <span className="text-[10px] text-slate-500 block truncate max-w-[140px] mt-0.5">{po.projectName}</span>
                           </div>
                         ) : (
@@ -291,10 +291,10 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                       </td>
 
                       {/* Items & Progress */}
-                      <td className="py-4 px-4">
+                      <td className="py-3 px-2">
                         <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
-                          <span className="text-slate-700 font-mono">{totalReceived} من {totalOrdered} مستلم</span>
-                          <span className="font-mono text-slate-900 font-black">{receivePercent}%</span>
+                          <span className="text-slate-700 font-mono whitespace-nowrap">{totalReceived} من {totalOrdered} مستلم</span>
+                          <span className="font-mono text-slate-900 font-black whitespace-nowrap">{receivePercent}%</span>
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
                           <div
@@ -311,14 +311,14 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                       </td>
 
                       {/* Grand Total */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
-                        <span className="font-mono font-black text-slate-900 text-xs">{po.grandTotal.toLocaleString()}</span>
+                      <td className="py-3 px-2 text-center">
+                        <span className="font-mono font-black text-slate-900 text-xs whitespace-nowrap">{po.grandTotal.toLocaleString()}</span>
                         <span className="text-[10px] text-slate-500 mr-1 font-bold">ج.م</span>
                       </td>
 
                       {/* Receiving Status Badge (No clipping) */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
-                        <span className={`whitespace-nowrap inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${
+                      <td className="py-3 px-2 text-center">
+                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${
                           po.receivingStatus === 'fully_received'
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                             : po.receivingStatus === 'partially_received'
@@ -330,14 +330,14 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                       </td>
 
                       {/* Status Badge (No clipping) */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
-                        <span className={`whitespace-nowrap inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
+                      <td className="py-3 px-2 text-center">
+                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold leading-normal border shadow-2xs ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
                           {statusBadge.label}
                         </span>
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-5 text-center whitespace-nowrap">
+                      <td className="py-3 px-2 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleOpenDetails(po)}
@@ -456,35 +456,35 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
                   <table className="w-full text-right text-xs">
                     <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                       <tr>
-                        <th className="py-2.5 px-3">الصنف / الكود</th>
-                        <th className="py-2.5 px-3 text-center">المطلوب</th>
-                        <th className="py-2.5 px-3 text-center">المستلم</th>
-                        <th className="py-2.5 px-3 text-center">المتبقي</th>
-                        <th className="py-2.5 px-3">سعر الوحدة</th>
-                        <th className="py-2.5 px-3">ضريبة 14%</th>
-                        <th className="py-2.5 px-3">الإجمالي</th>
+                        <th className="py-2.5 px-2">الصنف / الكود</th>
+                        <th className="py-2.5 px-2 text-center">المطلوب</th>
+                        <th className="py-2.5 px-2 text-center">المستلم</th>
+                        <th className="py-2.5 px-2 text-center">المتبقي</th>
+                        <th className="py-2.5 px-2">سعر الوحدة</th>
+                        <th className="py-2.5 px-2">ضريبة 14%</th>
+                        <th className="py-2.5 px-2">الإجمالي</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {selectedPO.items.map((it, idx) => (
                         <tr key={idx}>
-                          <td className="py-3 px-3">
+                          <td className="py-3 px-2">
                             <span className="font-black text-slate-900 block">{it.itemName}</span>
-                            <span className="text-[10px] font-mono text-slate-400">{it.itemCode}</span>
+                            <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">{it.itemCode}</span>
                           </td>
-                          <td className="py-3 px-3 text-center font-bold text-slate-800">{it.quantity} {it.uom}</td>
-                          <td className="py-3 px-3 text-center font-bold text-emerald-700">{it.receivedQuantity} {it.uom}</td>
-                          <td className="py-3 px-3 text-center font-bold text-amber-700">{it.remainingQuantity} {it.uom}</td>
-                          <td className="py-3 px-3 font-mono text-slate-700">{it.netUnitPrice.toLocaleString()} ج.م</td>
-                          <td className="py-3 px-3 font-mono text-slate-500">{it.taxAmount.toLocaleString()} ج.م</td>
-                          <td className="py-3 px-3 font-mono font-black text-slate-900">{it.totalAmount.toLocaleString()} ج.م</td>
+                          <td className="py-3 px-2 text-center font-bold text-slate-800">{it.quantity} {it.uom}</td>
+                          <td className="py-3 px-2 text-center font-bold text-emerald-700">{it.receivedQuantity} {it.uom}</td>
+                          <td className="py-3 px-2 text-center font-bold text-amber-700">{it.remainingQuantity} {it.uom}</td>
+                          <td className="py-3 px-2 font-mono text-slate-700 whitespace-nowrap">{it.netUnitPrice.toLocaleString()} ج.م</td>
+                          <td className="py-3 px-2 font-mono text-slate-500 whitespace-nowrap">{it.taxAmount.toLocaleString()} ج.م</td>
+                          <td className="py-3 px-2 font-mono font-black text-slate-900 whitespace-nowrap">{it.totalAmount.toLocaleString()} ج.م</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot className="bg-slate-50 font-black border-t border-slate-200">
                       <tr>
-                        <td colSpan={6} className="py-3 px-3 text-slate-700">المبلغ الإجمالي النهائي شامل الضريبة والشحن:</td>
-                        <td className="py-3 px-3 font-mono text-indigo-700 text-sm">
+                        <td colSpan={6} className="py-3 px-2 text-slate-700">المبلغ الإجمالي النهائي شامل الضريبة والشحن:</td>
+                        <td className="py-3 px-2 font-mono text-indigo-700 text-sm">
                           {selectedPO.grandTotal.toLocaleString()} ج.م
                         </td>
                       </tr>
@@ -706,11 +706,11 @@ export const PurchaseOrdersView: React.FC<PurchaseOrdersViewProps> = ({
               <tbody className="divide-y divide-slate-100">
                 {selectedPO.items.map((it, idx) => (
                   <tr key={idx}>
-                    <td className="p-2.5 font-mono">{idx + 1}</td>
+                    <td className="p-2.5 font-mono whitespace-nowrap">{idx + 1}</td>
                     <td className="p-2.5 font-bold text-slate-900">{it.itemName} ({it.itemCode})</td>
                     <td className="p-2.5 text-center font-bold">{it.quantity} {it.uom}</td>
-                    <td className="p-2.5 font-mono">{it.netUnitPrice.toLocaleString()} ج.م</td>
-                    <td className="p-2.5 font-mono font-bold">{it.totalAmount.toLocaleString()} ج.م</td>
+                    <td className="p-2.5 font-mono whitespace-nowrap">{it.netUnitPrice.toLocaleString()} ج.م</td>
+                    <td className="p-2.5 font-mono font-bold whitespace-nowrap">{it.totalAmount.toLocaleString()} ج.م</td>
                   </tr>
                 ))}
               </tbody>

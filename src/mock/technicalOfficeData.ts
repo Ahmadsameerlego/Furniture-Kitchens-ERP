@@ -1,3 +1,4 @@
+import { KITCHEN_DRAWINGS } from './designDrawings';
 import {
   TechnicalProject,
   TechnicalSiteSurvey,
@@ -22,74 +23,102 @@ export const initialTechnicalProjects: TechnicalProject[] = [
     branchId: 'branch-1',
     branchName: 'المعرض الرئيسي - القاهرة',
     projectType: 'kitchen',
-    status: 'technically_approved',
+    status: 'in_production',
     priority: 'high',
     responsibleEngineerId: 'user-2',
     responsibleEngineerName: 'م. إبراهيم فؤاد (رئيس المكتب الفني)',
     designerEngineerName: 'م. كريم سامي',
-    createdDate: '2026-08-26',
-    lastUpdatedDate: '2026-08-28 14:30',
-    targetReleaseDate: '2026-09-02',
+    createdDate: '2026-08-19',
+    lastUpdatedDate: '2026-08-24 14:30',
+    targetReleaseDate: '2026-08-24',
     activeDesignVersion: 2,
     activeBomRevision: 'REV-A',
     handoverId: 'hnd-101',
-    technicalNotes: 'مطبخ تفصيل HPL هندي مطعم بليد بروفايل ومفصلات بلوم نمساوي أصلي مع رخام جالاكسي. تم مطابقة المعاينة وتفجير الـ BOM وجاهز للإفراج للتخطيط.',
-    commercialScopeSummary: 'عقد معتمد بقيمة 118,500 ج.م - تم التحقق من سداد دفعة العربين 40% (47,400 ج.م) بسند رقم RCP-2026-001.'
+    technicalNotes: 'مطبخ تفصيل HPL هندي مطعم بليد بروفايل ومفصلات بلوم نمساوي أصلي مع رخام جالاكسي. تم الإفراج للتخطيط والتصنيع جارٍ حالياً بعنبر التجميع.',
+    commercialScopeSummary: 'عقد معتمد بقيمة 250,000 ج.م (285,000 ج.م شامل الضريبة) - تم التحقق من سداد العربون 40% (100,000 ج.م) بسند رقم RCP-2026-001.'
   },
   {
     id: 'tech-prj-102',
     projectNumber: 'TECH-2026-002',
     salesProjectId: 'prj-102',
     salesProjectNumber: 'PRJ-2026-002',
-    projectName: 'غرفة نوم ماستر كابتونيه شامبين',
-    customerId: 'cust-2',
-    customerName: 'أحمد سمير',
-    customerPhone: '01112223344',
+    projectName: 'غرفة نوم ماستر ودريسنج روم - فيلا الشيخ زايد',
+    customerId: 'cust-11',
+    customerName: 'م. حازم السعدني',
+    customerPhone: '01144556677',
     contractId: 'cnt-102',
     contractNumber: 'CNT-2026-002',
     branchId: 'branch-1',
-    branchName: 'المعرض الرئيسي - القاهرة',
-    projectType: 'bedroom',
-    status: 'site_survey_in_progress',
+    branchName: 'معرض القاهرة الرئيسي',
+    projectType: 'wardrobe',
+    status: 'in_production',
     priority: 'normal',
     responsibleEngineerId: 'user-2',
     responsibleEngineerName: 'م. إبراهيم فؤاد',
     designerEngineerName: 'م. ندى شريف',
-    createdDate: '2026-08-27',
-    lastUpdatedDate: '2026-08-28 10:00',
-    targetReleaseDate: '2026-09-10',
-    activeDesignVersion: 1,
-    activeBomRevision: 'REV-01',
+    createdDate: '2026-07-16',
+    lastUpdatedDate: '2026-08-24 16:00',
+    targetReleaseDate: '2026-07-30',
+    activeDesignVersion: 2,
+    activeBomRevision: 'REV-A',
     handoverId: 'hnd-102',
-    technicalNotes: 'تم قبول محضر الاستلام من المبيعات، ومجدول خروج مهندس الرفع المساحي لتأكيد استقامة جدار السرير والدولاب الجرار.',
-    commercialScopeSummary: 'عقد معتمد بقيمة 95,000 ج.م - تم سداد الدفعة المقدمة.'
+    technicalNotes: 'تم التصنيع والتغليف بالكامل (4 طرود) وتسليم الملف لفريق التركيبات.',
+    commercialScopeSummary: 'عقد معتمد بقيمة 165,000 ج.م - تم تحصيل العربون ودفعة الشحن (132,000 ج.م).'
   },
   {
     id: 'tech-prj-103',
     projectNumber: 'TECH-2026-003',
     salesProjectId: 'prj-103',
     salesProjectNumber: 'PRJ-2026-003',
-    projectName: 'وحدة تلفزيون وديكورات خشبية',
-    customerId: 'cust-3',
-    customerName: 'سارة علي',
-    customerPhone: '01223344556',
+    projectName: 'مطبخ كلاسيك قشرة أرو طبيعي - مدينة نصر',
+    customerId: 'cust-12',
+    customerName: 'أ. شريف مدكور',
+    customerPhone: '01006677889',
     contractId: 'cnt-103',
     contractNumber: 'CNT-2026-003',
     branchId: 'branch-1',
-    branchName: 'المعرض الرئيسي - القاهرة',
-    projectType: 'tv_unit',
+    branchName: 'معرض القاهرة الرئيسي',
+    projectType: 'kitchen',
+    status: 'released_to_planning',
+    priority: 'urgent',
+    responsibleEngineerId: 'user-2',
+    responsibleEngineerName: 'م. إبراهيم فؤاد',
+    designerEngineerName: 'م. كريم سامي',
+    createdDate: '2026-08-19',
+    lastUpdatedDate: '2026-08-26 13:00',
+    targetReleaseDate: '2026-08-26',
+    activeDesignVersion: 2,
+    activeBomRevision: 'REV-A',
+    handoverId: 'hnd-103',
+    technicalNotes: 'تم الإفراج للتخطيط. التقطيع معلق لحين توريد 12 لوح أبلكاج قشرة أرو من المورد (أمر شراء عاجل).',
+    commercialScopeSummary: 'عقد معتمد بقيمة 210,000 ج.م - تم التحقق من العربون 40% (84,000 ج.م) بسند RCP-2026-003.'
+  },
+  {
+    id: 'tech-prj-104',
+    projectNumber: 'TECH-2026-004',
+    salesProjectId: 'prj-104',
+    salesProjectNumber: 'PRJ-2026-004',
+    projectName: 'مطبخ أكريليك أبيض لامع - جليم الإسكندرية',
+    customerId: 'cust-6',
+    customerName: 'د. نورهان علي',
+    customerPhone: '01199887711',
+    contractId: 'cnt-104',
+    contractNumber: 'CNT-2026-004',
+    branchId: 'branch-4',
+    branchName: 'معرض الإسكندرية - سموحة',
+    projectType: 'kitchen',
     status: 'pending_handover',
     priority: 'normal',
     responsibleEngineerId: 'user-2',
     responsibleEngineerName: 'م. إبراهيم فؤاد',
-    createdDate: '2026-08-28',
-    lastUpdatedDate: '2026-08-28 11:30',
-    targetReleaseDate: '2026-09-15',
+    createdDate: '2026-08-27',
+    lastUpdatedDate: '2026-08-27 13:30',
+    targetReleaseDate: '2026-09-08',
     activeDesignVersion: 1,
     activeBomRevision: 'REV-01',
-    handoverId: 'hnd-103',
-    technicalNotes: 'محضر تسليم جديد وارد من مسؤول المبيعات في انتظار تدقيق المستندات والقبول الفني.',
-    commercialScopeSummary: 'عقد مسودة قيد التحقق المالي.'
+    handoverId: 'hnd-104',
+    technicalNotes: 'محضر تسليم جديد وارد من معرض الإسكندرية في انتظار التدقيق والقبول الفني.',
+    commercialScopeSummary: 'عقد معتمد بقيمة 175,000 ج.م - تم التحقق من العربون 40% (70,000 ج.م).'
   }
 ];
 
@@ -108,7 +137,7 @@ export const initialTechnicalSurveys: TechnicalSiteSurvey[] = [
       {
         id: 'wall-1',
         wallName: 'الجدار A (الرئيسي - حوض وغسالة أطباق)',
-        lengthCm: 385,
+        lengthCm: 419.5,
         heightCm: 280,
         angleDegrees: 90,
         plasterQuality: 'straight',
@@ -117,7 +146,7 @@ export const initialTechnicalSurveys: TechnicalSiteSurvey[] = [
       {
         id: 'wall-2',
         wallName: 'الجدار B (الجانبي - عمود خرساني وشفاط وبوتاجاز)',
-        lengthCm: 290,
+        lengthCm: 339.5,
         heightCm: 280,
         angleDegrees: 89.5,
         plasterQuality: 'straight',
@@ -295,14 +324,14 @@ export const initialTechnicalSurveys: TechnicalSiteSurvey[] = [
       accessRestrictions: 'فيلا أرضي مدخل مباشر - لا توجد عوائق في النقل والتحميل'
     },
     sitePhotos: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+      KITCHEN_DRAWINGS.elevationA,
       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=600'
     ],
     sketches: [
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600'
     ],
     verifiedByEngineerName: 'م. إبراهيم فؤاد',
-    verifiedAt: '2026-08-21 11:00',
+    verifiedAt: '2026-08-20 18:00',
     notes: 'تم اعتماد تقرير الرفع المساحي بالكامل وإرساله لقسم التصميم والتفجير.'
   }
 ];
@@ -321,7 +350,7 @@ export const initialTechnicalDesigns: TechnicalDesignRevision[] = [
         name: 'kitchen_mohamed_hassan_layout_v1.dwg',
         fileType: 'dwg',
         fileSize: '4.8 MB',
-        uploadedAt: '2026-08-22 14:00',
+        uploadedAt: '2026-08-21 14:00',
         uploadedBy: 'م. كريم سامي'
       },
       {
@@ -329,12 +358,12 @@ export const initialTechnicalDesigns: TechnicalDesignRevision[] = [
         name: 'kitchen_mohamed_hassan_elevations.pdf',
         fileType: 'pdf',
         fileSize: '2.1 MB',
-        uploadedAt: '2026-08-22 14:05',
+        uploadedAt: '2026-08-21 14:05',
         uploadedBy: 'م. كريم سامي'
       }
     ],
     renders: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600'
+      KITCHEN_DRAWINGS.elevationA
     ],
     changeDescription: 'الإصدار المبدئي المعتمد على مقاسات المعاينة الأولية',
     status: 'superseded',
@@ -354,7 +383,7 @@ export const initialTechnicalDesigns: TechnicalDesignRevision[] = [
         name: 'kitchen_mohamed_hassan_shopdrawings_approved_v2.dwg',
         fileType: 'dwg',
         fileSize: '6.2 MB',
-        uploadedAt: '2026-08-25 17:00',
+        uploadedAt: '2026-08-22 17:00',
         uploadedBy: 'م. كريم سامي'
       },
       {
@@ -362,7 +391,7 @@ export const initialTechnicalDesigns: TechnicalDesignRevision[] = [
         name: 'kitchen_cutting_and_drilling_cnc.dxf',
         fileType: 'dxf',
         fileSize: '3.4 MB',
-        uploadedAt: '2026-08-25 17:10',
+        uploadedAt: '2026-08-22 17:10',
         uploadedBy: 'م. كريم سامي'
       },
       {
@@ -370,18 +399,18 @@ export const initialTechnicalDesigns: TechnicalDesignRevision[] = [
         name: 'final_approved_drawings_package.pdf',
         fileType: 'pdf',
         fileSize: '5.1 MB',
-        uploadedAt: '2026-08-25 17:15',
+        uploadedAt: '2026-08-22 17:15',
         uploadedBy: 'م. كريم سامي'
       }
     ],
     renders: [
-      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=600',
+      KITCHEN_DRAWINGS.elevationA,
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600'
     ],
     changeDescription: 'تضمين جزيرة وسطية 180×90 سم وتعديل تجاويف علبة العمود الخرساني 15×35 سم',
     status: 'approved',
     approvedBy: 'م. إبراهيم فؤاد (رئيس المكتب الفني)',
-    approvedAt: '2026-08-26 11:30',
+    approvedAt: '2026-08-22 19:00',
     customerApproved: true,
     notes: 'مخططات تنفيذية معتمدة ونهائية ومطابقة لمواصفات العقد وعرض السعر'
   }
@@ -396,9 +425,9 @@ export const initialTechnicalBOMs: TechnicalBOM[] = [
     title: 'جدول تفجير المواد وقوائم التقطيع المعتمدة للمطبخ (BOM Production Package)',
     status: 'approved',
     createdBy: 'م. كريم سامي (مهندس المكتب الفني)',
-    createdDate: '2026-08-26',
+    createdDate: '2026-08-23',
     approvedBy: 'م. إبراهيم فؤاد (رئيس المكتب الفني)',
-    approvedAt: '2026-08-28 14:00',
+    approvedAt: '2026-08-24 12:00',
     totalPartsCount: 42,
     totalHardwareCount: 58,
     totalEstimatedMaterialCost: 64200,
@@ -884,16 +913,58 @@ export const initialTechnicalReleases: TechnicalReleasePackage[] = [
     approvedDesignVersion: 2,
     approvedBomRevision: 'REV-A',
     releasedByUserName: 'م. إبراهيم فؤاد (رئيس المكتب الفني)',
-    releasedAt: '2026-08-28 14:30',
-    targetProductionStartDate: '2026-09-03',
-    targetFactoryCompletionDate: '2026-09-22',
-    targetSiteInstallationDate: '2026-09-25',
+    releasedAt: '2026-08-24 14:30',
+    targetProductionStartDate: '2026-08-26',
+    targetFactoryCompletionDate: '2026-09-15',
+    targetSiteInstallationDate: '2026-09-18',
     planningStatus: 'materials_allocated',
     planningReceivedBy: 'م. سامح جودة (مدير التخطيط والمشتريات)',
-    planningReceivedAt: '2026-08-28 15:00',
+    planningReceivedAt: '2026-08-24 15:00',
     planningNotes: 'تم حجز 14 لوح MDF جود وود و28 مفصلة بلوم بالمخزن، وجاري إصدار أمر توريد 3 ألواح HPL إضافية.',
     technicalSpecificationsSummary: 'مطبخ HPL كود 812 مع جزيرة وسطية ومفصلات بلوم وتجاليد عمود خرساني بالجدار B.',
     specialManufacturingInstructions: 'تفريغ عمود الحائط B بدقة 15×35 سم، وتجليد قشاط PVC 2مم بالكامل لضمان مقاومة الرطوبة.'
+  },
+  {
+    id: 'rel-102',
+    releaseNumber: 'REL-2026-002',
+    technicalProjectId: 'tech-prj-102',
+    projectNumber: 'TECH-2026-002',
+    customerName: 'م. حازم السعدني',
+    contractNumber: 'CNT-2026-002',
+    approvedDesignVersion: 2,
+    approvedBomRevision: 'REV-A',
+    releasedByUserName: 'م. إبراهيم فؤاد (رئيس المكتب الفني)',
+    releasedAt: '2026-07-30 12:00',
+    targetProductionStartDate: '2026-08-10',
+    targetFactoryCompletionDate: '2026-08-24',
+    targetSiteInstallationDate: '2026-08-28',
+    planningStatus: 'materials_allocated',
+    planningReceivedBy: 'م. سامح جودة (مدير التخطيط والمشتريات)',
+    planningReceivedAt: '2026-07-30 14:00',
+    planningNotes: 'تم صرف كامل الخامات والتصنيع مكتمل.',
+    technicalSpecificationsSummary: 'سرير كينج بسحارة هيدروليك + دريسنج 4.2م بدلف زجاج فاميه وبروفايل ألومنيوم أسود.',
+    specialManufacturingInstructions: 'تغليف الزجاج في طرد مستقل بحماية زوايا.'
+  },
+  {
+    id: 'rel-103',
+    releaseNumber: 'REL-2026-003',
+    technicalProjectId: 'tech-prj-103',
+    projectNumber: 'TECH-2026-003',
+    customerName: 'أ. شريف مدكور',
+    contractNumber: 'CNT-2026-003',
+    approvedDesignVersion: 2,
+    approvedBomRevision: 'REV-A',
+    releasedByUserName: 'م. إبراهيم فؤاد (رئيس المكتب الفني)',
+    releasedAt: '2026-08-26 13:00',
+    targetProductionStartDate: '2026-08-31',
+    targetFactoryCompletionDate: '2026-09-18',
+    targetSiteInstallationDate: '2026-09-24',
+    planningStatus: 'shortages_identified',
+    planningReceivedBy: 'م. سامح جودة (مدير التخطيط والمشتريات)',
+    planningReceivedAt: '2026-08-26 15:00',
+    planningNotes: 'عجز 12 لوح أبلكاج قشرة أرو - تم إصدار طلب شراء عاجل.',
+    technicalSpecificationsSummary: 'مطبخ U كلاسيك بقشرة أرو ودهان أستر مط ورخام كريما مارفيل.',
+    specialManufacturingInstructions: 'مطابقة اتجاه عروق القشرة في الدلف المتجاورة.'
   }
 ];
 
@@ -908,19 +979,19 @@ export const initialEngineeringChangeRequests: EngineeringChangeRequest[] = [
     reason: 'قام العميل بتغيير موديل الميكروويف من 20 لتر إلى موديل بوش 25 لتر بفتحة أكبر',
     source: 'customer_request',
     requestedByUserName: 'عمر فاروق (مسؤول المبيعات)',
-    requestedDate: '2026-08-29 11:00',
+    requestedDate: '2026-08-27 11:00',
     previousBomRevision: 'REV-A',
     targetNewBomRevision: 'REV-B',
     affectedUnits: ['TALL-60-OVEN'],
     impactAssessment: {
       costImpact: 450,
       scheduleDelayDays: 0,
-      materialsWasted: 'لا يوجد هالك - لم يبدأ التقطيع بعد',
+      materialsWasted: 'لا يوجد هالك - علبة الفرن الطولية لم تدخل التجميع بعد',
       customerApprovalRequired: true
     },
     status: 'under_review',
     reviewedByUserName: 'م. إبراهيم فؤاد',
-    reviewedAt: '2026-08-29 12:30',
+    reviewedAt: '2026-08-27 12:30',
     resolutionNotes: 'التعديل متاح هندسياً وتكلفة بسيطة للفارق.'
   }
 ];

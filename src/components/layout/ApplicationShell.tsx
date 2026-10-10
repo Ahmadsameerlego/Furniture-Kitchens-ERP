@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
@@ -10,7 +10,6 @@ import { AnalyticsPage } from '../../pages/AnalyticsPage';
 import { CustomersListPage } from '../../pages/CustomersListPage';
 import { CampaignsPage } from '../../pages/CampaignsPage';
 import { ProductsListPage } from '../../pages/ProductsListPage';
-import { MaterialsListPage } from '../../pages/MaterialsListPage';
 import { InventoryPage } from '../../pages/InventoryPage';
 import { ReadyOrdersListPage } from '../../pages/ReadyOrdersListPage';
 import { CustomProjectsListPage } from '../../pages/CustomProjectsListPage';
@@ -65,6 +64,7 @@ import { PlanningPage } from '../../pages/planning/PlanningPage';
 
 // Manufacturing & Workshops Suite
 import { ManufacturingWorkspace } from '../../pages/production/ManufacturingWorkspace';
+import { FactoryReportsPage } from '../../pages/reports/FactoryReportsPage';
 
 // Procurement & Purchasing Pages
 import { ProcurementWorkspace } from '../../pages/procurement/ProcurementWorkspace';
@@ -74,8 +74,14 @@ import { PlaceholderModulePage } from '../../pages/PlaceholderModulePage';
 import { Building2, MapPin, Users as UsersIcon, ShieldCheck, History, Terminal } from 'lucide-react';
 
 export const ApplicationShell: React.FC = () => {
-  const { activeModule } = useERP();
+  const { activeModule, selectedProjectId, selectedCustomerId } = useERP();
   const [settingsSubTab, setSettingsSubTab] = useState<'company' | 'branches' | 'users' | 'roles' | 'audit' | 'security'>('company');
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Every new screen or opened record starts from the top instead of the previous scroll position
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [activeModule, selectedProjectId, selectedCustomerId]);
 
   // If customer portal is active, render customer portal cleanly without the internal ERP app shell!
   if (activeModule === 'portal') {
@@ -95,6 +101,9 @@ export const ApplicationShell: React.FC = () => {
 
       case 'analytics':
         return <AnalyticsPage />;
+
+      case 'reports':
+        return <FactoryReportsPage />;
 
       case 'customers':
         return <CustomersListPage />;
@@ -170,8 +179,17 @@ export const ApplicationShell: React.FC = () => {
       case 'mfg_dashboard':
         return <ManufacturingWorkspace initialTab="mfg_dashboard" />;
 
+      case 'mfg_daily':
+        return <ManufacturingWorkspace initialTab="mfg_daily" />;
+
       case 'mfg_orders':
         return <ManufacturingWorkspace initialTab="mfg_orders" />;
+
+      case 'mfg_remake':
+        return <ManufacturingWorkspace initialTab="mfg_remake" />;
+
+      case 'mfg_workforce':
+        return <ManufacturingWorkspace initialTab="mfg_workforce" />;
 
       case 'mfg_work_orders':
         return <ManufacturingWorkspace initialTab="mfg_work_orders" />;
@@ -194,8 +212,9 @@ export const ApplicationShell: React.FC = () => {
       case 'products':
         return <ProductsListPage />;
 
+      // The old materials list is replaced by the inventory item cards
       case 'materials':
-        return <MaterialsListPage />;
+        return <ItemMasterCardsView />;
 
       case 'inventory':
       case 'inv_dashboard':
@@ -379,7 +398,7 @@ export const ApplicationShell: React.FC = () => {
         <Header />
 
         {/* Scrollable Main Workspace Body */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-4 2xl:p-6 custom-scrollbar">
           <div className="max-w-7xl w-full mx-auto animate-in fade-in duration-200">
             {renderMainContent()}
           </div>

@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
+import { stockAt } from '../../services/warehouseStock';
 import { WarehouseLocation, WarehouseCategoryType } from '../../types/erp';
 import {
   Building2,
@@ -111,8 +112,8 @@ export const WarehousesLocationsView: React.FC = () => {
       {/* 2. WAREHOUSES CARDS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredWarehouses.map(wh => {
-          const whItems = itemMasterCards.filter(i => i.defaultWarehouseId === wh.id);
-          const whValuation = whItems.reduce((s, i) => s + (i.currentStock * i.weightedAvgCost), 0);
+          const whItems = itemMasterCards.filter(i => stockAt(i, wh.id) > 0);
+          const whValuation = whItems.reduce((s, i) => s + (stockAt(i, wh.id) * i.weightedAvgCost), 0);
 
           return (
             <div

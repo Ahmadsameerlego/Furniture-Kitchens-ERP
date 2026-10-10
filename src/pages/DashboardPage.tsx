@@ -35,6 +35,7 @@ import {
   Wrench
 } from 'lucide-react';
 import { ProjectType, ProjectStatus } from '../types/erp';
+import { daysFromToday } from '../mock/scenario';
 
 export const DashboardPage: React.FC = () => {
   const {
@@ -48,7 +49,10 @@ export const DashboardPage: React.FC = () => {
     productionOrders,
     installationRecords,
     paymentReceipts,
+    variationOrders,
+    projectHandovers,
     materials,
+    itemMasterCards,
     setActiveModule,
     setSelectedProjectId,
     setSelectedProductionOrderId
@@ -84,7 +88,10 @@ export const DashboardPage: React.FC = () => {
   const activeInstallations = installationRecords.filter(ir => ir.status === 'scheduled' || ir.status === 'confirmed' || ir.status === 'in_progress');
 
   // 5. Critical Materials Alert
-  const lowStockMaterials = materials.filter(m => (m.currentStock || 0) <= (m.minStockLevel || 0) + 2);
+  // Item cards closest to their reorder point first (the inventory module's real stock)
+  const criticalItemCards = [...itemMasterCards]
+    .filter(c => c.reorderPoint > 0)
+    .sort((a, b) => a.currentStock / a.reorderPoint - b.currentStock / b.reorderPoint);
 
   // Filtered projects list for the Live Monitor
   const filteredProjects = customProjects.filter(p => {
@@ -126,6 +133,8 @@ export const DashboardPage: React.FC = () => {
       case 'contract_signed':
       case 'deposit_verified':
         return { text: 'عقد موقع ومقدم محصل', color: 'bg-teal-50 text-teal-800 border-teal-200' };
+      case 'ready_for_production':
+        return { text: 'مفرج للتخطيط - بانتظار الخامات', color: 'bg-orange-50 text-orange-800 border-orange-200' };
       case 'handed_over_to_tech_office':
         return { text: 'مستلم بالمكتب الفني', color: 'bg-cyan-50 text-cyan-800 border-cyan-200' };
       case 'in_production':
@@ -159,7 +168,7 @@ export const DashboardPage: React.FC = () => {
       case 'contract_draft':
       case 'contract_signed':
       case 'deposit_verified': return 65;
-      case 'handed_over_to_tech_office':
+      case 'handed_over_to_tech_office': return 70;
       case 'ready_for_production': return 75;
       case 'in_production': return 85;
       case 'production_completed': return 90;
@@ -174,6 +183,94 @@ export const DashboardPage: React.FC = () => {
     setSelectedProjectId(id);
     setActiveModule('custom_projects');
   };
+
+  // 6. Action radar — derived from live records so it always matches the other screens
+  const todayIso = daysFromToday(0);
+  type RadarAlert = { key: string; tone: 'red' | 'amber' | 'blue' | 'purple'; title: string; meta: string; body: React.ReactNode; action: string; onClick: () => void };
+  const radarAlerts: RadarAlert[] = [];
+
+  productionOrders
+    .filter(po => po.status !== 'completed' && po.materials?.some(m => m.status === 'shortage'))
+    .forEach(po => {
+      const short = po.materials.filter(m => m.status === 'shortage');
+      radarAlerts.push({
+        key: `short-${po.id}`,
+        tone: 'red',
+        title: 'أمر تصنيع متوقف بسبب عجز خامات',
+        meta: 'عاجل',
+        body: <><strong>{po.productionNumber}</strong> ({po.customerName}) ينتظر {short.map(m => `${Math.max(0, m.remainingQuantity - m.reservedQuantity)} ${m.unit === 'Sheet' ? 'لوح' : m.unit} ${m.materialName}`).join('، ')}.</>,
+        action: 'متابعة طلب الشراء',
+        onClick: () => setActiveModule('proc_requests')
+      });
+    });
+
+  customContracts.forEach(contract => {
+    const project = customProjects.find(p => p.id === contract.projectId);
+    const shipping = contract.milestones.find(m => m.milestoneIndex === 2);
+    if (project?.status === 'in_production' && shipping && shipping.status === 'pending') {
+      radarAlerts.push({
+        key: `pay-${contract.id}`,
+        tone: 'amber',
+        title: 'دفعة مستحقة قبل خروج التوريد',
+        meta: `${shipping.percentage}%`,
+        body: <>العميل <strong>{contract.customerName}</strong>: دفعة {shipping.amount.toLocaleString()} ج.م مستحقة قبل شحن {project.projectNumber}.</>,
+        action: 'تسجيل إيصال سداد',
+        onClick: () => navigateToProject(project.id)
+      });
+    }
+  });
+
+  installationRecords
+    .filter(ir => ir.scheduledDate === todayIso && ir.status !== 'completed')
+    .forEach(ir => radarAlerts.push({
+      key: `inst-${ir.id}`,
+      tone: 'blue',
+      title: 'تركيب بموقع العميل اليوم',
+      meta: ir.scheduledTime || '',
+      body: <>{ir.installationNumber} للعميل <strong>{ir.customerName}</strong> - {ir.address}.</>,
+      action: 'جدول التركيبات',
+      onClick: () => setActiveModule('installation')
+    }));
+
+  variationOrders
+    .filter(v => v.status === 'pending_approval')
+    .forEach(v => radarAlerts.push({
+      key: `var-${v.id}`,
+      tone: 'purple',
+      title: 'أمر تغيير بانتظار الاعتماد',
+      meta: `+${v.totalPriceImpact.toLocaleString()} ج.م`,
+      body: <><strong>{v.orderNumber}</strong> - {v.customerName}: {v.reason}.</>,
+      action: 'مراجعة أمر التغيير',
+      onClick: () => setActiveModule('sales_change_orders')
+    }));
+
+  projectHandovers
+    .filter(h => h.status === 'submitted')
+    .forEach(h => radarAlerts.push({
+      key: `hnd-${h.id}`,
+      tone: 'blue',
+      title: 'محضر تسليم بانتظار المكتب الفني',
+      meta: h.projectNumber,
+      body: <>مشروع <strong>{h.customerName}</strong> وصل للمكتب الفني ولم يتم قبوله بعد.</>,
+      action: 'فتح المكتب الفني',
+      onClick: () => setActiveModule('tech_projects')
+    }));
+
+  const radarToneClasses: Record<RadarAlert['tone'], { border: string; title: string; dot: string; action: string }> = {
+    red: { border: 'border-red-200', title: 'text-red-900', dot: 'bg-red-500', action: 'text-red-700' },
+    amber: { border: 'border-amber-200', title: 'text-amber-900', dot: 'bg-amber-500', action: 'text-[#C87A38]' },
+    blue: { border: 'border-blue-200', title: 'text-blue-900', dot: 'bg-blue-500', action: 'text-blue-700' },
+    purple: { border: 'border-purple-200', title: 'text-purple-900', dot: 'bg-purple-500', action: 'text-purple-700' }
+  };
+
+  // 7. Collection health per contract milestone (40 / 40 / 20)
+  const milestoneHealth = [1, 2, 3].map(index => {
+    const rows = customContracts.flatMap(c => c.milestones.filter(m => m.milestoneIndex === index));
+    const due = rows.reduce((sum, m) => sum + m.amount, 0);
+    const paid = rows.reduce((sum, m) => sum + (m.paidAmount || 0), 0);
+    return { index, title: rows[0]?.title || '', percentage: rows[0]?.percentage || 0, due, paid, rate: due > 0 ? Math.round((paid / due) * 100) : 0 };
+  });
+  const milestoneBarClasses = ['bg-emerald-500', 'bg-[#C87A38]', 'bg-blue-600'];
 
   const navigateToProduction = (id?: string) => {
     if (id) setSelectedProductionOrderId(id);
@@ -197,7 +294,7 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
-              أهلاً بك، {currentUser.fullName} 👋
+              أهلاً بك، {currentUser.fullName}
             </h1>
 
             <p className="text-xs md:text-sm text-emerald-100/90 leading-relaxed font-medium">
@@ -811,73 +908,36 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
               <span className="bg-red-100 text-red-700 text-[10px] font-black px-2.5 py-0.5 rounded-full">
-                4 إجراءات
+                {radarAlerts.length} إجراءات
               </span>
             </div>
 
             <div className="space-y-2.5">
-              {/* Alert 1 */}
-              <div className="p-3 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-amber-900">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <span>اعتماد مخططات المكتب الفني</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400">منذ 24 ساعة</span>
-                </div>
-                <p className="text-[11px] text-slate-600 leading-snug">
-                  مشروع <strong>PRJ-2026-001 (مطبخ HPL)</strong> بانتظار تفجير الـ BOM وتأكيد قائمة تقطيع الألواح.
-                </p>
-                <button
-                  onClick={() => setActiveModule('tech_office')}
-                  className="text-[10px] font-black text-[#C87A38] hover:underline flex items-center gap-1 pt-1"
-                >
-                  <span>فتح المكتب الفني</span>
-                  <ChevronLeft className="w-3 h-3" />
-                </button>
-              </div>
-
-              {/* Alert 2 */}
-              <div className="p-3 rounded-2xl bg-white border border-red-200 shadow-2xs space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-red-900">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                    <span>دفعة مستحقة قبل خروج التوريد</span>
-                  </span>
-                  <span className="text-[10px] text-red-600 font-black">عاجل</span>
-                </div>
-                <p className="text-[11px] text-slate-600 leading-snug">
-                  العميل <strong>محمد حسن</strong> حان موعد دفعة الـ 30% قبل تحميل شحنة المطبخ للتركيب.
-                </p>
-                <button
-                  onClick={() => setActiveModule('finance')}
-                  className="text-[10px] font-black text-red-700 hover:underline flex items-center gap-1 pt-1"
-                >
-                  <span>تسجيل إيصال سداد</span>
-                  <ChevronLeft className="w-3 h-3" />
-                </button>
-              </div>
-
-              {/* Alert 3 */}
-              <div className="p-3 rounded-2xl bg-white border border-blue-200 shadow-2xs space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-blue-900">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <span>موعد مقايسة موقع لليوم</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400">04:00 م</span>
-                </div>
-                <p className="text-[11px] text-slate-600 leading-snug">
-                  زيارة معاينة موقع للعميل <strong>أحمد سمير</strong> في التجمع الخامس لغرفة نوم ماستر.
-                </p>
-                <button
-                  onClick={() => setActiveModule('custom_projects')}
-                  className="text-[10px] font-black text-blue-700 hover:underline flex items-center gap-1 pt-1"
-                >
-                  <span>عرض تفاصيل المعاينة</span>
-                  <ChevronLeft className="w-3 h-3" />
-                </button>
-              </div>
+              {radarAlerts.map(alert => {
+                const tone = radarToneClasses[alert.tone];
+                return (
+                  <div key={alert.key} className={`p-3 rounded-2xl bg-white border ${tone.border} shadow-2xs space-y-1`}>
+                    <div className={`flex items-center justify-between text-xs font-bold ${tone.title}`}>
+                      <span className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${tone.dot}`}></span>
+                        <span>{alert.title}</span>
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-black">{alert.meta}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-snug">{alert.body}</p>
+                    <button
+                      onClick={alert.onClick}
+                      className={`text-[10px] font-black ${tone.action} hover:underline flex items-center gap-1 pt-1`}
+                    >
+                      <span>{alert.action}</span>
+                      <ChevronLeft className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+              {radarAlerts.length === 0 && (
+                <p className="text-[11px] text-slate-500 text-center py-4">لا توجد اختناقات تتطلب تدخلاً الآن.</p>
+              )}
             </div>
           </div>
 
@@ -894,49 +954,18 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {/* Milestone 1: Deposit */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span>1. دفعة التعاقد والمقايسة (40%)</span>
-                  <span className="text-emerald-700">95% محصلة</span>
+              {milestoneHealth.map((m, i) => (
+                <div key={m.index} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span>{m.index}. {m.title} ({m.percentage}%)</span>
+                    <span className="text-slate-600">{m.rate}% محصلة</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className={`h-full rounded-full ${milestoneBarClasses[i]}`} style={{ width: `${m.rate}%` }}></div>
+                  </div>
+                  <p className="text-[10px] text-slate-400">{m.paid.toLocaleString()} من {m.due.toLocaleString()} ج.م</p>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-emerald-500" style={{ width: '95%' }}></div>
-                </div>
-              </div>
-
-              {/* Milestone 2: Pre-Production */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span>2. دفعة اعتماد المخططات وبدء المصنع (30%)</span>
-                  <span className="text-[#C87A38]">80% محصلة</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-[#C87A38]" style={{ width: '80%' }}></div>
-                </div>
-              </div>
-
-              {/* Milestone 3: Pre-Delivery */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span>3. دفعة قبل خروج التوريد والتركيب (20%)</span>
-                  <span className="text-blue-600">65% محصلة</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-blue-600" style={{ width: '65%' }}></div>
-                </div>
-              </div>
-
-              {/* Milestone 4: Handover Signoff */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span>4. دفعة الاستلام النهائي والضمان (10%)</span>
-                  <span className="text-purple-600">50% محصلة</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-purple-600" style={{ width: '50%' }}></div>
-                </div>
-              </div>
+              ))}
             </div>
 
             <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-950 font-medium space-y-1">
@@ -962,7 +991,7 @@ export const DashboardPage: React.FC = () => {
                 <p className="text-[11px] text-slate-500">مستويات الألواح والمفصلات الحرجة</p>
               </div>
               <button
-                onClick={() => setActiveModule('materials')}
+                onClick={() => setActiveModule('inv_items')}
                 className="text-[11px] font-black text-[#C87A38] hover:underline"
               >
                 المخازن
@@ -970,24 +999,24 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {materials.slice(0, 4).map((mat) => {
-                const isLow = (mat.currentStock || 0) <= (mat.minStockLevel || 0);
+              {criticalItemCards.slice(0, 4).map((card) => {
+                const isLow = card.currentStock <= card.reorderPoint;
 
                 return (
                   <div
-                    key={mat.id}
+                    key={card.id}
                     className="p-3 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
                   >
                     <div className="space-y-0.5">
-                      <h5 className="font-bold text-xs text-slate-900">{mat.name}</h5>
-                      <span className="text-[10px] text-slate-500 font-mono">{mat.code}</span>
+                      <h5 className="font-bold text-xs text-slate-900">{card.nameAr}</h5>
+                      <span className="text-[10px] text-slate-500 font-mono">{card.code}</span>
                     </div>
 
                     <div className="text-left shrink-0">
                       <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
                         isLow ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-800'
                       }`}>
-                        {mat.currentStock} {mat.unit}
+                        {card.currentStock} {card.unitNameAr}
                       </span>
                       {isLow && (
                         <span className="block text-[9px] font-bold text-red-600 mt-0.5">

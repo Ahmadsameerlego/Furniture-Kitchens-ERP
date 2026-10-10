@@ -24,6 +24,7 @@ interface WorkCentersAndOrdersViewProps {
   orders: ProductionOrder[];
   onUpdateWOStatus: (woId: string, newStatus: WorkOrder['status']) => void;
   onSelectOrder: (order: ProductionOrder) => void;
+  onOpenStation: (wo: WorkOrder) => void;
 }
 
 export const WorkCentersAndOrdersView: React.FC<WorkCentersAndOrdersViewProps> = ({
@@ -31,7 +32,8 @@ export const WorkCentersAndOrdersView: React.FC<WorkCentersAndOrdersViewProps> =
   workOrders,
   orders,
   onUpdateWOStatus,
-  onSelectOrder
+  onSelectOrder,
+  onOpenStation
 }) => {
   const [selectedCenterId, setSelectedCenterId] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -242,6 +244,15 @@ export const WorkCentersAndOrdersView: React.FC<WorkCentersAndOrdersViewProps> =
                         )}
                         {wo.status === 'blocked' && (
                           <span className="text-[11px] font-bold text-rose-600">⚠️ معطل</span>
+                        )}
+                        {wo.status !== 'completed' && (
+                          <button
+                            onClick={() => onOpenStation(wo)}
+                            className="px-2 py-1 bg-white border border-slate-200 hover:border-[#C87A38] text-slate-600 rounded-lg font-bold text-[10px]"
+                            title="تسجيل كمية / وقف / إرسال لورشة خارجية / بأثر رجعي"
+                          >
+                            تسجيل…
+                          </button>
                         )}
                       </div>
                     </td>
